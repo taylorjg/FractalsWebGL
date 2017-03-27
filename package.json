@@ -1,5 +1,5 @@
 {
-  "name": "Fractals WebGL",
+  "name": "fractals-webgl",
   "version": "0.0.0",
   "description": "Fractals in WebGL",
   "main": "server/app.js",
@@ -22,7 +22,8 @@
     "copy-webpack-plugin": "^4.0.1",
     "html-webpack-plugin": "^2.28.0",
     "webpack": "^2.2.1",
-    "webpack-dev-server": "^2.4.2"
+    "webpack-dev-server": "^2.4.2",
+    "webpack-glsl-loader": "^1.0.1"
   },
   "scripts": {
     "start": "node server/app.js"

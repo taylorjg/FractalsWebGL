@@ -1,5 +1,5 @@
-import vertexShaderSource from './shader.vert.js';
-import fragmentShaderSource from './shader.frag.js';
+import vertexShaderSource from './shader.vert.glsl';
+import fragmentShaderSource from './shader.frag.glsl';
 
 var gl;
 var aVertexPosition;
