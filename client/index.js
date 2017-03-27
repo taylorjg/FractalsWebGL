@@ -1,3 +1,5 @@
+import vertexShaderSource from './shader.vert.js';
+import fragmentShaderSource from './shader.frag.js';
 
 var gl;
 var aVertexPosition;
@@ -29,45 +31,21 @@ function initGL(canvas) {
     }
 }
 
-function getShader(gl, id) {
-    var shaderScript = document.getElementById(id);
-    if (!shaderScript) {
-        return null;
-    }
-
-    var str = "";
-    var k = shaderScript.firstChild;
-    while (k) {
-        if (k.nodeType == 3) {
-            str += k.textContent;
-        }
-        k = k.nextSibling;
-    }
-
-    var shader;
-    if (shaderScript.type == "x-shader/x-fragment") {
-        shader = gl.createShader(gl.FRAGMENT_SHADER);
-    } else if (shaderScript.type == "x-shader/x-vertex") {
-        shader = gl.createShader(gl.VERTEX_SHADER);
-    } else {
-        return null;
-    }
-
-    gl.shaderSource(shader, str);
+function getShader(gl, source, type) {
+    var shader = gl.createShader(type);
+    gl.shaderSource(shader, source);
     gl.compileShader(shader);
-
     if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
         alert(gl.getShaderInfoLog(shader));
         return null;
     }
-
     return shader;
 }
 
 function initShaders() {
 
-    var fragmentShader = getShader(gl, "shader-fs");
-    var vertexShader = getShader(gl, "shader-vs");
+    var fragmentShader = getShader(gl, fragmentShaderSource, gl.FRAGMENT_SHADER);
+    var vertexShader = getShader(gl, vertexShaderSource, gl.VERTEX_SHADER);
 
     shaderProgram = gl.createProgram();
     gl.attachShader(shaderProgram, vertexShader);
