@@ -1,7 +1,7 @@
 {
-  "name": "webfractals",
+  "name": "Fractals WebGL",
   "version": "0.0.0",
-  "description": "Web app to play around with fractals",
+  "description": "Fractals in WebGL",
   "main": "server/app.js",
   "dependencies": {
     "express": "^4.15.2",
@@ -29,12 +29,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/taylorjg/WebFractals.git"
+    "url": "https://github.com/taylorjg/FractalsWebGL.git"
   },
   "author": "Jonathan Taylor",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/taylorjg/WebFractals/issues"
+    "url": "https://github.com/taylorjg/FractalsWebGL/issues"
   },
-  "homepage": "https://github.com/taylorjg/WebFractals"
+  "homepage": "https://github.com/taylorjg/FractalsWebGL"
 }
