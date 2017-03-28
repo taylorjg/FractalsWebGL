@@ -1,10 +1,12 @@
 import vertexShaderSource from './shader.vert.glsl';
 import fragmentShaderSource from './shader.frag.glsl';
+import { getColourMap } from './colourMaps';
 
 let gl;
 let aVertexPosition;
 let aPlotPosition;
 let vertexPositionBuffer;
+let uColormap;
 
 const initGL = canvas => {
     try {
@@ -47,6 +49,11 @@ const initShaders = () => {
     gl.enableVertexAttribArray(aVertexPosition);
     aPlotPosition = gl.getAttribLocation(shaderProgram, 'aPlotPosition');
     gl.enableVertexAttribArray(aPlotPosition);
+
+    uColormap = gl.getUniformLocation(shaderProgram, 'uColormap');
+    const colourMap = getColourMap('jet');
+    const flattenedColourMap = flatten(colourMap);
+    gl.uniform4fv(uColormap, flattenedColourMap);
 }
 
 const initBuffers = () => {
@@ -78,6 +85,7 @@ const drawScene = () => {
         [0.7, -1.2],
         [-2.2, -1.2]
     ];
+    
     const corners = [];
     for (const i in baseCorners) {
         var x = baseCorners[i][0];
@@ -88,7 +96,7 @@ const drawScene = () => {
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(corners), gl.STATIC_DRAW);
     gl.vertexAttribPointer(aPlotPosition, 2, gl.FLOAT, false, 0, 0);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-    gl.deleteBuffer(plotPositionBuffer)
+    gl.deleteBuffer(plotPositionBuffer);
 }
 
 const start = () => {
@@ -97,7 +105,18 @@ const start = () => {
     initShaders()
     initBuffers();
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
-    drawScene();
+    timeIt('drawScene', drawScene);
 }
+
+const flatten = xss => xss.reduce((acc, xs) => acc.concat(xs), []);
+
+const timeIt = (desc, fn) => {
+    const start = performance.now();
+    const result = fn();
+    const stop = performance.now();
+    const options = { maximumFractionDigits: 0 };
+    console.log(`[${desc}] ${(stop - start).toLocaleString(undefined, options)}ms`);
+    return result;
+};
 
 start();
