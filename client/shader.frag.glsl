@@ -4,7 +4,7 @@ uniform vec4 uColormap[256];
 varying vec2 vPosition;
 
 vec4 colourmapIndexer(int index) {
-  for (int i = 0; i <= 256; i++) {
+  for (int i = 0; i < 256; i++) {
     if (i == index) {
       return uColormap[i];
     }
