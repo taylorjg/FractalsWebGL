@@ -52,6 +52,7 @@ const initShaders = () => {
 
     uColormap = gl.getUniformLocation(shaderProgram, 'uColormap');
     const colourMap = getColourMap('jet');
+    // const colourMap = getColourMap('monochrome');
     const flattenedColourMap = flatten(colourMap);
     gl.uniform4fv(uColormap, flattenedColourMap);
 }
@@ -79,13 +80,20 @@ const drawScene = () => {
     const plotPositionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, plotPositionBuffer);
 
+    const bottomLeft = {
+        x: -0.22,
+        y: -0.7
+    };
+    const topRight = {
+        x: -0.21,
+        y: -0.69
+    };
     const baseCorners = [
-        [0.7, 1.2],
-        [-2.2, 1.2],
-        [0.7, -1.2],
-        [-2.2, -1.2]
+        [topRight.x, topRight.y],
+        [bottomLeft.x, topRight.y],
+        [topRight.x, bottomLeft.y],
+        [bottomLeft.x, bottomLeft.y]
     ];
-    
     const corners = [];
     for (const i in baseCorners) {
         var x = baseCorners[i][0];

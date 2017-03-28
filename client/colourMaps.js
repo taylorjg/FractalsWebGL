@@ -25,13 +25,23 @@ const JET_DATA = {
 
 const N = 256;
 
-export const getColourMap = name =>
-    getColourMapRgbaValues(name, N);
+export const getColourMap = name => {
+    switch (name) {
+        case 'jet':
+            return getColourMapRgbaValues(JET_DATA, N);
+        default:
+            {
+                const white = [1, 1, 1, 1];
+                const black = [0, 0, 0, 1];
+                return Array(255).fill(white).concat([black]);
+            }
+    }
+};
 
-const getColourMapRgbaValues = (name, n) => {
-    const rs = makeMappingArray(n, JET_DATA.red);
-    const gs = makeMappingArray(n, JET_DATA.green);
-    const bs = makeMappingArray(n, JET_DATA.blue);
+const getColourMapRgbaValues = (data, n) => {
+    const rs = makeMappingArray(n, data.red);
+    const gs = makeMappingArray(n, data.green);
+    const bs = makeMappingArray(n, data.blue);
     return rsgsbsToColourValues(n, rs, gs, bs);
 };
 
@@ -65,7 +75,7 @@ const makeMappingArray = (n, adata) => {
             return numerator / denominator;
         });
 
-    Array.from(Array(n - 2).keys()).forEach(i => 
+    Array.from(Array(n - 2).keys()).forEach(i =>
         lut[i + 1] = distance[i] * (y0[ind[i]] - y1[ind[i] - 1]) + y1[ind[i] - 1]);
 
     lut[0] = y1[0];
