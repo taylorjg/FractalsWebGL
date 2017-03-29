@@ -1,12 +1,14 @@
 import vertexShaderSource from './shader.vert.glsl';
 import fragmentShaderSource from './shader.frag.glsl';
 import { getColourMap } from './colourMaps';
+import * as glm from 'gl-matrix';
 
 let gl;
 let aVertexPosition;
 let aPlotPosition;
-let vertexPositionBuffer;
+let uModelViewMatrix;
 let uColormap;
+let vertexPositionBuffer;
 
 const initGL = canvas => {
     try {
@@ -49,6 +51,11 @@ const initShaders = () => {
     gl.enableVertexAttribArray(aVertexPosition);
     aPlotPosition = gl.getAttribLocation(shaderProgram, 'aPlotPosition');
     gl.enableVertexAttribArray(aPlotPosition);
+
+    uModelViewMatrix = gl.getUniformLocation(shaderProgram, 'uModelViewMatrix');
+    const modelViewMatrix = glm.mat4.create();
+    glm.mat4.fromScaling(modelViewMatrix, [1, -1, 1]);
+    gl.uniformMatrix4fv(uModelViewMatrix, false, modelViewMatrix);
 
     uColormap = gl.getUniformLocation(shaderProgram, 'uColormap');
     const colourMap = getColourMap('jet');
