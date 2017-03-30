@@ -1,5 +1,5 @@
-import vertexShaderSource from './shader.vert.glsl';
-import fragmentShaderSource from './shader.frag.glsl';
+import vertexShaderSource from '../shaders/shader.vert.glsl';
+import fragmentShaderSource from '../shaders/shader.frag.glsl';
 import { getColourMap } from './colourMaps';
 import * as glm from 'gl-matrix';
 
