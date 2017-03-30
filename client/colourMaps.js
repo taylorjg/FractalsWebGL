@@ -1,40 +1,22 @@
-const JET_DATA = {
-    red: [
-        [0, 0, 0],
-        [0.35, 0, 0],
-        [0.66, 1, 1],
-        [0.89, 1, 1],
-        [1, 0.5, 0.5]
-    ],
-    green: [
-        [0, 0, 0],
-        [0.125, 0, 0],
-        [0.375, 1, 1],
-        [0.64, 1, 1],
-        [0.91, 0, 0],
-        [1, 0, 0]
-    ],
-    blue: [
-        [0, 0.5, 0.5],
-        [0.11, 1, 1],
-        [0.34, 1, 1],
-        [0.65, 0, 0],
-        [1, 0, 0]
-    ],
-};
+import { colourMapDictionary } from './colourMapData';
 
 const N = 256;
 
+const WHITE = [1, 1, 1, 1];
+const BLACK = [0, 0, 0, 1];
+const MONOCHROME_COLOUR_MAP = Array(N - 1).fill(WHITE).concat([BLACK]);
+
 export const getColourMap = name => {
+    const data = colourMapDictionary[name];
+    if (data) {
+        return getColourMapRgbaValues(data, N);
+    }
     switch (name) {
-        case 'jet':
-            return getColourMapRgbaValues(JET_DATA, N);
+        case 'monochrome':
+            return MONOCHROME_COLOUR_MAP;
         default:
-            {
-                const white = [1, 1, 1, 1];
-                const black = [0, 0, 0, 1];
-                return Array(255).fill(white).concat([black]);
-            }
+            console.error(`ERROR: unknown colour map name, '${name}'.`);
+            return MONOCHROME_COLOUR_MAP;
     }
 };
 
