@@ -9,12 +9,28 @@ let aPlotPosition;
 let uModelViewMatrix;
 let uColormap;
 let vertexPositionBuffer;
+// let rubberbanding = false;
+// let rubberbandingStartMouseX;
+// let rubberbandingStartMouseY;
+
+let canvasWidth;
+let canvasHeight;
+let bottomLeft = {
+    x: -0.22,
+    y: -0.7
+};
+let topRight = {
+    x: -0.21,
+    y: -0.69
+};
 
 const initGL = canvas => {
     try {
         gl = canvas.getContext('webgl');
-        gl.viewportWidth = canvas.width;
-        gl.viewportHeight = canvas.height;
+        canvasWidth = canvas.width;
+        canvasHeight = canvas.height;
+        gl.viewportWidth = canvasWidth;
+        gl.viewportHeight = canvasHeight;
     }
     catch (e) {
         console.error(`ERROR: ${e.message}`);
@@ -76,25 +92,13 @@ const initBuffers = () => {
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
     vertexPositionBuffer.itemSize = 2;
     vertexPositionBuffer.numItems = 4;
-}
-
-const drawScene = () => {
-    gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.bindBuffer(gl.ARRAY_BUFFER, vertexPositionBuffer);
     gl.vertexAttribPointer(aVertexPosition, vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+}
 
+const render = () => {
     const plotPositionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, plotPositionBuffer);
-
-    const bottomLeft = {
-        x: -0.22,
-        y: -0.7
-    };
-    const topRight = {
-        x: -0.21,
-        y: -0.69
-    };
     const baseCorners = [
         [topRight.x, topRight.y],
         [bottomLeft.x, topRight.y],
@@ -116,22 +120,77 @@ const drawScene = () => {
 
 const start = () => {
     var canvas = document.getElementById('canvas');
+    canvas.addEventListener('mousedown', onMousedownHandler);
+    // canvas.addEventListener('mouseup', onMouseupHandler);
     initGL(canvas);
     initShaders()
     initBuffers();
+    gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
-    timeIt('drawScene', drawScene);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    render();
 }
 
 const flatten = xss => xss.reduce((acc, xs) => acc.concat(xs), []);
 
-const timeIt = (desc, fn) => {
-    const start = performance.now();
-    const result = fn();
-    const stop = performance.now();
-    const options = { maximumFractionDigits: 0 };
-    console.log(`[${desc}] ${(stop - start).toLocaleString(undefined, options)}ms`);
-    return result;
+const onMousedownHandler = ev => {
+
+    const mouseX = ev.offsetX;
+    const mouseY = ev.offsetY;
+
+    if (ev.shiftKey) {
+
+        const regionMouse = mouseToRegion(mouseX, mouseY);
+        const regionMouseX = regionMouse.x;
+        const regionMouseY = regionMouse.y;
+
+        const regionWidth = topRight.x - bottomLeft.x;
+        const regionHeight = topRight.y - bottomLeft.y;
+        console.log(`regionWidth: ${regionWidth}; regionHeight: ${regionHeight}`);
+        const regionCentreX = bottomLeft.x + regionWidth / 2;
+        const regionCentreY = bottomLeft.y + regionHeight / 2;
+
+        const dx = regionMouseX - regionCentreX;
+        const dy = regionMouseY - regionCentreY;
+
+        bottomLeft.x += dx;
+        bottomLeft.y += dy;
+        topRight.x += dx;
+        topRight.y += dy;
+
+        render();
+    }
+    // else {
+    //     rubberbanding = true;
+    //     rubberbandingStartMouseX = mouseX;
+    //     rubberbandingStartMouseY = mouseY;
+    // }
+};
+
+// const onMouseupHandler = ev => {
+//     if (rubberbanding) {
+//         rubberbanding = false;
+//         const rubberbandingEndMouseX = ev.offsetX;
+//         const rubberbandingEndMouseY = ev.offsetY;
+//         const bottomLeftMouseX = Math.min(rubberbandingStartMouseX, rubberbandingEndMouseX);
+//         const bottomLeftMouseY = Math.min(rubberbandingStartMouseY, rubberbandingEndMouseY);
+//         const topRightMouseX = Math.max(rubberbandingStartMouseX, rubberbandingEndMouseX);
+//         const topRightMouseY = Math.max(rubberbandingStartMouseY, rubberbandingEndMouseY);
+//         bottomLeft = mouseToRegion(bottomLeftMouseX, bottomLeftMouseY);
+//         topRight = mouseToRegion(topRightMouseX, topRightMouseY);
+//         render();
+//     }
+// };
+
+const mouseToRegion = (mouseX, mouseY) => {
+    const regionWidth = topRight.x - bottomLeft.x;
+    const regionHeight = topRight.y - bottomLeft.y;
+    const regionMouseX = mouseX * (regionWidth / canvasWidth) + bottomLeft.x;
+    const regionMouseY = mouseY * (regionHeight / canvasHeight) + bottomLeft.y;
+    return {
+        x: regionMouseX,
+        y: regionMouseY
+    };
 };
 
 start();

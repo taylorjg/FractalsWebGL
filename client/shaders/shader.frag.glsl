@@ -1,4 +1,4 @@
-precision lowp float;
+precision highp float;
 
 uniform vec4 uColormap[256];
 varying vec2 vPosition;

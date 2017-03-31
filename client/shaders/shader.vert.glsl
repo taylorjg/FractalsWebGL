@@ -1,3 +1,5 @@
+precision highp float;
+
 attribute vec2 aVertexPosition;
 attribute vec2 aPlotPosition;
 uniform mat4 uModelViewMatrix;
