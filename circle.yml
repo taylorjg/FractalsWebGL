@@ -1,0 +1,9 @@
+test:
+  override:
+    - echo "overriding..."
+
+deployment:
+  heroku:
+    branch: master
+    heroku:
+      appname: fractalswebgl
