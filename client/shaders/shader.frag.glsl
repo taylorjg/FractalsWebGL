@@ -13,7 +13,7 @@ vec4 colourmapIndexer(int index) {
 }
 
 void main(void) {
-  const int MAX_ITERATIONS = 300;
+  const int MAX_ITERATIONS = 120;
   float cx = vPosition.x;
   float cy = vPosition.y;
   float x = 0.0;

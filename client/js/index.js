@@ -112,7 +112,8 @@ const render = () => {
 const start = () => {
 
     canvas = document.getElementById('canvas');
-    canvas.addEventListener('mousedown', onCanvasMousedownHandler);
+    canvas.addEventListener('mousedown', onCanvasMouseDownHandler);
+    document.addEventListener('keydown', onDocumentKeyDownHandler);
     window.addEventListener('resize', onWindowResize);
 
     initGL(canvas);
@@ -172,20 +173,15 @@ const mouseToRegion = (mouseX, mouseY) => {
     };
 };
 
-const onCanvasMousedownHandler = ev => {
-
-    ev.preventDefault();
-    ev.stopPropagation();
+const onCanvasMouseDownHandler = ev => {
 
     const mouseX = ev.offsetX;
     const mouseY = ev.offsetY;
     const { regionMouseX, regionMouseY } = mouseToRegion(mouseX, mouseY);
 
-    const rw = topRight.x - bottomLeft.x;
-    const rh = topRight.y - bottomLeft.y;
-
-    if (ev.altKey) {
-        // Re-centre.
+    if (ev.shiftKey) {
+        const rw = topRight.x - bottomLeft.x;
+        const rh = topRight.y - bottomLeft.y;
         const rcx = bottomLeft.x + rw / 2;
         const rcy = bottomLeft.y + rh / 2;
         const drcx = regionMouseX - rcx;
@@ -194,29 +190,42 @@ const onCanvasMousedownHandler = ev => {
         bottomLeft.y += drcy;
         topRight.x += drcx;
         topRight.y += drcy;
+        ev.preventDefault();
+        ev.stopPropagation();
+        render();
     }
-    else {
-        if (ev.shiftKey) {
-            // Zoom out
-            const drw = rw / 2;
-            const drh = rh / 2;
-            bottomLeft.x -= drw;
-            bottomLeft.y -= drh;
-            topRight.x += drw;
-            topRight.y += drh;
-        }
-        else {
-            // Zoom in
-            const drw = rw / 4;
-            const drh = rh / 4;
-            bottomLeft.x += drw;
-            bottomLeft.y += drh;
-            topRight.x -= drw;
-            topRight.y -= drh;
-        }
+};
+
+const onDocumentKeyDownHandler = ev => {
+
+    const rw = topRight.x - bottomLeft.x;
+    const rh = topRight.y - bottomLeft.y;
+
+    if (ev.key === '+') {
+        // Zoom in
+        const drw = rw / 4;
+        const drh = rh / 4;
+        bottomLeft.x += drw;
+        bottomLeft.y += drh;
+        topRight.x -= drw;
+        topRight.y -= drh;
+        ev.preventDefault();
+        ev.stopPropagation();
+        render();
     }
 
-    render();
+    if (ev.key === '-') {
+        // Zoom out
+        const drw = rw / 2;
+        const drh = rh / 2;
+        bottomLeft.x -= drw;
+        bottomLeft.y -= drh;
+        topRight.x += drw;
+        topRight.y += drh;
+        ev.preventDefault();
+        ev.stopPropagation();
+        render();
+    }
 };
 
 start();
