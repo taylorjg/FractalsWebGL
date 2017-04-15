@@ -4,12 +4,17 @@
 
 Playing around with fractals in a web browser using WebGL.
 
+## Try it out
+
+[Try it on Heroku](http://fractalswebgl.herokuapp.com/)
+(_it may take 10s to re-activate_)
+
 ## Controls
 
 * Shift + Left Click
     * <i>Re-centre on the clicked point (maintain current zoom level).</i>
 * Alt + Left Click
-    * <i>Switch between Mandelbrot Set and Julia Set (initally, Mandelbrot Set). When switching to Julia Set, the clicked point provide the value for `c`.</i>
+    * <i>Switch between Mandelbrot Set and Julia Set (initally, Mandelbrot Set). When switching to Julia Set, the clicked point provides the value for `c`.</i>
 * `+`
     * <i>Increase zoom level.</i>
 * `-`
