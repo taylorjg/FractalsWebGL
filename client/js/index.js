@@ -1,31 +1,40 @@
 import vertexShaderSource from '../shaders/shader.vert.glsl';
-import fragmentShaderSource from '../shaders/shader.frag.glsl';
+import mandelbrotShaderSource from '../shaders/mandelbrot.frag.glsl';
+import juliaShaderSource from '../shaders/julia.frag.glsl';
 import { getColourMap } from './colourMaps';
 import * as glm from 'gl-matrix';
 
 let canvas;
 let gl;
-let aVertexPosition;
-let aPlotPosition;
-let uModelViewMatrix;
-let uColormap;
+let mandelbrotSet = {};
+let juliaSet = {};
+let currentFractalSet = mandelbrotSet;
 let vertexPositionBuffer;
 
-let bottomLeft = {
+let regionBottomLeft = {
     x: -0.22,
     y: -0.7
 };
-let topRight = {
+let regionTopRight = {
     x: -0.21,
     y: -0.69
 };
+
+// let regionBottomLeft = {
+//     x: -1,
+//     y: -1
+// };
+// let regionTopRight = {
+//     x: 1,
+//     y: 1
+// };
 
 const initGL = canvas => {
     try {
         gl = canvas.getContext('webgl');
     }
     catch (e) {
-        console.error(`ERROR: ${e.message}`);
+        console.error(`canvas.getContext(webgl) failed: ${e.message}`);
     }
     if (!gl) {
         console.error('Failed to initialise WebGL');
@@ -37,74 +46,100 @@ const getShader = (gl, source, shaderType) => {
     gl.shaderSource(shader, source);
     gl.compileShader(shader);
     if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-        console.error(gl.getShaderInfoLog(shader));
+        const errorMessage = gl.getShaderInfoLog(shader)
+        console.error(`Failed to compile shader: ${errorMessage}`);
         return null;
     }
     return shader;
 }
 
-const initShaders = () => {
+const initShadersHelper = (fractalSet, fragmentShaderSource) => {
+
     const vertexShader = getShader(gl, vertexShaderSource, gl.VERTEX_SHADER);
     const fragmentShader = getShader(gl, fragmentShaderSource, gl.FRAGMENT_SHADER);
-    const shaderProgram = gl.createProgram();
-    gl.attachShader(shaderProgram, vertexShader);
-    gl.attachShader(shaderProgram, fragmentShader);
-    gl.linkProgram(shaderProgram);
-    if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-        console.error('Could not initialise shaders');
+    const program = gl.createProgram();
+    gl.attachShader(program, vertexShader);
+    gl.attachShader(program, fragmentShader);
+    gl.linkProgram(program);
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+        const errorMessage = gl.getProgramInfoLog(program);
+        console.error(`Could not initialise shaders: ${errorMessage}`);
         return;
     }
-    gl.useProgram(shaderProgram);
-    aVertexPosition = gl.getAttribLocation(shaderProgram, 'aVertexPosition');
+
+    const aVertexPosition = gl.getAttribLocation(program, 'aVertexPosition');
     gl.enableVertexAttribArray(aVertexPosition);
-    aPlotPosition = gl.getAttribLocation(shaderProgram, 'aPlotPosition');
+
+    const aPlotPosition = gl.getAttribLocation(program, 'aPlotPosition');
     gl.enableVertexAttribArray(aPlotPosition);
 
-    uModelViewMatrix = gl.getUniformLocation(shaderProgram, 'uModelViewMatrix');
+    const uModelViewMatrix = gl.getUniformLocation(program, 'uModelViewMatrix');
+    const uColormap = gl.getUniformLocation(program, 'uColormap');
+    const uJuliaConstant = gl.getUniformLocation(program, 'uJuliaConstant');
+
+    fractalSet.program = program;
+    fractalSet.aVertexPosition = aVertexPosition;
+    fractalSet.aPlotPosition = aPlotPosition;
+    fractalSet.uModelViewMatrix = uModelViewMatrix;
+    fractalSet.uColormap = uColormap;
+    fractalSet.uJuliaConstant = uJuliaConstant;
+};
+
+const initShaders = () => {
+    initShadersHelper(mandelbrotSet, mandelbrotShaderSource);
+    initShadersHelper(juliaSet, juliaShaderSource);
+    setCurrentFractalSet(mandelbrotSet, { x: 0, y: 0 });
+    // setCurrentFractalSet(juliaSet, { x: -0.768662, y: 0.130477 });
+};
+
+const setCurrentFractalSet = (fractalSet, juliaConstant) => {
+
+    gl.useProgram(fractalSet.program);
+
     const modelViewMatrix = glm.mat4.create();
     glm.mat4.fromScaling(modelViewMatrix, [1, -1, 1]);
-    gl.uniformMatrix4fv(uModelViewMatrix, false, modelViewMatrix);
+    gl.uniformMatrix4fv(fractalSet.uModelViewMatrix, false, modelViewMatrix);
 
-    uColormap = gl.getUniformLocation(shaderProgram, 'uColormap');
     const colourMap = getColourMap('jet');
     const flattenedColourMap = flatten(colourMap);
-    gl.uniform4fv(uColormap, flattenedColourMap);
-}
+    gl.uniform4fv(fractalSet.uColormap, flattenedColourMap);
+
+    gl.uniform2f(fractalSet.uJuliaConstant, juliaConstant.x, juliaConstant.y);
+
+    currentFractalSet = fractalSet;
+};
 
 const initBuffers = () => {
-    vertexPositionBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, vertexPositionBuffer);
     const vertices = [
         1.0, 1.0,
         -1.0, 1.0,
         1.0, -1.0,
         -1.0, -1.0,
     ];
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-    vertexPositionBuffer.itemSize = 2;
-    vertexPositionBuffer.numItems = 4;
+    vertexPositionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, vertexPositionBuffer);
-    gl.vertexAttribPointer(aVertexPosition, vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+    gl.vertexAttribPointer(currentFractalSet.aVertexPosition, 2, gl.FLOAT, false, 0, 0);
 }
 
 const render = () => {
-    const plotPositionBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, plotPositionBuffer);
     const baseCorners = [
-        [topRight.x, topRight.y],
-        [bottomLeft.x, topRight.y],
-        [topRight.x, bottomLeft.y],
-        [bottomLeft.x, bottomLeft.y]
+        [regionTopRight.x, regionTopRight.y],
+        [regionBottomLeft.x, regionTopRight.y],
+        [regionTopRight.x, regionBottomLeft.y],
+        [regionBottomLeft.x, regionBottomLeft.y]
     ];
     const corners = [];
-    for (const i in baseCorners) {
-        var x = baseCorners[i][0];
-        var y = baseCorners[i][1];
+    for (const index in baseCorners) {
+        const x = baseCorners[index][0];
+        const y = baseCorners[index][1];
         corners.push(x);
         corners.push(y);
     }
+    const plotPositionBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, plotPositionBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(corners), gl.STATIC_DRAW);
-    gl.vertexAttribPointer(aPlotPosition, 2, gl.FLOAT, false, 0, 0);
+    gl.vertexAttribPointer(currentFractalSet.aPlotPosition, 2, gl.FLOAT, false, 0, 0);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     gl.deleteBuffer(plotPositionBuffer);
 }
@@ -133,8 +168,8 @@ const setCanvasAndViewportSize = () => {
 
     const cw = canvas.clientWidth;
     const ch = canvas.clientHeight;
-    const rw = topRight.x - bottomLeft.x;
-    const rh = topRight.y - bottomLeft.y;
+    const rw = regionTopRight.x - regionBottomLeft.x;
+    const rh = regionTopRight.y - regionBottomLeft.y;
 
     canvas.width = cw;
     canvas.height = ch;
@@ -144,16 +179,16 @@ const setCanvasAndViewportSize = () => {
         const rwNew = cw * rh / ch;
         const rwDelta = rwNew - rw;
         const rwDeltaHalf = rwDelta / 2;
-        bottomLeft.x -= rwDeltaHalf;
-        topRight.x += rwDeltaHalf;
+        regionBottomLeft.x -= rwDeltaHalf;
+        regionTopRight.x += rwDeltaHalf;
     }
 
     if (cw < ch) {
         const rhNew = ch * rw / cw;
         const rhDelta = rhNew - rh;
         const rhDeltaHalf = rhDelta / 2;
-        bottomLeft.y -= rhDeltaHalf;
-        topRight.y += rhDeltaHalf;
+        regionBottomLeft.y -= rhDeltaHalf;
+        regionTopRight.y += rhDeltaHalf;
     }
 };
 
@@ -165,11 +200,11 @@ const onWindowResize = () => {
 const mouseToRegion = (mouseX, mouseY) => {
     const cw = canvas.clientWidth;
     const ch = canvas.clientHeight;
-    const rw = topRight.x - bottomLeft.x;
-    const rh = topRight.y - bottomLeft.y;
+    const rw = regionTopRight.x - regionBottomLeft.x;
+    const rh = regionTopRight.y - regionBottomLeft.y;
     return {
-        regionMouseX: bottomLeft.x + (mouseX * (rw / cw)),
-        regionMouseY: bottomLeft.y + (mouseY * (rh / ch))
+        regionMouseX: regionBottomLeft.x + (mouseX * (rw / cw)),
+        regionMouseY: regionBottomLeft.y + (mouseY * (rh / ch))
     };
 };
 
@@ -180,16 +215,16 @@ const onCanvasMouseDownHandler = ev => {
     const { regionMouseX, regionMouseY } = mouseToRegion(mouseX, mouseY);
 
     if (ev.shiftKey) {
-        const rw = topRight.x - bottomLeft.x;
-        const rh = topRight.y - bottomLeft.y;
-        const rcx = bottomLeft.x + rw / 2;
-        const rcy = bottomLeft.y + rh / 2;
+        const rw = regionTopRight.x - regionBottomLeft.x;
+        const rh = regionTopRight.y - regionBottomLeft.y;
+        const rcx = regionBottomLeft.x + rw / 2;
+        const rcy = regionBottomLeft.y + rh / 2;
         const drcx = regionMouseX - rcx;
         const drcy = regionMouseY - rcy;
-        bottomLeft.x += drcx;
-        bottomLeft.y += drcy;
-        topRight.x += drcx;
-        topRight.y += drcy;
+        regionBottomLeft.x += drcx;
+        regionBottomLeft.y += drcy;
+        regionTopRight.x += drcx;
+        regionTopRight.y += drcy;
         ev.preventDefault();
         ev.stopPropagation();
         render();
@@ -198,17 +233,17 @@ const onCanvasMouseDownHandler = ev => {
 
 const onDocumentKeyDownHandler = ev => {
 
-    const rw = topRight.x - bottomLeft.x;
-    const rh = topRight.y - bottomLeft.y;
+    const rw = regionTopRight.x - regionBottomLeft.x;
+    const rh = regionTopRight.y - regionBottomLeft.y;
 
     if (ev.key === '+') {
         // Zoom in
         const drw = rw / 4;
         const drh = rh / 4;
-        bottomLeft.x += drw;
-        bottomLeft.y += drh;
-        topRight.x -= drw;
-        topRight.y -= drh;
+        regionBottomLeft.x += drw;
+        regionBottomLeft.y += drh;
+        regionTopRight.x -= drw;
+        regionTopRight.y -= drh;
         ev.preventDefault();
         ev.stopPropagation();
         render();
@@ -218,10 +253,10 @@ const onDocumentKeyDownHandler = ev => {
         // Zoom out
         const drw = rw / 2;
         const drh = rh / 2;
-        bottomLeft.x -= drw;
-        bottomLeft.y -= drh;
-        topRight.x += drw;
-        topRight.y += drh;
+        regionBottomLeft.x -= drw;
+        regionBottomLeft.y -= drh;
+        regionTopRight.x += drw;
+        regionTopRight.y += drh;
         ev.preventDefault();
         ev.stopPropagation();
         render();

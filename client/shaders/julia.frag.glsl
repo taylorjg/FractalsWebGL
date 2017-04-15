@@ -1,6 +1,7 @@
 precision highp float;
 
 uniform vec4 uColormap[256];
+uniform vec2 uJuliaConstant;
 varying vec2 vPosition;
 
 vec4 colourmapIndexer(int index) {
@@ -14,17 +15,18 @@ vec4 colourmapIndexer(int index) {
 
 void main(void) {
   const int MAX_ITERATIONS = 120;
-  float cx = vPosition.x;
-  float cy = vPosition.y;
-  float x = 0.0;
-  float y = 0.0;
+  float cr = uJuliaConstant.x;
+  float ci = uJuliaConstant.y;
+  float zr = vPosition.x;
+  float zi = vPosition.y;
   int divergesAt = MAX_ITERATIONS;
-  for (int i = 0; i < MAX_ITERATIONS; i++) {
-    float tempX = x * x - y * y + cx;
-    y = 2.0 * x * y + cy;
-    x = tempX;
-    if (x * x + y * y > 4.0) {
-      divergesAt = i;
+  for (int iteration = 0; iteration < MAX_ITERATIONS; iteration++) {
+    float zrNext = (zr * zr) - (zi * zi) + cr;
+    float ziNext = (2.0 * zr * zi) + ci;
+    zr = zrNext;
+    zi = ziNext;
+    if (zr * zr + zi * zi >= 4.0) {
+      divergesAt = iteration;
       break;
     }
   }
