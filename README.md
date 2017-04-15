@@ -14,11 +14,13 @@ Playing around with fractals in a web browser using WebGL.
 * Shift + Left Click
     * <i>Re-centre on the clicked point (maintain current zoom level).</i>
 * Alt + Left Click
-    * <i>Switch between Mandelbrot Set and Julia Set (initally, Mandelbrot Set). When switching to Julia Set, the clicked point provides the value for `c`.</i>
+    * <i>Switch between the Mandelbrot Set and the Julia Set (initally, Mandelbrot Set). When switching to the Julia Set, the clicked point provides the value for `c`.</i>
 * `+`
-    * <i>Increase zoom level.</i>
+    * <i>Increase the zoom level.</i>
 * `-`
-    * <i>Decrease zoom level.</i>
+    * <i>Decrease the zoom level.</i>
+* CTRL + `h`
+    * <i>Home - switch to the Mandelbrot Set and reset the region to bottom left `(-2.25, -1.5)` and top right `(0.75, 1.5)`.</i>
 
 ## TODO
 

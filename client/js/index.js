@@ -229,7 +229,7 @@ const onCanvasMouseDownHandler = ev => {
                 setCurrentFractalSet(mandelbrotSet, { x: 0, y: 0 });
                 render();
                 break;
-                
+
             default:
                 break;
         }
@@ -250,6 +250,7 @@ const onDocumentKeyDownHandler = ev => {
         regionTopRight.x -= drw;
         regionTopRight.y -= drh;
         render();
+        return;
     }
 
     if (ev.key === '-') {
@@ -261,6 +262,19 @@ const onDocumentKeyDownHandler = ev => {
         regionTopRight.x += drw;
         regionTopRight.y += drh;
         render();
+        return;
+    }
+
+    if (ev.key === 'h' && ev.ctrlKey) {
+        // Reset
+        setCurrentFractalSet(mandelbrotSet, { x: 0, y: 0 });
+        regionBottomLeft.x = -2.25;
+        regionBottomLeft.y = -1.5;
+        regionTopRight.x = 0.75;
+        regionTopRight.y = 1.5;
+        setCanvasAndViewportSize();
+        render();
+        return;
     }
 };
 
