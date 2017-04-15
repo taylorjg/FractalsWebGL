@@ -24,7 +24,7 @@ Playing around with fractals in a web browser using WebGL.
 
 ## TODO
 
-* Implement panning
+* ~~Implement panning~~
 * Use `double`s in the shaders ? Would this allow us to zoom in further before we start to get bad pixellation ?
 * Add a panel on the side (that slides in/out) to do various things e.g.:
     * Switch colour maps

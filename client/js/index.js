@@ -9,6 +9,8 @@ let gl;
 let mandelbrotSet = {};
 let juliaSet = {};
 let currentFractalSet = undefined;
+let panning = false;
+let lastMousePt;
 
 let regionBottomLeft = {
     x: -0.22,
@@ -136,6 +138,9 @@ const start = () => {
 
     canvas = document.getElementById('canvas');
     canvas.addEventListener('mousedown', onCanvasMouseDownHandler);
+    canvas.addEventListener('mousemove', onCanvasMouseMoveHandler);
+    canvas.addEventListener('mouseup', onCanvasMouseUpHandler);
+    canvas.addEventListener('mouseleave', onCanvasMouseLeaveHandler);
     document.addEventListener('keydown', onDocumentKeyDownHandler);
     window.addEventListener('resize', onWindowResize);
 
@@ -213,11 +218,11 @@ const onCanvasMouseDownHandler = ev => {
         regionTopRight.x += drcx;
         regionTopRight.y += drcy;
         render();
+        return;
     }
 
     if (ev.altKey) {
         switch (currentFractalSet) {
-
             case mandelbrotSet:
                 console.log(`Switching to Julia Set (${regionMouseX}, ${regionMouseY})`);
                 setCurrentFractalSet(juliaSet, { x: regionMouseX, y: regionMouseY });
@@ -233,7 +238,48 @@ const onCanvasMouseDownHandler = ev => {
             default:
                 break;
         }
+        return;
     }
+
+    panning = true;
+    lastMousePt = { mouseX, mouseY };
+};
+
+const onCanvasMouseMoveHandler = ev => {
+
+    if (!panning) {
+        return;
+    }
+
+    const mouseX = ev.offsetX;
+    const mouseY = ev.offsetY;
+    const mouseDx = mouseX - lastMousePt.mouseX;
+    const mouseDy = mouseY - lastMousePt.mouseY;
+
+    const cw = canvas.clientWidth;
+    const ch = canvas.clientHeight;
+    const rw = regionTopRight.x - regionBottomLeft.x;
+    const rh = regionTopRight.y - regionBottomLeft.y;
+
+    const regionDx = mouseDx * rw / cw;
+    const regionDy = mouseDy * rh / ch;
+
+    regionBottomLeft.x -= regionDx;
+    regionBottomLeft.y -= regionDy;
+    regionTopRight.x -= regionDx;
+    regionTopRight.y -= regionDy;
+
+    render();
+
+    lastMousePt = { mouseX, mouseY };
+};
+
+const onCanvasMouseUpHandler = () => {
+    panning = false;
+};
+
+const onCanvasMouseLeaveHandler = () => {
+    panning = false;
 };
 
 const onDocumentKeyDownHandler = ev => {
