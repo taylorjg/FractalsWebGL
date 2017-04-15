@@ -3,6 +3,7 @@ import fragmentShaderSource from '../shaders/shader.frag.glsl';
 import { getColourMap } from './colourMaps';
 import * as glm from 'gl-matrix';
 
+let canvas;
 let gl;
 let aVertexPosition;
 let aPlotPosition;
@@ -13,8 +14,8 @@ let vertexPositionBuffer;
 // let rubberbandingStartMouseX;
 // let rubberbandingStartMouseY;
 
-let canvasWidth;
-let canvasHeight;
+let cw;
+let ch;
 let bottomLeft = {
     x: -0.22,
     y: -0.7
@@ -27,10 +28,6 @@ let topRight = {
 const initGL = canvas => {
     try {
         gl = canvas.getContext('webgl');
-        canvasWidth = canvas.width;
-        canvasHeight = canvas.height;
-        gl.viewportWidth = canvasWidth;
-        gl.viewportHeight = canvasHeight;
     }
     catch (e) {
         console.error(`ERROR: ${e.message}`);
@@ -75,7 +72,6 @@ const initShaders = () => {
 
     uColormap = gl.getUniformLocation(shaderProgram, 'uColormap');
     const colourMap = getColourMap('jet');
-    // const colourMap = getColourMap('monochrome');
     const flattenedColourMap = flatten(colourMap);
     gl.uniform4fv(uColormap, flattenedColourMap);
 }
@@ -119,19 +115,57 @@ const render = () => {
 }
 
 const start = () => {
-    var canvas = document.getElementById('canvas');
-    canvas.addEventListener('mousedown', onMousedownHandler);
+
+    canvas = document.getElementById('canvas');
+
+    // canvas.addEventListener('mousedown', onMousedownHandler);
     // canvas.addEventListener('mouseup', onMouseupHandler);
+
     initGL(canvas);
     initShaders()
     initBuffers();
-    gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
+
+    setCanvasAndViewportSize();
+
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     render();
 }
 
 const flatten = xss => xss.reduce((acc, xs) => acc.concat(xs), []);
+
+window.addEventListener('resize', () => {
+    setCanvasAndViewportSize();
+    render();
+});
+
+const setCanvasAndViewportSize = () => {
+
+    const cw = canvas.clientWidth;
+    const ch = canvas.clientHeight;
+    const rw = topRight.x - bottomLeft.x;
+    const rh = topRight.y - bottomLeft.y;
+
+    canvas.width = cw;
+    canvas.height = ch;
+    gl.viewport(0, 0, cw, ch);
+
+    if (cw > ch) {
+        const rwNew = cw * rh / ch;
+        const rwDelta = rwNew - rw;
+        const rwDeltaHalf = rwDelta / 2;
+        bottomLeft.x -= rwDeltaHalf;
+        topRight.x += rwDeltaHalf;
+    }
+
+    if (cw < ch) {
+        const rhNew = ch * rw / cw;
+        const rhDelta = rhNew - rh;
+        const rhDeltaHalf = rhDelta / 2;
+        bottomLeft.y -= rhDeltaHalf;
+        topRight.y += rhDeltaHalf;
+    }
+};
 
 const onMousedownHandler = ev => {
 
@@ -185,8 +219,8 @@ const onMousedownHandler = ev => {
 const mouseToRegion = (mouseX, mouseY) => {
     const regionWidth = topRight.x - bottomLeft.x;
     const regionHeight = topRight.y - bottomLeft.y;
-    const regionMouseX = mouseX * (regionWidth / canvasWidth) + bottomLeft.x;
-    const regionMouseY = mouseY * (regionHeight / canvasHeight) + bottomLeft.y;
+    const regionMouseX = mouseX * (regionWidth / cw) + bottomLeft.x;
+    const regionMouseY = mouseY * (regionHeight / ch) + bottomLeft.y;
     return {
         x: regionMouseX,
         y: regionMouseY
