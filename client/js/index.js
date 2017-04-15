@@ -212,17 +212,27 @@ const onCanvasMouseDownHandler = ev => {
         regionBottomLeft.y += drcy;
         regionTopRight.x += drcx;
         regionTopRight.y += drcy;
-        ev.preventDefault();
-        ev.stopPropagation();
         render();
     }
 
-    if (ev.altKey && currentFractalSet === mandelbrotSet) {
-        console.log(`Switching to Julia Set (${regionMouseX}, ${regionMouseY})`);
-        setCurrentFractalSet(juliaSet, { x: regionMouseX, y: regionMouseY });
-        ev.preventDefault();
-        ev.stopPropagation();
-        render();
+    if (ev.altKey) {
+        switch (currentFractalSet) {
+
+            case mandelbrotSet:
+                console.log(`Switching to Julia Set (${regionMouseX}, ${regionMouseY})`);
+                setCurrentFractalSet(juliaSet, { x: regionMouseX, y: regionMouseY });
+                render();
+                break;
+
+            case juliaSet:
+                console.log('Switching to Mandelbrot Set');
+                setCurrentFractalSet(mandelbrotSet, { x: 0, y: 0 });
+                render();
+                break;
+                
+            default:
+                break;
+        }
     }
 };
 
@@ -239,8 +249,6 @@ const onDocumentKeyDownHandler = ev => {
         regionBottomLeft.y += drh;
         regionTopRight.x -= drw;
         regionTopRight.y -= drh;
-        ev.preventDefault();
-        ev.stopPropagation();
         render();
     }
 
@@ -252,8 +260,6 @@ const onDocumentKeyDownHandler = ev => {
         regionBottomLeft.y -= drh;
         regionTopRight.x += drw;
         regionTopRight.y += drh;
-        ev.preventDefault();
-        ev.stopPropagation();
         render();
     }
 };
