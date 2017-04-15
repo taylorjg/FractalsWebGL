@@ -8,8 +8,7 @@ let canvas;
 let gl;
 let mandelbrotSet = {};
 let juliaSet = {};
-let currentFractalSet = mandelbrotSet;
-let vertexPositionBuffer;
+let currentFractalSet = undefined;
 
 let regionBottomLeft = {
     x: -0.22,
@@ -19,15 +18,6 @@ let regionTopRight = {
     x: -0.21,
     y: -0.69
 };
-
-// let regionBottomLeft = {
-//     x: -1,
-//     y: -1
-// };
-// let regionTopRight = {
-//     x: 1,
-//     y: 1
-// };
 
 const initGL = canvas => {
     try {
@@ -77,19 +67,30 @@ const initShadersHelper = (fractalSet, fragmentShaderSource) => {
     const uColormap = gl.getUniformLocation(program, 'uColormap');
     const uJuliaConstant = gl.getUniformLocation(program, 'uJuliaConstant');
 
+    const vertices = [
+        1.0, 1.0,
+        -1.0, 1.0,
+        1.0, -1.0,
+        -1.0, -1.0,
+    ];
+    const vertexPositionBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertexPositionBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+    gl.vertexAttribPointer(aVertexPosition, 2, gl.FLOAT, false, 0, 0);
+
     fractalSet.program = program;
     fractalSet.aVertexPosition = aVertexPosition;
     fractalSet.aPlotPosition = aPlotPosition;
     fractalSet.uModelViewMatrix = uModelViewMatrix;
     fractalSet.uColormap = uColormap;
     fractalSet.uJuliaConstant = uJuliaConstant;
+    fractalSet.vertexPositionBuffer = vertexPositionBuffer;
 };
 
 const initShaders = () => {
     initShadersHelper(mandelbrotSet, mandelbrotShaderSource);
     initShadersHelper(juliaSet, juliaShaderSource);
     setCurrentFractalSet(mandelbrotSet, { x: 0, y: 0 });
-    // setCurrentFractalSet(juliaSet, { x: -0.768662, y: 0.130477 });
 };
 
 const setCurrentFractalSet = (fractalSet, juliaConstant) => {
@@ -108,19 +109,6 @@ const setCurrentFractalSet = (fractalSet, juliaConstant) => {
 
     currentFractalSet = fractalSet;
 };
-
-const initBuffers = () => {
-    const vertices = [
-        1.0, 1.0,
-        -1.0, 1.0,
-        1.0, -1.0,
-        -1.0, -1.0,
-    ];
-    vertexPositionBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, vertexPositionBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-    gl.vertexAttribPointer(currentFractalSet.aVertexPosition, 2, gl.FLOAT, false, 0, 0);
-}
 
 const render = () => {
     const baseCorners = [
@@ -153,7 +141,6 @@ const start = () => {
 
     initGL(canvas);
     initShaders()
-    initBuffers();
 
     setCanvasAndViewportSize();
 
@@ -225,6 +212,14 @@ const onCanvasMouseDownHandler = ev => {
         regionBottomLeft.y += drcy;
         regionTopRight.x += drcx;
         regionTopRight.y += drcy;
+        ev.preventDefault();
+        ev.stopPropagation();
+        render();
+    }
+
+    if (ev.altKey && currentFractalSet === mandelbrotSet) {
+        console.log(`Switching to Julia Set (${regionMouseX}, ${regionMouseY})`);
+        setCurrentFractalSet(juliaSet, { x: regionMouseX, y: regionMouseY });
         ev.preventDefault();
         ev.stopPropagation();
         render();
