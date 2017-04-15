@@ -10,12 +10,7 @@ let aPlotPosition;
 let uModelViewMatrix;
 let uColormap;
 let vertexPositionBuffer;
-// let rubberbanding = false;
-// let rubberbandingStartMouseX;
-// let rubberbandingStartMouseY;
 
-let cw;
-let ch;
 let bottomLeft = {
     x: -0.22,
     y: -0.7
@@ -117,9 +112,8 @@ const render = () => {
 const start = () => {
 
     canvas = document.getElementById('canvas');
-
-    // canvas.addEventListener('mousedown', onMousedownHandler);
-    // canvas.addEventListener('mouseup', onMouseupHandler);
+    canvas.addEventListener('mousedown', onCanvasMousedownHandler);
+    window.addEventListener('resize', onWindowResize);
 
     initGL(canvas);
     initShaders()
@@ -133,11 +127,6 @@ const start = () => {
 }
 
 const flatten = xss => xss.reduce((acc, xs) => acc.concat(xs), []);
-
-window.addEventListener('resize', () => {
-    setCanvasAndViewportSize();
-    render();
-});
 
 const setCanvasAndViewportSize = () => {
 
@@ -167,64 +156,67 @@ const setCanvasAndViewportSize = () => {
     }
 };
 
-const onMousedownHandler = ev => {
+const onWindowResize = () => {
+    setCanvasAndViewportSize();
+    render();
+};
+
+const mouseToRegion = (mouseX, mouseY) => {
+    const cw = canvas.clientWidth;
+    const ch = canvas.clientHeight;
+    const rw = topRight.x - bottomLeft.x;
+    const rh = topRight.y - bottomLeft.y;
+    return {
+        regionMouseX: bottomLeft.x + (mouseX * (rw / cw)),
+        regionMouseY: bottomLeft.y + (mouseY * (rh / ch))
+    };
+};
+
+const onCanvasMousedownHandler = ev => {
+
+    ev.preventDefault();
+    ev.stopPropagation();
 
     const mouseX = ev.offsetX;
     const mouseY = ev.offsetY;
+    const { regionMouseX, regionMouseY } = mouseToRegion(mouseX, mouseY);
 
-    if (ev.shiftKey) {
+    const rw = topRight.x - bottomLeft.x;
+    const rh = topRight.y - bottomLeft.y;
 
-        const regionMouse = mouseToRegion(mouseX, mouseY);
-        const regionMouseX = regionMouse.x;
-        const regionMouseY = regionMouse.y;
-
-        const regionWidth = topRight.x - bottomLeft.x;
-        const regionHeight = topRight.y - bottomLeft.y;
-        console.log(`regionWidth: ${regionWidth}; regionHeight: ${regionHeight}`);
-        const regionCentreX = bottomLeft.x + regionWidth / 2;
-        const regionCentreY = bottomLeft.y + regionHeight / 2;
-
-        const dx = regionMouseX - regionCentreX;
-        const dy = regionMouseY - regionCentreY;
-
-        bottomLeft.x += dx;
-        bottomLeft.y += dy;
-        topRight.x += dx;
-        topRight.y += dy;
-
-        render();
+    if (ev.altKey) {
+        // Re-centre.
+        const rcx = bottomLeft.x + rw / 2;
+        const rcy = bottomLeft.y + rh / 2;
+        const drcx = regionMouseX - rcx;
+        const drcy = regionMouseY - rcy;
+        bottomLeft.x += drcx;
+        bottomLeft.y += drcy;
+        topRight.x += drcx;
+        topRight.y += drcy;
     }
-    // else {
-    //     rubberbanding = true;
-    //     rubberbandingStartMouseX = mouseX;
-    //     rubberbandingStartMouseY = mouseY;
-    // }
-};
+    else {
+        if (ev.shiftKey) {
+            // Zoom out
+            const drw = rw / 2;
+            const drh = rh / 2;
+            bottomLeft.x -= drw;
+            bottomLeft.y -= drh;
+            topRight.x += drw;
+            topRight.y += drh;
+        }
+        else {
+            // Zoom in
+            const drw = rw / 4;
+            const drh = rh / 4;
+            bottomLeft.x += drw;
+            bottomLeft.y += drh;
+            topRight.x -= drw;
+            topRight.y -= drh;
+        }
+    }
 
-// const onMouseupHandler = ev => {
-//     if (rubberbanding) {
-//         rubberbanding = false;
-//         const rubberbandingEndMouseX = ev.offsetX;
-//         const rubberbandingEndMouseY = ev.offsetY;
-//         const bottomLeftMouseX = Math.min(rubberbandingStartMouseX, rubberbandingEndMouseX);
-//         const bottomLeftMouseY = Math.min(rubberbandingStartMouseY, rubberbandingEndMouseY);
-//         const topRightMouseX = Math.max(rubberbandingStartMouseX, rubberbandingEndMouseX);
-//         const topRightMouseY = Math.max(rubberbandingStartMouseY, rubberbandingEndMouseY);
-//         bottomLeft = mouseToRegion(bottomLeftMouseX, bottomLeftMouseY);
-//         topRight = mouseToRegion(topRightMouseX, topRightMouseY);
-//         render();
-//     }
-// };
-
-const mouseToRegion = (mouseX, mouseY) => {
-    const regionWidth = topRight.x - bottomLeft.x;
-    const regionHeight = topRight.y - bottomLeft.y;
-    const regionMouseX = mouseX * (regionWidth / cw) + bottomLeft.x;
-    const regionMouseY = mouseY * (regionHeight / ch) + bottomLeft.y;
-    return {
-        x: regionMouseX,
-        y: regionMouseY
-    };
+    render();
 };
 
 start();
