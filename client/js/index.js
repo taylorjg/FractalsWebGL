@@ -8,7 +8,11 @@ let canvas;
 let gl;
 let mandelbrotSet = {};
 let juliaSet = {};
-let currentFractalSet = undefined;
+let monochromeColourMap = getColourMap('monochrome');
+let jetColourMap = getColourMap('jet');
+let currentFractalSet = undefined
+let currentJuliaConstant = undefined;
+let currentColourMap = undefined;
 let panning = false;
 let lastMousePt;
 
@@ -92,24 +96,25 @@ const initShadersHelper = (fractalSet, fragmentShaderSource) => {
 const initShaders = () => {
     initShadersHelper(mandelbrotSet, mandelbrotShaderSource);
     initShadersHelper(juliaSet, juliaShaderSource);
-    setCurrentFractalSet(mandelbrotSet, { x: 0, y: 0 });
+    setCurrentFractalSet(mandelbrotSet, { x: 0, y: 0 }, jetColourMap);
 };
 
-const setCurrentFractalSet = (fractalSet, juliaConstant) => {
+const setCurrentFractalSet = (fractalSet, juliaConstant, colourMap) => {
 
-    gl.useProgram(fractalSet.program);
+    currentFractalSet = fractalSet || currentFractalSet;
+    currentJuliaConstant = juliaConstant || currentJuliaConstant;
+    currentColourMap = colourMap || currentColourMap;
+
+    gl.useProgram(currentFractalSet.program);
 
     const modelViewMatrix = glm.mat4.create();
     glm.mat4.fromScaling(modelViewMatrix, [1, -1, 1]);
-    gl.uniformMatrix4fv(fractalSet.uModelViewMatrix, false, modelViewMatrix);
+    gl.uniformMatrix4fv(currentFractalSet.uModelViewMatrix, false, modelViewMatrix);
 
-    const colourMap = getColourMap('jet');
-    const flattenedColourMap = flatten(colourMap);
-    gl.uniform4fv(fractalSet.uColormap, flattenedColourMap);
+    const flattenedColourMap = flatten(currentColourMap);
+    gl.uniform4fv(currentFractalSet.uColormap, flattenedColourMap);
 
-    gl.uniform2f(fractalSet.uJuliaConstant, juliaConstant.x, juliaConstant.y);
-
-    currentFractalSet = fractalSet;
+    gl.uniform2f(currentFractalSet.uJuliaConstant, currentJuliaConstant.x, currentJuliaConstant.y);
 };
 
 const render = () => {
@@ -224,14 +229,12 @@ const onCanvasMouseDownHandler = ev => {
     if (ev.altKey) {
         switch (currentFractalSet) {
             case mandelbrotSet:
-                console.log(`Switching to Julia Set (${regionMouseX}, ${regionMouseY})`);
                 setCurrentFractalSet(juliaSet, { x: regionMouseX, y: regionMouseY });
                 render();
                 break;
 
             case juliaSet:
-                console.log('Switching to Mandelbrot Set');
-                setCurrentFractalSet(mandelbrotSet, { x: 0, y: 0 });
+                setCurrentFractalSet(mandelbrotSet);
                 render();
                 break;
 
@@ -313,12 +316,24 @@ const onDocumentKeyDownHandler = ev => {
 
     if (ev.key === 'h' && ev.ctrlKey) {
         // Reset
-        setCurrentFractalSet(mandelbrotSet, { x: 0, y: 0 });
+        setCurrentFractalSet(mandelbrotSet, { x: 0, y: 0 }, jetColourMap);
         regionBottomLeft.x = -2.25;
         regionBottomLeft.y = -1.5;
         regionTopRight.x = 0.75;
         regionTopRight.y = 1.5;
         setCanvasAndViewportSize();
+        render();
+        return;
+    }
+
+    if (ev.key === 'm' && ev.ctrlKey) {
+        setCurrentFractalSet(undefined, undefined, monochromeColourMap);
+        render();
+        return;
+    }
+
+    if (ev.key === 'j' && ev.ctrlKey) {
+        setCurrentFractalSet(undefined, undefined, jetColourMap);
         render();
         return;
     }
