@@ -23,6 +23,26 @@ const JET_DATA = {
     ],
 };
 
+const GIST_STERN_DATA = {
+    red: [
+        [0, 0, 0],
+        [0.0547, 1, 1],
+        [0.250, 0.027, 0.250],
+        [1, 1, 1]
+    ],
+    green: [
+        [0, 0, 0],
+        [1, 0, 0]
+    ],
+    blue: [
+        [0, 0, 0],
+        [0.5, 1, 1],
+        [0.735, 0, 0],
+        [1, 0, 0]
+    ],
+};
+
 export const colourMapDictionary = {
-    'jet': JET_DATA
+    'jet': JET_DATA,
+    'gist_stern': GIST_STERN_DATA
 };

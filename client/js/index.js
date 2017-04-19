@@ -4,15 +4,20 @@ import juliaShaderSource from '../shaders/julia.frag.glsl';
 import { getColourMap } from './colourMaps';
 import * as glm from 'gl-matrix';
 
+const flatten = xss => xss.reduce((acc, xs) => acc.concat(xs), []);
+
 let canvas;
 let gl;
 let mandelbrotSet = {};
 let juliaSet = {};
-let monochromeColourMap = getColourMap('monochrome');
-let jetColourMap = getColourMap('jet');
+let colourMaps = [
+    flatten(getColourMap('jet')),
+    flatten(getColourMap('gist_stern')),
+    flatten(getColourMap('monochrome'))
+];
 let currentFractalSet = undefined
 let currentJuliaConstant = undefined;
-let currentColourMap = undefined;
+let currentColourMapIndex = undefined;
 let panning = false;
 let lastMousePt;
 
@@ -96,14 +101,14 @@ const initShadersHelper = (fractalSet, fragmentShaderSource) => {
 const initShaders = () => {
     initShadersHelper(mandelbrotSet, mandelbrotShaderSource);
     initShadersHelper(juliaSet, juliaShaderSource);
-    setCurrentFractalSet(mandelbrotSet, { x: 0, y: 0 }, jetColourMap);
+    setCurrentFractalSet(mandelbrotSet, { x: 0, y: 0 }, 0);
 };
 
-const setCurrentFractalSet = (fractalSet, juliaConstant, colourMap) => {
+const setCurrentFractalSet = (fractalSet, juliaConstant, colourMapIndex) => {
 
     currentFractalSet = fractalSet || currentFractalSet;
     currentJuliaConstant = juliaConstant || currentJuliaConstant;
-    currentColourMap = colourMap || currentColourMap;
+    currentColourMapIndex = Number.isInteger(colourMapIndex) ? colourMapIndex : currentColourMapIndex;
 
     gl.useProgram(currentFractalSet.program);
 
@@ -111,8 +116,7 @@ const setCurrentFractalSet = (fractalSet, juliaConstant, colourMap) => {
     glm.mat4.fromScaling(modelViewMatrix, [1, -1, 1]);
     gl.uniformMatrix4fv(currentFractalSet.uModelViewMatrix, false, modelViewMatrix);
 
-    const flattenedColourMap = flatten(currentColourMap);
-    gl.uniform4fv(currentFractalSet.uColormap, flattenedColourMap);
+    gl.uniform4fv(currentFractalSet.uColormap, colourMaps[currentColourMapIndex]);
 
     gl.uniform2f(currentFractalSet.uJuliaConstant, currentJuliaConstant.x, currentJuliaConstant.y);
 };
@@ -158,8 +162,6 @@ const start = () => {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     render();
 }
-
-const flatten = xss => xss.reduce((acc, xs) => acc.concat(xs), []);
 
 const setCanvasAndViewportSize = () => {
 
@@ -316,7 +318,7 @@ const onDocumentKeyDownHandler = ev => {
 
     if (ev.key === 'h' && ev.ctrlKey) {
         // Reset
-        setCurrentFractalSet(mandelbrotSet, { x: 0, y: 0 }, jetColourMap);
+        setCurrentFractalSet(mandelbrotSet, { x: 0, y: 0 }, 0);
         regionBottomLeft.x = -2.25;
         regionBottomLeft.y = -1.5;
         regionTopRight.x = 0.75;
@@ -326,14 +328,10 @@ const onDocumentKeyDownHandler = ev => {
         return;
     }
 
-    if (ev.key === 'm' && ev.ctrlKey) {
-        setCurrentFractalSet(undefined, undefined, monochromeColourMap);
-        render();
-        return;
-    }
-
-    if (ev.key === 'j' && ev.ctrlKey) {
-        setCurrentFractalSet(undefined, undefined, jetColourMap);
+    if ((ev.key === 'c' || ev.key === 'C') && ev.ctrlKey) {
+        const max = colourMaps.length;
+        const colourMapIndex = ((currentColourMapIndex + (ev.shiftKey ? -1 : 1)) + max) % max;
+        setCurrentFractalSet(undefined, undefined, colourMapIndex);
         render();
         return;
     }
