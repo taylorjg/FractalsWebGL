@@ -12,20 +12,37 @@ Playing around with fractals in a web browser using WebGL.
 ## Controls
 
 * Shift + Left Click
-    * <i>Re-centre on the clicked point (maintain current zoom level).</i>
+    * _Re-centre on the clicked point (maintain current zoom level)._
 * Alt + Left Click
-    * <i>Switch between the Mandelbrot Set and the Julia Set (initally, Mandelbrot Set). When switching to the Julia Set, the clicked point provides the value for `c`.</i>
+    * _Toggle between the Mandelbrot Set and the Julia Set (initally, Mandelbrot Set). When switching to the Julia Set, the clicked point provides the value for `c`._
+* Left Click and drag around
+    * _Pan around the region._
 * `+`
-    * <i>Increase the zoom level.</i>
+    * _Increase the zoom level._
 * `-`
-    * <i>Decrease the zoom level.</i>
+    * _Decrease the zoom level._
 * CTRL + `h`
-    * <i>Home - switch to the Mandelbrot Set and reset the region to bottom left `(-2.25, -1.5)` and top right `(0.75, 1.5)`.</i>
+    * _Home - switch to the Mandelbrot Set, reset the region (bottom left: `(-2.25, -1.5)`, top right: `(0.75, 1.5)`) and restore the default colour map ('jet')._
+* CTRL + `c`
+    * _Cycle forwards through the colour maps._
+* SHIFT + CTRL + `c`
+    * _Cycle backwards through the colour maps._
+
+## Colourmaps
+
+* jet
+* gist_stern
+* ocean
+* rainbow
+* monochrome
 
 ## TODO
 
 * ~~Implement panning~~
-* Use `double`s in the shaders ? Would this allow us to zoom in further before we start to get bad pixellation ?
+* ~~Add more colour maps~~
+* Doesn't work on some browsers (e.g. iPad/Safari) - need to investigate and fix
+* Use `double`s in the shaders ? Would this allow us to zoom in further before we start to get bad pixellation ? Does WebGL support `double`s ?
+* Provide a way to change the number of iterations (currently hardcoded to 120).
 * Add a panel on the side (that slides in/out) to do various things e.g.:
     * Switch colour maps
     * Switch fractals

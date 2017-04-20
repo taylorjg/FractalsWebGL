@@ -4,16 +4,16 @@ import juliaShaderSource from '../shaders/julia.frag.glsl';
 import { getColourMap } from './colourMaps';
 import * as glm from 'gl-matrix';
 
-const flatten = xss => xss.reduce((acc, xs) => acc.concat(xs), []);
-
 let canvas;
 let gl;
 let mandelbrotSet = {};
 let juliaSet = {};
 let colourMaps = [
-    flatten(getColourMap('jet')),
-    flatten(getColourMap('gist_stern')),
-    flatten(getColourMap('monochrome'))
+    getColourMap('jet'),
+    getColourMap('gist_stern'),
+    getColourMap('ocean'),
+    getColourMap('rainbow'),
+    getColourMap('monochrome')
 ];
 let currentFractalSet = undefined
 let currentJuliaConstant = undefined;
@@ -330,7 +330,7 @@ const onDocumentKeyDownHandler = ev => {
 
     if ((ev.key === 'c' || ev.key === 'C') && ev.ctrlKey) {
         const max = colourMaps.length;
-        const colourMapIndex = ((currentColourMapIndex + (ev.shiftKey ? -1 : 1)) + max) % max;
+        const colourMapIndex = (currentColourMapIndex + (ev.shiftKey ? max - 1 : 1)) % max;
         setCurrentFractalSet(undefined, undefined, colourMapIndex);
         render();
         return;

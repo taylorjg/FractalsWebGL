@@ -1,6 +1,6 @@
 {
   "name": "fractalswebgl",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Fractals in WebGL",
   "main": "server/app.js",
   "dependencies": {

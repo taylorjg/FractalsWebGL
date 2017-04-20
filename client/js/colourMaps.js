@@ -1,10 +1,12 @@
 import { colourMapDictionary } from './colourMapData';
 
+const flatten = xss => xss.reduce((acc, xs) => acc.concat(xs), []);
+
 const N = 256;
 
 const WHITE = [1, 1, 1, 1];
 const BLACK = [0, 0, 0, 1];
-const MONOCHROME_COLOUR_MAP = Array(N - 1).fill(WHITE).concat([BLACK]);
+const MONOCHROME_COLOUR_MAP = flatten(Array(N - 1).fill(WHITE).concat([BLACK]));
 
 export const getColourMap = name => {
     const data = colourMapDictionary[name];
@@ -21,10 +23,13 @@ export const getColourMap = name => {
 };
 
 const getColourMapRgbaValues = (data, n) => {
-    const rs = makeMappingArray(n, data.red);
-    const gs = makeMappingArray(n, data.green);
-    const bs = makeMappingArray(n, data.blue);
-    return rsgsbsToColourValues(n, rs, gs, bs);
+    const makeMappingArrayFunc = data.usesFuncs
+        ? makeMappingArray2
+        : makeMappingArray;
+    const rs = makeMappingArrayFunc(n, data.red);
+    const gs = makeMappingArrayFunc(n, data.green);
+    const bs = makeMappingArrayFunc(n, data.blue);
+    return flatten(rsgsbsToColourValues(n, rs, gs, bs));
 };
 
 const rsgsbsToColourValues = (n, rs, gs, bs) => {
