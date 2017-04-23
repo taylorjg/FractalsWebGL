@@ -374,7 +374,7 @@ const handleBookmarkKeys = ev => {
     }
 
     if (ev.key === 'l') {
-        presentBookmarksModal();
+        presentManageBookmarksModal();
         return;
     }
 };
@@ -386,10 +386,12 @@ const presentBookmarkModal = (bookmark, isNew = true) => {
     const title = isNew ? 'New Bookmark' : 'Edit Bookmark';
     $('h4', modal).text(title);
 
-    $('input[type="submit"]', modal)
+    $('button.btn-primary', modal)
         .off('click')
         .on('click', () => {
+            // TODO: re-read the name field.
             bookmarks.set(bookmark.id, bookmark);
+            console.log(`bookmarks.size: ${bookmarks.size}`);
             modal.modal('hide');
         });
 
@@ -402,20 +404,60 @@ const presentBookmarkModal = (bookmark, isNew = true) => {
             $('#colourMapName', modal).val(colourMaps[bookmark.colourMapIndex].name);
             $('#regionBottomLeft', modal).val(`(${bookmark.regionBottomLeft.x}, ${bookmark.regionBottomLeft.y})`);
             $('#regionTopRight', modal).val(`(${bookmark.regionTopRight.x}, ${bookmark.regionTopRight.y})`);
-        })
+        });
 };
 
-const presentBookmarksModal = () => {
-    // Show the Bookmarks List modal
-    // (allow bookmarks to be deleted ?)
-    // (allow bookmarks to be edited ?)
-    // open the modal
-    // populate the list of bookmarks (need to store an array of bookmark data)
-    // onCancel
-    // - dismiss the modal
-    // onOK
-    // - dismiss the modal
-    // - switch to the selected bookmark (see CTRL + h above)
+const presentManageBookmarksModal = () => {
+
+    const modal = $('#manageBookmarksModal');
+
+    modal
+        .modal()
+        .on('shown.bs.modal', () => {
+            const tbody = $('tbody', modal).empty();
+            bookmarks.forEach(bookmark => {
+                const switchToButton = $('<button>', {
+                    'class': 'btn btn-sm btn-primary',
+                    html: 'Switch To'
+                });
+                const editButton = $('<button>', {
+                    'class': 'btn btn-sm btn-default',
+                    html: 'Edit'
+                });
+                const deleteButton = $('<button>', {
+                    'class': 'btn btn-sm btn-danger',
+                    html: 'Delete'
+                });
+                switchToButton.on('click', invokeWithBookmark(onSwitchTo));
+                editButton.on('click', invokeWithBookmark(onEdit));
+                deleteButton.on('click', invokeWithBookmark(onDelete));
+                const tr = $('<tr>', { 'data-id': bookmark.id });
+                tr.append($('<td>', { html: bookmark.name }));
+                tr.append($('<td>', { html: switchToButton }));
+                tr.append($('<td>', { html: editButton }));
+                tr.append($('<td>', { html: deleteButton }));
+                tbody.append(tr);
+            });
+        });
+
+    function invokeWithBookmark(fn) {
+        return function() {
+            modal.modal('hide');
+            const tr = $(this).closest('tr');
+            const id = Number(tr.attr('data-id'));
+            const bookmark = bookmarks.get(id);
+            fn(bookmark);
+        }
+    }
+
+    const onSwitchTo = bookmark => switchToBookmark(bookmark);
+
+    const onEdit = bookmark => {
+        const clonedBookmark = Object.assign({}, bookmark);
+        presentBookmarkModal(clonedBookmark, /* isNew */ false);
+    };
+
+    const onDelete = bookmark => bookmarks.delete(bookmark.id);
 };
 
 const switchToBookmark = bookmark => {
