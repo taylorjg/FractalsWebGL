@@ -1,22 +1,59 @@
 <html>
 
 <head>
-  <title>Fractals WebGL (version: <%= htmlWebpackPlugin.options.version %>)</title>
-  <style>
-    html, body {
-      margin: 0;
-      width: 100%;
-      height: 100%;
-    }
-    #canvas {
-      margin: 0;
-      width: 100%;
-      height: 100%;
-    }
-  </style>
+  <title>Fractals WebGL (version:
+    <%= htmlWebpackPlugin.options.version %>)</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.css" />
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.js"></script>
 </head>
 
 <body>
+
+  <div class="modal fade" id="newBookmarkModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <form>
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title">New Bookmark</h4>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label class="control-label" for="name">Name</label>
+              <input class="form-control" id="name" type="text">
+            </div>
+            <div class="form-group">
+              <label class="control-label" for="fractalSetName">Fractal Set</label>
+              <input class="form-control" id="fractalSetName" type="text" readonly>
+            </div>
+            <div class="form-group">
+              <label class="control-label" for="juliaConstant">Julia Constant</label>
+              <input class="form-control" id="juliaConstant" type="text" readonly>
+            </div>
+            <div class="form-group">
+              <label class="control-label" for="colourMapName">Colour Map</label>
+              <input class="form-control" id="colourMapName" type="text" readonly>
+            </div>
+            <div class="form-group">
+              <label class="control-label" for="regionBottomLeft">Region (bottom left)</label>
+              <input class="form-control" id="regionBottomLeft" type="text" readonly>
+            </div>
+            <div class="form-group">
+              <label class="control-label" for="regionTopRight">Region (top right)</label>
+              <input class="form-control" id="regionTopRight" type="text" readonly>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-sm btn-primary saveBtn">Save</button>
+            <button type="button" class="btn btn-sm btn-default" data-dismiss="modal">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <canvas id="canvas"></canvas>
 </body>
 

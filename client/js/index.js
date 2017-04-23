@@ -9,17 +9,29 @@ let gl;
 let mandelbrotSet = {};
 let juliaSet = {};
 let colourMaps = [
-    getColourMap('jet'),
-    getColourMap('gist_stern'),
-    getColourMap('ocean'),
-    getColourMap('rainbow'),
-    getColourMap('monochrome')
+    { name: 'jet', colourMap: getColourMap('jet') },
+    { name: 'gist_stern', colourMap: getColourMap('gist_stern') },
+    { name: 'ocean', colourMap: getColourMap('ocean') },
+    { name: 'rainbow', colourMap: getColourMap('rainbow') },
+    { name: 'monochrome', colourMap: getColourMap('monochrome') }
 ];
 let currentFractalSet = undefined
 let currentJuliaConstant = undefined;
 let currentColourMapIndex = undefined;
 let panning = false;
 let lastMousePt;
+let bookmarkMode = false;
+let defaultBookmark = {
+    id: 0,
+    name: 'Default',
+    fractalSet: mandelbrotSet,
+    juliaConstant: { x: 0, y: 0 },
+    colourMapIndex: 0,
+    regionBottomLeft: { x: -2.25, y: -1.5 },
+    regionTopRight: { x: 0.75, y: 1.5 }
+};
+let nextBookmarkId = defaultBookmark.id + 1;
+let bookmarks = new Map([[defaultBookmark.id, defaultBookmark]]);
 
 let regionBottomLeft = {
     x: -0.22,
@@ -54,7 +66,7 @@ const getShader = (gl, source, shaderType) => {
     return shader;
 }
 
-const initShadersHelper = (fractalSet, fragmentShaderSource) => {
+const initShadersHelper = (name, fractalSet, fragmentShaderSource) => {
 
     const vertexShader = getShader(gl, vertexShaderSource, gl.VERTEX_SHADER);
     const fragmentShader = getShader(gl, fragmentShaderSource, gl.FRAGMENT_SHADER);
@@ -89,6 +101,7 @@ const initShadersHelper = (fractalSet, fragmentShaderSource) => {
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
     gl.vertexAttribPointer(aVertexPosition, 2, gl.FLOAT, false, 0, 0);
 
+    fractalSet.name = name;
     fractalSet.program = program;
     fractalSet.aVertexPosition = aVertexPosition;
     fractalSet.aPlotPosition = aPlotPosition;
@@ -99,8 +112,8 @@ const initShadersHelper = (fractalSet, fragmentShaderSource) => {
 };
 
 const initShaders = () => {
-    initShadersHelper(mandelbrotSet, mandelbrotShaderSource);
-    initShadersHelper(juliaSet, juliaShaderSource);
+    initShadersHelper('Mandelbrot', mandelbrotSet, mandelbrotShaderSource);
+    initShadersHelper('Julia', juliaSet, juliaShaderSource);
     setCurrentFractalSet(mandelbrotSet, { x: 0, y: 0 }, 0);
 };
 
@@ -116,7 +129,7 @@ const setCurrentFractalSet = (fractalSet, juliaConstant, colourMapIndex) => {
     glm.mat4.fromScaling(modelViewMatrix, [1, -1, 1]);
     gl.uniformMatrix4fv(currentFractalSet.uModelViewMatrix, false, modelViewMatrix);
 
-    gl.uniform4fv(currentFractalSet.uColormap, colourMaps[currentColourMapIndex]);
+    gl.uniform4fv(currentFractalSet.uColormap, colourMaps[currentColourMapIndex].colourMap);
 
     gl.uniform2f(currentFractalSet.uJuliaConstant, currentJuliaConstant.x, currentJuliaConstant.y);
 };
@@ -289,6 +302,16 @@ const onCanvasMouseLeaveHandler = () => {
 
 const onDocumentKeyDownHandler = ev => {
 
+    if (bookmarkMode) {
+        handleBookmarkKeys(ev);
+        return;
+    }
+
+    if (!bookmarkMode && ev.key === 'b' && ev.ctrlKey) {
+        bookmarkMode = true;
+        return;
+    }
+
     const rw = regionTopRight.x - regionBottomLeft.x;
     const rh = regionTopRight.y - regionBottomLeft.y;
 
@@ -318,13 +341,7 @@ const onDocumentKeyDownHandler = ev => {
 
     if (ev.key === 'h' && ev.ctrlKey) {
         // Reset
-        setCurrentFractalSet(mandelbrotSet, { x: 0, y: 0 }, 0);
-        regionBottomLeft.x = -2.25;
-        regionBottomLeft.y = -1.5;
-        regionTopRight.x = 0.75;
-        regionTopRight.y = 1.5;
-        setCanvasAndViewportSize();
-        render();
+        switchToBookmark(bookmarks.get(0));
         return;
     }
 
@@ -335,6 +352,70 @@ const onDocumentKeyDownHandler = ev => {
         render();
         return;
     }
+};
+
+const handleBookmarkKeys = ev => {
+
+    bookmarkMode = false;
+
+    if (ev.key === 'n') {
+        const bookmarkId = nextBookmarkId++;
+        const bookmark = {
+            id: bookmarkId,
+            name: `Bookmark${bookmarkId}`,
+            fractalSet: currentFractalSet,
+            juliaConstant: Object.assign({}, currentJuliaConstant),
+            colourMapIndex: currentColourMapIndex,
+            regionBottomLeft: Object.assign({}, regionBottomLeft),
+            regionTopRight: Object.assign({}, regionTopRight)
+        };
+
+        const modal = $('#newBookmarkModal');
+
+        $('.saveBtn', modal)
+            .off('click')
+            .on('click', () => {
+                bookmarks.set(bookmark.id, bookmark);
+                modal.modal('hide');
+            });
+
+        modal
+            .modal()
+            .on('shown.bs.modal', () => {
+                $('#name', modal).val(bookmark.name);
+                $('#fractalSetName', modal).val(bookmark.fractalSet.name);
+                $('#juliaConstant', modal).val(`(${bookmark.juliaConstant.x}, ${bookmark.juliaConstant.y})`);
+                $('#colourMapName', modal).val(colourMaps[bookmark.colourMapIndex].name);
+                $('#regionBottomLeft', modal).val(`(${bookmark.regionBottomLeft.x}, ${bookmark.regionBottomLeft.y})`);
+                $('#regionTopRight', modal).val(`(${bookmark.regionTopRight.x}, ${bookmark.regionTopRight.y})`);
+            })
+
+        return;
+    }
+
+    if (ev.key === 'l') {
+        // Show the Bookmarks List modal
+        // (allow bookmarks to be deleted ?)
+        // (allow bookmarks to be edited ?)
+        // open the modal
+        // populate the list of bookmarks (need to store an array of bookmark data)
+        // onCancel
+        // - dismiss the modal
+        // onOK
+        // - dismiss the modal
+        // - switch to the selected bookmark (see CTRL + h above)
+        return;
+    }
+};
+
+const switchToBookmark = bookmark => {
+    setCurrentFractalSet(bookmark.fractalSet, bookmark.juliaConstant, bookmark.colourMapIndex);
+    regionBottomLeft.x = bookmark.regionBottomLeft.x;
+    regionBottomLeft.y = bookmark.regionBottomLeft.y;
+    regionTopRight.x = bookmark.regionTopRight.x;
+    regionTopRight.y = bookmark.regionTopRight.y;
+    setCanvasAndViewportSize();
+    render();
 };
 
 start();
