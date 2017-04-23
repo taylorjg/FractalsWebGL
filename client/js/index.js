@@ -369,43 +369,53 @@ const handleBookmarkKeys = ev => {
             regionBottomLeft: Object.assign({}, regionBottomLeft),
             regionTopRight: Object.assign({}, regionTopRight)
         };
-
-        const modal = $('#newBookmarkModal');
-
-        $('.saveBtn', modal)
-            .off('click')
-            .on('click', () => {
-                bookmarks.set(bookmark.id, bookmark);
-                modal.modal('hide');
-            });
-
-        modal
-            .modal()
-            .on('shown.bs.modal', () => {
-                $('#name', modal).val(bookmark.name);
-                $('#fractalSetName', modal).val(bookmark.fractalSet.name);
-                $('#juliaConstant', modal).val(`(${bookmark.juliaConstant.x}, ${bookmark.juliaConstant.y})`);
-                $('#colourMapName', modal).val(colourMaps[bookmark.colourMapIndex].name);
-                $('#regionBottomLeft', modal).val(`(${bookmark.regionBottomLeft.x}, ${bookmark.regionBottomLeft.y})`);
-                $('#regionTopRight', modal).val(`(${bookmark.regionTopRight.x}, ${bookmark.regionTopRight.y})`);
-            })
-
+        presentBookmarkModal(bookmark, /* isNew */ true);
         return;
     }
 
     if (ev.key === 'l') {
-        // Show the Bookmarks List modal
-        // (allow bookmarks to be deleted ?)
-        // (allow bookmarks to be edited ?)
-        // open the modal
-        // populate the list of bookmarks (need to store an array of bookmark data)
-        // onCancel
-        // - dismiss the modal
-        // onOK
-        // - dismiss the modal
-        // - switch to the selected bookmark (see CTRL + h above)
+        presentBookmarksModal();
         return;
     }
+};
+
+const presentBookmarkModal = (bookmark, isNew = true) => {
+
+    const modal = $('#bookmarkModal');
+
+    const title = isNew ? 'New Bookmark' : 'Edit Bookmark';
+    $('h4', modal).text(title);
+
+    $('input[type="submit"]', modal)
+        .off('click')
+        .on('click', () => {
+            bookmarks.set(bookmark.id, bookmark);
+            modal.modal('hide');
+        });
+
+    modal
+        .modal()
+        .on('shown.bs.modal', () => {
+            $('#name', modal).val(bookmark.name);
+            $('#fractalSetName', modal).val(bookmark.fractalSet.name);
+            $('#juliaConstant', modal).val(`(${bookmark.juliaConstant.x}, ${bookmark.juliaConstant.y})`);
+            $('#colourMapName', modal).val(colourMaps[bookmark.colourMapIndex].name);
+            $('#regionBottomLeft', modal).val(`(${bookmark.regionBottomLeft.x}, ${bookmark.regionBottomLeft.y})`);
+            $('#regionTopRight', modal).val(`(${bookmark.regionTopRight.x}, ${bookmark.regionTopRight.y})`);
+        })
+};
+
+const presentBookmarksModal = () => {
+    // Show the Bookmarks List modal
+    // (allow bookmarks to be deleted ?)
+    // (allow bookmarks to be edited ?)
+    // open the modal
+    // populate the list of bookmarks (need to store an array of bookmark data)
+    // onCancel
+    // - dismiss the modal
+    // onOK
+    // - dismiss the modal
+    // - switch to the selected bookmark (see CTRL + h above)
 };
 
 const switchToBookmark = bookmark => {
