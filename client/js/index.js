@@ -4,6 +4,8 @@ import juliaShaderSource from '../shaders/julia.frag.glsl';
 import { getColourMap } from './colourMaps';
 import * as glm from 'gl-matrix';
 
+const MAX_ITERATIONS = 120;
+
 let canvas;
 let gl;
 let mandelbrotSet = {};
@@ -21,17 +23,8 @@ let currentColourMapIndex = undefined;
 let panning = false;
 let lastMousePt;
 let bookmarkMode = false;
-let defaultBookmark = {
-    id: 0,
-    name: 'Default',
-    fractalSet: mandelbrotSet,
-    juliaConstant: { x: 0, y: 0 },
-    colourMapIndex: 0,
-    regionBottomLeft: { x: -2.25, y: -1.5 },
-    regionTopRight: { x: 0.75, y: 1.5 }
-};
-let nextBookmarkId = defaultBookmark.id + 1;
-let bookmarks = new Map([[defaultBookmark.id, defaultBookmark]]);
+let nextBookmarkId = 0;
+let bookmarks = new Map();
 
 let regionBottomLeft = {
     x: -0.22,
@@ -168,12 +161,26 @@ const start = () => {
 
     initGL(canvas);
     initShaders()
-
     setCanvasAndViewportSize();
 
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     render();
+
+    if (bookmarks.size === 0) {
+        const defaultBookmark = {
+            id: 0,
+            name: 'Default',
+            fractalSet: mandelbrotSet,
+            juliaConstant: { x: 0, y: 0 },
+            colourMapIndex: 0,
+            regionBottomLeft: {x: -2.25, y: -1.5 },
+            regionTopRight: { x: 0.75, y: 1.5 },
+            maxIterations: MAX_ITERATIONS
+        };
+        bookmarks.set(defaultBookmark.id, defaultBookmark);
+        nextBookmarkId = 1;
+    }
 }
 
 const setCanvasAndViewportSize = () => {
@@ -359,17 +366,8 @@ const handleBookmarkKeys = ev => {
     bookmarkMode = false;
 
     if (ev.key === 'n') {
-        const bookmarkId = nextBookmarkId++;
-        const bookmark = {
-            id: bookmarkId,
-            name: `Bookmark${bookmarkId}`,
-            fractalSet: currentFractalSet,
-            juliaConstant: Object.assign({}, currentJuliaConstant),
-            colourMapIndex: currentColourMapIndex,
-            regionBottomLeft: Object.assign({}, regionBottomLeft),
-            regionTopRight: Object.assign({}, regionTopRight)
-        };
-        presentBookmarkModal(bookmark, /* isNew */ true);
+        const bookmark = createBookmark();
+        presentBookmarkModal(bookmark);
         return;
     }
 
@@ -379,19 +377,23 @@ const handleBookmarkKeys = ev => {
     }
 };
 
-const presentBookmarkModal = (bookmark, isNew = true) => {
+const presentBookmarkModal = bookmark => {
+
+    const hasId = Number.isInteger(bookmark.id);
 
     const modal = $('#bookmarkModal');
 
-    const title = isNew ? 'New Bookmark' : 'Edit Bookmark';
+    const title = hasId ? 'Edit Bookmark' : 'New Bookmark';
     $('h4', modal).text(title);
 
     $('button.btn-primary', modal)
         .off('click')
         .on('click', () => {
-            // TODO: re-read the name field.
-            bookmarks.set(bookmark.id, bookmark);
-            console.log(`bookmarks.size: ${bookmarks.size}`);
+            bookmark.name = $('#name', modal).val();
+            if (!hasId) {
+                bookmark.id = nextBookmarkId++;
+                bookmarks.set(bookmark.id, bookmark);
+            }
             modal.modal('hide');
         });
 
@@ -420,14 +422,20 @@ const presentManageBookmarksModal = () => {
                     'class': 'btn btn-sm btn-primary',
                     html: 'Switch To'
                 });
-                const editButton = $('<button>', {
+                const editButtonAttributes = {
                     'class': 'btn btn-sm btn-default',
                     html: 'Edit'
-                });
-                const deleteButton = $('<button>', {
+                };
+                const deleteButtonAttributes = {
                     'class': 'btn btn-sm btn-danger',
                     html: 'Delete'
-                });
+                };
+                if (bookmark.id === 0) {
+                    editButtonAttributes.disabled = '';
+                    deleteButtonAttributes.disabled = '';
+                }
+                const editButton = $('<button>', editButtonAttributes);
+                const deleteButton = $('<button>', deleteButtonAttributes);
                 switchToButton.on('click', invokeWithBookmark(onSwitchTo));
                 editButton.on('click', invokeWithBookmark(onEdit));
                 deleteButton.on('click', invokeWithBookmark(onDelete));
@@ -441,7 +449,7 @@ const presentManageBookmarksModal = () => {
         });
 
     function invokeWithBookmark(fn) {
-        return function() {
+        return function () {
             modal.modal('hide');
             const tr = $(this).closest('tr');
             const id = Number(tr.attr('data-id'));
@@ -451,14 +459,19 @@ const presentManageBookmarksModal = () => {
     }
 
     const onSwitchTo = bookmark => switchToBookmark(bookmark);
-
-    const onEdit = bookmark => {
-        const clonedBookmark = Object.assign({}, bookmark);
-        presentBookmarkModal(clonedBookmark, /* isNew */ false);
-    };
-
+    const onEdit = bookmark => presentBookmarkModal(bookmark);
     const onDelete = bookmark => bookmarks.delete(bookmark.id);
 };
+
+const createBookmark = name => ({
+    name: name || `Bookmark${nextBookmarkId}`,
+    fractalSet: currentFractalSet,
+    juliaConstant: Object.assign({}, currentJuliaConstant),
+    colourMapIndex: currentColourMapIndex,
+    regionBottomLeft: Object.assign({}, regionBottomLeft),
+    regionTopRight: Object.assign({}, regionTopRight),
+    maxIterations: MAX_ITERATIONS
+});
 
 const switchToBookmark = bookmark => {
     setCurrentFractalSet(bookmark.fractalSet, bookmark.juliaConstant, bookmark.colourMapIndex);
