@@ -132,7 +132,12 @@ const setCurrentFractalSet = (fractalSetId, juliaConstant, colourMapId) => {
         currentFractalSet = fractalSets.get(fractalSetId);
     }
 
-    currentJuliaConstant = juliaConstant || { x: 0, y: 0 };
+    if (juliaConstant) {
+        currentJuliaConstant = juliaConstant;
+    }
+    if (!currentJuliaConstant) {
+        currentJuliaConstant = { x: 0, y: 0 };
+    }
 
     if (Number.isInteger(colourMapId)) {
         currentColourMapId = colourMapId;
@@ -426,17 +431,16 @@ const presentBookmarkModal = bookmark => {
             const thumbnail = $('.thumbnail', modal)[0];
             console.log(thumbnail);
             const thumbnail2d = thumbnail.getContext('2d');
-            const sx = 0;
-            const sy = 0;
-            const swidth = canvas.width;
-            const sheight = canvas.height;
-            const dx = 0;
-            const dy = 0;
+            const swidth = Math.min(canvas.width, canvas.height);
+            const sheight = Math.min(canvas.width, canvas.height);
+            const sx = (canvas.width - swidth) / 2;
+            const sy = (canvas.height - sheight) / 2;
+            console.log(`${swidth} ${sheight} ${sx} ${sy}`);
             const dwidth = thumbnail.width;
             const dheight = thumbnail.height;
-            thumbnail2d.drawImage(canvas, sx, sy, swidth, sheight, dx, dy, dwidth, dheight);
+            thumbnail2d.drawImage(canvas, sx, sy, swidth, sheight, 0, 0, dwidth, dheight);
 
-            const dataURL = thumbnail.toDataURL('image/jpeg', 1.0);
+            const dataURL = thumbnail.toDataURL('image/jpeg', 0.25);
             console.log(`dataURL: ${dataURL}`);
             console.log(`dataURL.length: ${dataURL.length}`);
 

@@ -1,7 +1,6 @@
 precision highp float;
 
 uniform vec4 uColormap[256];
-uniform vec2 uJuliaConstant;
 varying vec2 vPosition;
 
 vec4 colourmapIndexer(int index) {
