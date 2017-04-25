@@ -49,7 +49,7 @@ let bookmarks = new Map();
 
 const initGL = canvas => {
     try {
-        gl = canvas.getContext('webgl');
+        gl = canvas.getContext('webgl', { preserveDrawingBuffer: true });
     }
     catch (e) {
         console.error(`canvas.getContext(webgl) failed: ${e.message}`);
@@ -422,6 +422,24 @@ const presentBookmarkModal = bookmark => {
     modal
         .modal()
         .on('shown.bs.modal', () => {
+
+            const thumbnail = $('.thumbnail', modal)[0];
+            console.log(thumbnail);
+            const thumbnail2d = thumbnail.getContext('2d');
+            const sx = 0;
+            const sy = 0;
+            const swidth = canvas.width;
+            const sheight = canvas.height;
+            const dx = 0;
+            const dy = 0;
+            const dwidth = thumbnail.width;
+            const dheight = thumbnail.height;
+            thumbnail2d.drawImage(canvas, sx, sy, swidth, sheight, dx, dy, dwidth, dheight);
+
+            const dataURL = thumbnail.toDataURL('image/jpeg', 1.0);
+            console.log(`dataURL: ${dataURL}`);
+            console.log(`dataURL.length: ${dataURL.length}`);
+
             $('#name', modal).val(bookmark.name);
             $('#fractalSetName', modal).val(fractalSets.get(bookmark.fractalSetId).name);
             $('#juliaConstant', modal).val(`(${bookmark.juliaConstant.x}, ${bookmark.juliaConstant.y})`);
