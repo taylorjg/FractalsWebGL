@@ -4,9 +4,11 @@
   <title>Fractals WebGL (version:
     <%= htmlWebpackPlugin.options.version %>)</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootcards/1.1.2/css/bootcards-desktop.css" />
   <link rel="stylesheet" href="styles.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootcards/1.1.2/js/bootcards.js"></script>
 </head>
 
 <body>
@@ -43,6 +45,10 @@
             <div class="form-group">
               <label class="control-label" for="regionTopRight">Region (top right)</label>
               <input class="form-control" id="regionTopRight" type="text" readonly>
+            </div>
+            <div class="form-group">
+              <label class="control-label" for="maxIterations">Max Iterations</label>
+              <input class="form-control" id="maxIterations" type="text" readonly>
             </div>
           </div>
           <div class="modal-footer">

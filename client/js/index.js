@@ -6,34 +6,46 @@ import * as glm from 'gl-matrix';
 
 const MAX_ITERATIONS = 120;
 
+const FRACTAL_SET_ID_MANDELBROT = 0;
+const FRACTAL_SET_ID_JULIA = 1;
+
+const COLOURMAP_ID_JET = 0;
+const COLOURMAP_ID_GIST_STERN = 1;
+const COLOURMAP_ID_OCEAN = 2;
+const COLOURMAP_ID_RAINBOW = 3;
+const COLOURMAP_ID_MONOCHROME = 4;
+
+const loadColourMap = name => ({
+    name,
+    colourMap: getColourMap(name)
+});
+
 let canvas;
 let gl;
-let mandelbrotSet = {};
-let juliaSet = {};
-let colourMaps = [
-    { name: 'jet', colourMap: getColourMap('jet') },
-    { name: 'gist_stern', colourMap: getColourMap('gist_stern') },
-    { name: 'ocean', colourMap: getColourMap('ocean') },
-    { name: 'rainbow', colourMap: getColourMap('rainbow') },
-    { name: 'monochrome', colourMap: getColourMap('monochrome') }
-];
-let currentFractalSet = undefined
+
+let colourMaps = new Map([
+    [COLOURMAP_ID_JET, loadColourMap('jet')],
+    [COLOURMAP_ID_GIST_STERN, loadColourMap('gist_stern')],
+    [COLOURMAP_ID_OCEAN, loadColourMap('ocean')],
+    [COLOURMAP_ID_RAINBOW, loadColourMap('rainbow')],
+    [COLOURMAP_ID_MONOCHROME, loadColourMap('monochrome')]
+]);
+let fractalSets = new Map();
+
+let currentFractalSetId = undefined;
+let currentFractalSet = undefined;
 let currentJuliaConstant = undefined;
-let currentColourMapIndex = undefined;
+let currentColourMapId = undefined;
+let currentColourMap = undefined;
+let regionBottomLeft = { x: -0.22, y: -0.7 };
+let regionTopRight = { x: -0.21, y: -0.69 };
+
 let panning = false;
 let lastMousePt;
+
 let bookmarkMode = false;
 let nextBookmarkId = 0;
 let bookmarks = new Map();
-
-let regionBottomLeft = {
-    x: -0.22,
-    y: -0.7
-};
-let regionTopRight = {
-    x: -0.21,
-    y: -0.69
-};
 
 const initGL = canvas => {
     try {
@@ -59,7 +71,7 @@ const getShader = (gl, source, shaderType) => {
     return shader;
 }
 
-const initShadersHelper = (name, fractalSet, fragmentShaderSource) => {
+const initShadersHelper = (name, fragmentShaderSource) => {
 
     const vertexShader = getShader(gl, vertexShaderSource, gl.VERTEX_SHADER);
     const fragmentShader = getShader(gl, fragmentShaderSource, gl.FRAGMENT_SHADER);
@@ -94,27 +106,38 @@ const initShadersHelper = (name, fractalSet, fragmentShaderSource) => {
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
     gl.vertexAttribPointer(aVertexPosition, 2, gl.FLOAT, false, 0, 0);
 
-    fractalSet.name = name;
-    fractalSet.program = program;
-    fractalSet.aVertexPosition = aVertexPosition;
-    fractalSet.aPlotPosition = aPlotPosition;
-    fractalSet.uModelViewMatrix = uModelViewMatrix;
-    fractalSet.uColormap = uColormap;
-    fractalSet.uJuliaConstant = uJuliaConstant;
-    fractalSet.vertexPositionBuffer = vertexPositionBuffer;
+    return {
+        name,
+        program,
+        aVertexPosition,
+        aPlotPosition,
+        uModelViewMatrix,
+        uColormap,
+        uJuliaConstant,
+        vertexPositionBuffer
+    };
 };
 
 const initShaders = () => {
-    initShadersHelper('Mandelbrot', mandelbrotSet, mandelbrotShaderSource);
-    initShadersHelper('Julia', juliaSet, juliaShaderSource);
-    setCurrentFractalSet(mandelbrotSet, { x: 0, y: 0 }, 0);
+    const mandelbrotSet = initShadersHelper('Mandelbrot', mandelbrotShaderSource);
+    const juliaSet = initShadersHelper('Julia', juliaShaderSource);
+    fractalSets.set(FRACTAL_SET_ID_MANDELBROT, mandelbrotSet);
+    fractalSets.set(FRACTAL_SET_ID_JULIA, juliaSet);
 };
 
-const setCurrentFractalSet = (fractalSet, juliaConstant, colourMapIndex) => {
+const setCurrentFractalSet = (fractalSetId, juliaConstant, colourMapId) => {
 
-    currentFractalSet = fractalSet || currentFractalSet;
-    currentJuliaConstant = juliaConstant || currentJuliaConstant;
-    currentColourMapIndex = Number.isInteger(colourMapIndex) ? colourMapIndex : currentColourMapIndex;
+    if (Number.isInteger(fractalSetId)) {
+        currentFractalSetId = fractalSetId;
+        currentFractalSet = fractalSets.get(fractalSetId);
+    }
+
+    currentJuliaConstant = juliaConstant || { x: 0, y: 0 };
+
+    if (Number.isInteger(colourMapId)) {
+        currentColourMapId = colourMapId;
+        currentColourMap = colourMaps.get(colourMapId);
+    }
 
     gl.useProgram(currentFractalSet.program);
 
@@ -122,9 +145,12 @@ const setCurrentFractalSet = (fractalSet, juliaConstant, colourMapIndex) => {
     glm.mat4.fromScaling(modelViewMatrix, [1, -1, 1]);
     gl.uniformMatrix4fv(currentFractalSet.uModelViewMatrix, false, modelViewMatrix);
 
-    gl.uniform4fv(currentFractalSet.uColormap, colourMaps[currentColourMapIndex].colourMap);
+    gl.uniform4fv(currentFractalSet.uColormap, currentColourMap.colourMap);
 
     gl.uniform2f(currentFractalSet.uJuliaConstant, currentJuliaConstant.x, currentJuliaConstant.y);
+
+    setCanvasAndViewportSize();
+    render();
 };
 
 const render = () => {
@@ -160,21 +186,17 @@ const start = () => {
     window.addEventListener('resize', onWindowResize);
 
     initGL(canvas);
-    initShaders()
-    setCanvasAndViewportSize();
-
-    gl.clearColor(0.0, 0.0, 0.0, 1.0);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    render();
+    initShaders();
+    setCurrentFractalSet(FRACTAL_SET_ID_MANDELBROT, undefined, COLOURMAP_ID_JET);
 
     if (bookmarks.size === 0) {
         const defaultBookmark = {
             id: 0,
             name: 'Default',
-            fractalSet: mandelbrotSet,
+            fractalSetId: FRACTAL_SET_ID_MANDELBROT,
             juliaConstant: { x: 0, y: 0 },
-            colourMapIndex: 0,
-            regionBottomLeft: {x: -2.25, y: -1.5 },
+            colourMapId: COLOURMAP_ID_JET,
+            regionBottomLeft: { x: -2.25, y: -1.5 },
             regionTopRight: { x: 0.75, y: 1.5 },
             maxIterations: MAX_ITERATIONS
         };
@@ -249,15 +271,13 @@ const onCanvasMouseDownHandler = ev => {
     }
 
     if (ev.altKey) {
-        switch (currentFractalSet) {
-            case mandelbrotSet:
-                setCurrentFractalSet(juliaSet, { x: regionMouseX, y: regionMouseY });
-                render();
+        switch (currentFractalSetId) {
+            case FRACTAL_SET_ID_MANDELBROT:
+                setCurrentFractalSet(FRACTAL_SET_ID_JULIA, { x: regionMouseX, y: regionMouseY });
                 break;
 
-            case juliaSet:
-                setCurrentFractalSet(mandelbrotSet);
-                render();
+            case FRACTAL_SET_ID_JULIA:
+                setCurrentFractalSet(FRACTAL_SET_ID_MANDELBROT);
                 break;
 
             default:
@@ -353,10 +373,12 @@ const onDocumentKeyDownHandler = ev => {
     }
 
     if ((ev.key === 'c' || ev.key === 'C') && ev.ctrlKey) {
-        const max = colourMaps.length;
-        const colourMapIndex = (currentColourMapIndex + (ev.shiftKey ? max - 1 : 1)) % max;
-        setCurrentFractalSet(undefined, undefined, colourMapIndex);
-        render();
+        const keys = Array.from(colourMaps.keys());
+        const maxIndex = keys.length;
+        const oldIndex = keys.indexOf(currentColourMapId);
+        const newIndex = (oldIndex + (ev.shiftKey ? maxIndex - 1 : 1)) % maxIndex;
+        const newColourMapId = keys[newIndex];
+        setCurrentFractalSet(undefined, undefined, newColourMapId);
         return;
     }
 };
@@ -401,11 +423,12 @@ const presentBookmarkModal = bookmark => {
         .modal()
         .on('shown.bs.modal', () => {
             $('#name', modal).val(bookmark.name);
-            $('#fractalSetName', modal).val(bookmark.fractalSet.name);
+            $('#fractalSetName', modal).val(fractalSets.get(bookmark.fractalSetId).name);
             $('#juliaConstant', modal).val(`(${bookmark.juliaConstant.x}, ${bookmark.juliaConstant.y})`);
-            $('#colourMapName', modal).val(colourMaps[bookmark.colourMapIndex].name);
+            $('#colourMapName', modal).val(colourMaps.get(bookmark.colourMapId).name);
             $('#regionBottomLeft', modal).val(`(${bookmark.regionBottomLeft.x}, ${bookmark.regionBottomLeft.y})`);
             $('#regionTopRight', modal).val(`(${bookmark.regionTopRight.x}, ${bookmark.regionTopRight.y})`);
+            $('#maxIterations', modal).val(bookmark.maxIterations);
         });
 };
 
@@ -465,22 +488,20 @@ const presentManageBookmarksModal = () => {
 
 const createBookmark = name => ({
     name: name || `Bookmark${nextBookmarkId}`,
-    fractalSet: currentFractalSet,
+    fractalSetId: currentFractalSetId,
     juliaConstant: Object.assign({}, currentJuliaConstant),
-    colourMapIndex: currentColourMapIndex,
+    colourMapId: currentColourMapId,
     regionBottomLeft: Object.assign({}, regionBottomLeft),
     regionTopRight: Object.assign({}, regionTopRight),
     maxIterations: MAX_ITERATIONS
 });
 
 const switchToBookmark = bookmark => {
-    setCurrentFractalSet(bookmark.fractalSet, bookmark.juliaConstant, bookmark.colourMapIndex);
     regionBottomLeft.x = bookmark.regionBottomLeft.x;
     regionBottomLeft.y = bookmark.regionBottomLeft.y;
     regionTopRight.x = bookmark.regionTopRight.x;
     regionTopRight.y = bookmark.regionTopRight.y;
-    setCanvasAndViewportSize();
-    render();
+    setCurrentFractalSet(bookmark.fractalSetId, bookmark.juliaConstant, bookmark.colourMapId);
 };
 
 start();
