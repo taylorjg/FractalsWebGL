@@ -411,7 +411,7 @@ const presentBookmarkModal = bookmark => {
     const modal = $('#bookmarkModal');
 
     const title = hasId ? 'Edit Bookmark' : 'New Bookmark';
-    $('h4', modal).text(title);
+    $('.modal-title', modal).text(title);
 
     $('button.btn-primary', modal)
         .off('click')
@@ -426,31 +426,44 @@ const presentBookmarkModal = bookmark => {
 
     modal
         .modal()
+        .off('shown.bs.modal')
         .on('shown.bs.modal', () => {
 
-            const thumbnail = $('.thumbnail', modal)[0];
-            console.log(thumbnail);
-            const thumbnail2d = thumbnail.getContext('2d');
-            const swidth = Math.min(canvas.width, canvas.height);
-            const sheight = Math.min(canvas.width, canvas.height);
-            const sx = (canvas.width - swidth) / 2;
-            const sy = (canvas.height - sheight) / 2;
-            console.log(`${swidth} ${sheight} ${sx} ${sy}`);
-            const dwidth = thumbnail.width;
-            const dheight = thumbnail.height;
-            thumbnail2d.drawImage(canvas, sx, sy, swidth, sheight, 0, 0, dwidth, dheight);
-
-            const dataURL = thumbnail.toDataURL('image/jpeg', 0.25);
-            console.log(`dataURL: ${dataURL}`);
-            console.log(`dataURL.length: ${dataURL.length}`);
+            const thumbnailImg = $('img.thumbnail', modal);
+            const thumbnailCanvas = $('canvas.thumbnail', modal);
+            if (hasId) {
+                thumbnailCanvas.hide();
+                thumbnailImg.show();
+                thumbnailImg[0].src = bookmark.thumbnail;
+            } else {
+                thumbnailImg.hide();
+                thumbnailCanvas.show();
+                const thumbnailCanvasElement = thumbnailCanvas[0];
+                const thumbnail2d = thumbnailCanvasElement.getContext('2d');
+                const swidth = Math.min(canvas.width, canvas.height);
+                const sheight = Math.min(canvas.width, canvas.height);
+                const sx = (canvas.width - swidth) / 2;
+                const sy = (canvas.height - sheight) / 2;
+                const dwidth = thumbnailCanvasElement.width;
+                const dheight = thumbnailCanvasElement.height;
+                thumbnail2d.drawImage(canvas, sx, sy, swidth, sheight, 0, 0, dwidth, dheight);
+                bookmark.thumbnail = thumbnailCanvasElement.toDataURL('image/jpeg', 1.0);
+            }
 
             $('#name', modal).val(bookmark.name);
-            $('#fractalSetName', modal).val(fractalSets.get(bookmark.fractalSetId).name);
-            $('#juliaConstant', modal).val(`(${bookmark.juliaConstant.x}, ${bookmark.juliaConstant.y})`);
-            $('#colourMapName', modal).val(colourMaps.get(bookmark.colourMapId).name);
-            $('#regionBottomLeft', modal).val(`(${bookmark.regionBottomLeft.x}, ${bookmark.regionBottomLeft.y})`);
-            $('#regionTopRight', modal).val(`(${bookmark.regionTopRight.x}, ${bookmark.regionTopRight.y})`);
-            $('#maxIterations', modal).val(bookmark.maxIterations);
+            $('.fractal-set', modal).text(fractalSets.get(bookmark.fractalSetId).name);
+            $('.colour-map', modal).text(colourMaps.get(bookmark.colourMapId).name);
+            $('.max-iterations', modal).text(bookmark.maxIterations);
+            $('.region-bottom-left', modal).text(`(${bookmark.regionBottomLeft.x}, ${bookmark.regionBottomLeft.y})`);
+            $('.region-top-right', modal).text(`(${bookmark.regionTopRight.x}, ${bookmark.regionTopRight.y})`);
+            const juliaConstantP = $('.julia-constant', modal);
+            const juliaConstantDiv = juliaConstantP.closest('div');
+            if (bookmark.fractalSetId === FRACTAL_SET_ID_JULIA) {
+                juliaConstantP.text(`(${bookmark.juliaConstant.x}, ${bookmark.juliaConstant.y})`);
+                juliaConstantDiv.show();
+            } else {
+                juliaConstantDiv.hide();
+            }
         });
 };
 
@@ -460,6 +473,7 @@ const presentManageBookmarksModal = () => {
 
     modal
         .modal()
+        .off('shown.bs.modal')
         .on('shown.bs.modal', () => {
             const tbody = $('tbody', modal).empty();
             bookmarks.forEach(bookmark => {

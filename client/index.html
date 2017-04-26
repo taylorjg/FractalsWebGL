@@ -22,34 +22,41 @@
             <h4 class="modal-title"></h4>
           </div>
           <div class="modal-body">
-            <canvas class="thumbnail" width="64" height="64"></canvas>
-            <div class="form-group">
-              <label class="control-label" for="name">Name</label>
-              <input class="form-control" id="name" type="text">
-            </div>
-            <div class="form-group">
-              <label class="control-label" for="fractalSetName">Fractal Set</label>
-              <input class="form-control" id="fractalSetName" type="text" readonly>
-            </div>
-            <div class="form-group">
-              <label class="control-label" for="juliaConstant">Julia Constant</label>
-              <input class="form-control" id="juliaConstant" type="text" readonly>
-            </div>
-            <div class="form-group">
-              <label class="control-label" for="colourMapName">Colour Map</label>
-              <input class="form-control" id="colourMapName" type="text" readonly>
-            </div>
-            <div class="form-group">
-              <label class="control-label" for="regionBottomLeft">Region (bottom left)</label>
-              <input class="form-control" id="regionBottomLeft" type="text" readonly>
-            </div>
-            <div class="form-group">
-              <label class="control-label" for="regionTopRight">Region (top right)</label>
-              <input class="form-control" id="regionTopRight" type="text" readonly>
-            </div>
-            <div class="form-group">
-              <label class="control-label" for="maxIterations">Max Iterations</label>
-              <input class="form-control" id="maxIterations" type="text" readonly>
+            <div class="list-group">
+              <div class="form-group">
+                <label class="control-label" for="name">Name</label>
+                <input class="form-control" id="name" type="text">
+              </div>
+              <div class="list-group-item">
+                <div class="row">
+                  <div class="col-sm-4">
+                    <canvas class="thumbnail img-rounded pull-left" width="50" height="50"></canvas>
+                    <img class="thumbnail img-rounded pull-left"></canvas>
+                    <h4 class="list-group-item-heading">Fractal Set</h4>
+                    <p class="fractal-set list-group-item-text"></p>
+                  </div>
+                  <div class="col-sm-4">
+                    <h4 class="list-group-item-heading">Colour Map</h4>
+                    <p class="colour-map list-group-item-text"></p>
+                  </div>
+                  <div class="col-sm-4">
+                    <h4 class="list-group-item-heading">Max Iterations</h4>
+                    <p class="max-iterations list-group-item-text"></p>
+                  </div>
+                </div>
+              </div>
+              <div class="list-group-item">
+                <h4 class="list-group-item-heading">Region Bottom Left</h4>
+                <p class="region-bottom-left list-group-item-text"></p>
+              </div>
+              <div class="list-group-item">
+                <h4 class="list-group-item-heading">Region Top Right</h4>
+                <p class="region-top-right list-group-item-text"></p>
+              </div>
+              <div class="list-group-item">
+                <h4 class="list-group-item-heading">Julia Constant</h4>
+                <p class="julia-constant list-group-item-text"></p>
+              </div>
             </div>
           </div>
           <div class="modal-footer">
