@@ -211,6 +211,9 @@ const start = () => {
     initGL(canvas);
     initShaders();
     switchToBookmark(INITIAL_BOOKMARK);
+
+    bookmarks = loadBookmarks();
+    nextBookmarkId = bookmarks.size ? Math.max(...bookmarks.keys()) + 1 : 0;
 }
 
 const setCanvasAndViewportSize = () => {
@@ -420,6 +423,7 @@ const presentBookmarkModal = bookmark => {
             if (!hasId) {
                 bookmark.id = nextBookmarkId++;
                 bookmarks.set(bookmark.id, bookmark);
+                saveBookmarks(bookmarks);
             }
             modal.modal('hide');
         });
@@ -532,6 +536,14 @@ const switchToBookmark = bookmark => {
     regionTopRight.x = bookmark.regionTopRight.x;
     regionTopRight.y = bookmark.regionTopRight.y;
     setCurrentFractalSet(bookmark.fractalSetId, bookmark.juliaConstant, bookmark.colourMapId);
+};
+
+const loadBookmarks = () => {
+    return new Map(JSON.parse(localStorage.bookmarks || "[]"));
+};
+
+const saveBookmarks = bookmarks => {
+    localStorage.bookmarks = JSON.stringify(Array.from(bookmarks.entries()));
 };
 
 start();
