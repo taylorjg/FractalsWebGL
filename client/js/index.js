@@ -37,11 +37,29 @@ let currentFractalSet = undefined;
 let currentJuliaConstant = undefined;
 let currentColourMapId = undefined;
 let currentColourMap = undefined;
-let regionBottomLeft = { x: -0.22, y: -0.7 };
-let regionTopRight = { x: -0.21, y: -0.69 };
+let regionBottomLeft = {};
+let regionTopRight = {};
 
 let panning = false;
 let lastMousePt;
+
+const INITIAL_BOOKMARK = {
+    fractalSetId: FRACTAL_SET_ID_MANDELBROT,
+    juliaConstant: { x: 0, y: 0 },
+    colourMapId: COLOURMAP_ID_JET,
+    regionBottomLeft: { x: -0.22, y: -0.7 },
+    regionTopRight: { x: -0.21, y: -0.69 },
+    maxIterations: MAX_ITERATIONS
+};
+
+const HOME_BOOKMARK = {
+    fractalSetId: FRACTAL_SET_ID_MANDELBROT,
+    juliaConstant: { x: 0, y: 0 },
+    colourMapId: COLOURMAP_ID_JET,
+    regionBottomLeft: { x: -2.25, y: -1.5 },
+    regionTopRight: { x: 0.75, y: 1.5 },
+    maxIterations: MAX_ITERATIONS
+};
 
 let bookmarkMode = false;
 let nextBookmarkId = 0;
@@ -192,22 +210,7 @@ const start = () => {
 
     initGL(canvas);
     initShaders();
-    setCurrentFractalSet(FRACTAL_SET_ID_MANDELBROT, undefined, COLOURMAP_ID_JET);
-
-    if (bookmarks.size === 0) {
-        const defaultBookmark = {
-            id: 0,
-            name: 'Default',
-            fractalSetId: FRACTAL_SET_ID_MANDELBROT,
-            juliaConstant: { x: 0, y: 0 },
-            colourMapId: COLOURMAP_ID_JET,
-            regionBottomLeft: { x: -2.25, y: -1.5 },
-            regionTopRight: { x: 0.75, y: 1.5 },
-            maxIterations: MAX_ITERATIONS
-        };
-        bookmarks.set(defaultBookmark.id, defaultBookmark);
-        nextBookmarkId = 1;
-    }
+    switchToBookmark(INITIAL_BOOKMARK);
 }
 
 const setCanvasAndViewportSize = () => {
@@ -348,7 +351,6 @@ const onDocumentKeyDownHandler = ev => {
     const rh = regionTopRight.y - regionBottomLeft.y;
 
     if (ev.key === '+') {
-        // Zoom in
         const drw = rw / 4;
         const drh = rh / 4;
         regionBottomLeft.x += drw;
@@ -360,7 +362,6 @@ const onDocumentKeyDownHandler = ev => {
     }
 
     if (ev.key === '-') {
-        // Zoom out
         const drw = rw / 2;
         const drh = rh / 2;
         regionBottomLeft.x -= drw;
@@ -372,8 +373,7 @@ const onDocumentKeyDownHandler = ev => {
     }
 
     if (ev.key === 'h' && ev.ctrlKey) {
-        // Reset
-        switchToBookmark(bookmarks.get(0));
+        switchToBookmark(HOME_BOOKMARK);
         return;
     }
 
@@ -481,20 +481,14 @@ const presentManageBookmarksModal = () => {
                     'class': 'btn btn-sm btn-primary',
                     html: 'Switch To'
                 });
-                const editButtonAttributes = {
+                const editButton = $('<button>', {
                     'class': 'btn btn-sm btn-default',
                     html: 'Edit'
-                };
-                const deleteButtonAttributes = {
+                });
+                const deleteButton = $('<button>', {
                     'class': 'btn btn-sm btn-danger',
                     html: 'Delete'
-                };
-                if (bookmark.id === 0) {
-                    editButtonAttributes.disabled = '';
-                    deleteButtonAttributes.disabled = '';
-                }
-                const editButton = $('<button>', editButtonAttributes);
-                const deleteButton = $('<button>', deleteButtonAttributes);
+                });
                 switchToButton.on('click', invokeWithBookmark(onSwitchTo));
                 editButton.on('click', invokeWithBookmark(onEdit));
                 deleteButton.on('click', invokeWithBookmark(onDelete));
