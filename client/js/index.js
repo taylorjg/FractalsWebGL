@@ -481,22 +481,27 @@ const presentManageBookmarksModal = () => {
         .on('shown.bs.modal', () => {
             const tbody = $('tbody', modal).empty();
             bookmarks.forEach(bookmark => {
+                const thumbnail = $('<img>', {
+                    'class': 'thumbnail',
+                    src: bookmark.thumbnail
+                });
                 const switchToButton = $('<button>', {
                     'class': 'btn btn-sm btn-primary',
                     html: 'Switch To'
                 });
-                const editButton = $('<button>', {
-                    'class': 'btn btn-sm btn-default',
-                    html: 'Edit'
+                const editButton = $('<i>', {
+                    'class': 'fa fa-pencil',
+                    'aria-hidden': 'true'
                 });
-                const deleteButton = $('<button>', {
-                    'class': 'btn btn-sm btn-danger',
-                    html: 'Delete'
+                const deleteButton = $('<i>', {
+                    'class': 'fa fa-trash',
+                    'aria-hidden': 'true'
                 });
                 switchToButton.on('click', invokeWithBookmark(onSwitchTo));
                 editButton.on('click', invokeWithBookmark(onEdit));
                 deleteButton.on('click', invokeWithBookmark(onDelete));
                 const tr = $('<tr>', { 'data-id': bookmark.id });
+                tr.append($('<td>', { html: thumbnail }));
                 tr.append($('<td>', { html: bookmark.name }));
                 tr.append($('<td>', { html: switchToButton }));
                 tr.append($('<td>', { html: editButton }));
