@@ -423,8 +423,8 @@ const presentBookmarkModal = bookmark => {
             if (!hasId) {
                 bookmark.id = nextBookmarkId++;
                 bookmarks.set(bookmark.id, bookmark);
-                saveBookmarks(bookmarks);
             }
+            saveBookmarks(bookmarks);
             modal.modal('hide');
         });
 
@@ -454,7 +454,7 @@ const presentBookmarkModal = bookmark => {
                 bookmark.thumbnail = thumbnailCanvasElement.toDataURL('image/jpeg', 1.0);
             }
 
-            $('#name', modal).val(bookmark.name);
+            $('#name', modal).val(bookmark.name).focus();
             $('.fractal-set', modal).text(fractalSets.get(bookmark.fractalSetId).name);
             $('.colour-map', modal).text(colourMaps.get(bookmark.colourMapId).name);
             $('.max-iterations', modal).text(bookmark.maxIterations);
@@ -522,7 +522,10 @@ const presentManageBookmarksModal = () => {
 
     const onSwitchTo = bookmark => switchToBookmark(bookmark);
     const onEdit = bookmark => presentBookmarkModal(bookmark);
-    const onDelete = bookmark => bookmarks.delete(bookmark.id);
+    const onDelete = bookmark => {
+        bookmarks.delete(bookmark.id);
+        saveBookmarks(bookmarks);
+    };
 };
 
 const createBookmark = name => ({
