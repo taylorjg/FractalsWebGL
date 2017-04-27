@@ -416,9 +416,10 @@ const presentBookmarkModal = bookmark => {
     const title = hasId ? 'Edit Bookmark' : 'New Bookmark';
     $('.modal-title', modal).text(title);
 
-    $('button.btn-primary', modal)
+    $('input[type="submit"]', modal)
         .off('click')
-        .on('click', () => {
+        .on('click', ev => {
+            ev.preventDefault();
             bookmark.name = $('#name', modal).val();
             if (!hasId) {
                 bookmark.id = nextBookmarkId++;
@@ -485,9 +486,8 @@ const presentManageBookmarksModal = () => {
                     'class': 'thumbnail',
                     src: bookmark.thumbnail
                 });
-                const switchToButton = $('<button>', {
-                    'class': 'btn btn-sm btn-primary',
-                    html: 'Switch To'
+                const thumbnailAnchor = $('<a>', {
+                    html: thumbnail
                 });
                 const editButton = $('<i>', {
                     'class': 'fa fa-pencil',
@@ -497,13 +497,12 @@ const presentManageBookmarksModal = () => {
                     'class': 'fa fa-trash',
                     'aria-hidden': 'true'
                 });
-                switchToButton.on('click', invokeWithBookmark(onSwitchTo));
+                thumbnailAnchor.on('click', invokeWithBookmark(onSwitchTo));
                 editButton.on('click', invokeWithBookmark(onEdit));
                 deleteButton.on('click', invokeWithBookmark(onDelete));
                 const tr = $('<tr>', { 'data-id': bookmark.id });
-                tr.append($('<td>', { html: thumbnail }));
+                tr.append($('<td>', { html: thumbnailAnchor }));
                 tr.append($('<td>', { html: bookmark.name }));
-                tr.append($('<td>', { html: switchToButton }));
                 tr.append($('<td>', { html: editButton }));
                 tr.append($('<td>', { html: deleteButton }));
                 tbody.append(tr);
