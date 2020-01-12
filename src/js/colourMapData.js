@@ -44,6 +44,19 @@ const GIST_STERN_DATA = {
     ]
 };
 
+// TODO: implement this!
+const gfunc32 = x => {
+    // ret = np.zeros(len(x))
+    // m = (x < 0.25)
+    // ret[m] = 4 * x[m]
+    // m = (x >= 0.25) & (x < 0.92)
+    // ret[m] = -2 * x[m] + 1.84
+    // m = (x >= 0.92)
+    // ret[m] = x[m] / 0.08 - 11.5
+    // return ret
+    return x;
+};
+
 const gnuplotPaletteFunctions = [
     /* 0  */ x => 0,
     /* 1  */ x => 0.5,
@@ -86,19 +99,6 @@ const gnuplotPaletteFunctions = [
 
 // https://github.com/matplotlib/matplotlib/blob/master/lib/matplotlib/_cm.py
 // https://github.com/matplotlib/matplotlib/blob/master/lib/matplotlib/colors.py
-
-// TODO: implement this!
-const gfunc32 = x => {
-    // ret = np.zeros(len(x))
-    // m = (x < 0.25)
-    // ret[m] = 4 * x[m]
-    // m = (x >= 0.25) & (x < 0.92)
-    // ret[m] = -2 * x[m] + 1.84
-    // m = (x >= 0.92)
-    // ret[m] = x[m] / 0.08 - 11.5
-    // return ret
-    return x;
-};
 
 const OCEAN_DATA = {
     usesFuncs: true,
