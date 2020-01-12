@@ -1,3 +1,5 @@
+/* eslint-env node */
+
 const CopyWebpackPlugin = require('copy-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const path = require('path')
@@ -6,7 +8,7 @@ const { version } = require('./package.json')
 const serverPublic = path.join(__dirname, 'server', 'public')
 
 module.exports = {
-  mode: 'development',
+  mode: 'production',
   entry: './src/js/index.js',
   output: {
     path: serverPublic,
