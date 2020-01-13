@@ -1,19 +1,10 @@
 precision highp float;
 
-uniform vec4 uColormap[256];
+uniform sampler2D uColormap;
 varying vec2 vPosition;
 
-vec4 colourmapIndexer(int index) {
-  for (int i = 0; i < 256; i++) {
-    if (i == index) {
-      return uColormap[i];
-    }
-  }
-  return uColormap[0];
-}
-
 void main(void) {
-  const int MAX_ITERATIONS = 120;
+  const int MAX_ITERATIONS = 255;
   float cr = vPosition.x;
   float ci = vPosition.y;
   float zr = 0.0;
@@ -29,6 +20,7 @@ void main(void) {
       break;
     }
   }
-  int index = int(float(255) * float(divergesAt) / float(MAX_ITERATIONS));
-  gl_FragColor = colourmapIndexer(index);
+  float s = float(divergesAt) / float(MAX_ITERATIONS + 1);
+  float t = 0.0;
+  gl_FragColor = texture2D(uColormap, vec2(s, t));
 }

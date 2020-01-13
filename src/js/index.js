@@ -15,22 +15,56 @@ const COLOURMAP_ID_OCEAN = 2
 const COLOURMAP_ID_RAINBOW = 3
 const COLOURMAP_ID_MONOCHROME = 4
 
-const loadColourMap = name => ({
-  name,
-  colourMap: getColourMap(name)
-})
-
 let canvas
 let gl
 
-let colourMaps = new Map([
-  [COLOURMAP_ID_JET, loadColourMap('jet')],
-  [COLOURMAP_ID_GIST_STERN, loadColourMap('gist_stern')],
-  [COLOURMAP_ID_OCEAN, loadColourMap('ocean')],
-  [COLOURMAP_ID_RAINBOW, loadColourMap('rainbow')],
-  [COLOURMAP_ID_MONOCHROME, loadColourMap('monochrome')]
-])
-let fractalSets = new Map()
+const createColormapTexture = (colourMap, textureUnit) => {
+  const texture = gl.createTexture()
+  gl.activeTexture(gl[`TEXTURE${textureUnit}`])
+  gl.bindTexture(gl.TEXTURE_2D, texture)
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
+  const pixels = new Uint8Array(colourMap.map(value => value * 255))
+  const level = 0
+  const width = colourMap.length / 4
+  const height = 1
+  const border = 0
+  gl.texImage2D(
+    gl.TEXTURE_2D,
+    level,
+    gl.RGBA,
+    width,
+    height,
+    border,
+    gl.RGBA,
+    gl.UNSIGNED_BYTE,
+    pixels)
+}
+
+const loadColourMap = (name, textureUnit) => {
+  const colourMap = getColourMap(name)
+  createColormapTexture(colourMap, textureUnit)
+  return {
+    name,
+    colourMap,
+    textureUnit
+  }
+}
+
+const loadColourMaps = () => {
+  [
+    [COLOURMAP_ID_JET, 'jet'],
+    [COLOURMAP_ID_GIST_STERN, 'gist_stern'],
+    [COLOURMAP_ID_OCEAN, 'ocean'],
+    [COLOURMAP_ID_RAINBOW, 'rainbow'],
+    [COLOURMAP_ID_MONOCHROME, 'monochrome']
+  ].forEach(([id, name], index) => {
+    colourMaps.set(id, loadColourMap(name, index))
+  })
+}
+
+const colourMaps = new Map()
+const fractalSets = new Map()
 
 let currentFractalSetId = undefined
 let currentFractalSet = undefined
@@ -39,7 +73,6 @@ let currentColourMapId = undefined
 let currentColourMap = undefined
 let regionBottomLeft = {}
 let regionTopRight = {}
-
 let panning = false
 let lastMousePt
 
@@ -168,11 +201,11 @@ const setCurrentFractalSet = (fractalSetId, juliaConstant, colourMapId) => {
   glm.mat4.fromScaling(modelViewMatrix, [1, -1, 1])
   gl.uniformMatrix4fv(currentFractalSet.uModelViewMatrix, false, modelViewMatrix)
 
-  gl.uniform4fv(currentFractalSet.uColormap, currentColourMap.colourMap)
-
+  gl.uniform1i(currentFractalSet.uColormap, currentColourMap.textureUnit)
   gl.uniform2f(currentFractalSet.uJuliaConstant, currentJuliaConstant.x, currentJuliaConstant.y)
 
   setCanvasAndViewportSize()
+
   render()
 }
 
@@ -210,6 +243,7 @@ const start = () => {
 
   initGL(canvas)
   initShaders()
+  loadColourMaps()
   switchToBookmark(INITIAL_BOOKMARK)
 
   bookmarks = loadBookmarks()
