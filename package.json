@@ -1,6 +1,6 @@
 {
   "name": "fractalswebgl",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "description": "Fractals in WebGL",
   "dependencies": {
     "eslint": "^6.8.0",

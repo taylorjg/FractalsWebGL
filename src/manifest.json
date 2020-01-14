@@ -1,0 +1,13 @@
+{
+  "name": "Fractals WebGL",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "288x288",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "index.html",
+  "display": "fullscreen",
+  "orientation": "landscape"
+}

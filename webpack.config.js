@@ -17,7 +17,10 @@ module.exports = {
   plugins: [
     new CopyWebpackPlugin([
       { context: './src', from: '*.html' },
-      { context: './src', from: '*.css' }
+      { context: './src', from: '*.css' },
+      { context: './src', from: '*.png' },
+      { context: './src', from: 'manifest.json' },
+      { context: './src', from: 'service-worker.js' },
     ]),
     new HtmlWebpackPlugin({
       template: './src/index.html',

@@ -231,7 +231,16 @@ const render = () => {
   gl.deleteBuffer(plotPositionBuffer)
 }
 
-const start = () => {
+const start = async () => {
+
+  if ('serviceWorker' in navigator) {
+    try {
+      const registration = await navigator.serviceWorker.register('service-worker.js')
+      console.log('Successfully registered service worker', registration)
+    } catch (error) {
+      console.error(`Failed to register service worker: ${error.message}`)
+    }
+  }
 
   canvas = document.getElementById('canvas')
   canvas.addEventListener('mousedown', onCanvasMouseDownHandler)
