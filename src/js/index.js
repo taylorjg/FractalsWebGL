@@ -20,7 +20,7 @@ let gl
 
 const createColormapTexture = (colourMap, textureUnit) => {
   const texture = gl.createTexture()
-  gl.activeTexture(gl[`TEXTURE${textureUnit}`])
+  gl.activeTexture(gl.TEXTURE0 + textureUnit)
   gl.bindTexture(gl.TEXTURE_2D, texture)
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
