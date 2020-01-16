@@ -6,7 +6,7 @@ const N = 256
 
 const WHITE = [1, 1, 1, 1]
 const BLACK = [0, 0, 0, 1]
-const MONOCHROME_COLOUR_MAP = flatten(Array(N - 1).fill(WHITE).concat([BLACK]))
+const MONOCHROME_COLOUR_MAP = flatten(Array(N - 4).fill(WHITE).concat(Array(4).fill(BLACK)))
 
 export const getColourMap = name => {
   const data = colourMapDictionary[name]

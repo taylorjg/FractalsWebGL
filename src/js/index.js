@@ -4,7 +4,10 @@ import juliaShaderSource from '../shaders/julia.frag.glsl'
 import { getColourMap } from './colourMaps'
 import * as glm from 'gl-matrix'
 
-const MAX_ITERATIONS = 120
+const INITIAL_ITERATIONS = 128
+const MIN_ITERATIONS = 64
+const DELTA_ITERATIONS = 64
+let maxIterations = INITIAL_ITERATIONS
 
 const FRACTAL_SET_ID_MANDELBROT = 0
 const FRACTAL_SET_ID_JULIA = 1
@@ -82,7 +85,7 @@ const INITIAL_BOOKMARK = {
   colourMapId: COLOURMAP_ID_JET,
   regionBottomLeft: { x: -0.22, y: -0.7 },
   regionTopRight: { x: -0.21, y: -0.69 },
-  maxIterations: MAX_ITERATIONS
+  maxIterations: INITIAL_ITERATIONS
 }
 
 const HOME_BOOKMARK = {
@@ -91,7 +94,7 @@ const HOME_BOOKMARK = {
   colourMapId: COLOURMAP_ID_JET,
   regionBottomLeft: { x: -2.25, y: -1.5 },
   regionTopRight: { x: 0.75, y: 1.5 },
-  maxIterations: MAX_ITERATIONS
+  maxIterations: INITIAL_ITERATIONS
 }
 
 let bookmarkMode = false
@@ -144,6 +147,7 @@ const initShadersHelper = (name, fragmentShaderSource) => {
   gl.enableVertexAttribArray(aPlotPosition)
 
   const uModelViewMatrix = gl.getUniformLocation(program, 'uModelViewMatrix')
+  const uMaxIterations = gl.getUniformLocation(program, 'uMaxIterations')
   const uColormap = gl.getUniformLocation(program, 'uColormap')
   const uJuliaConstant = gl.getUniformLocation(program, 'uJuliaConstant')
 
@@ -164,6 +168,7 @@ const initShadersHelper = (name, fragmentShaderSource) => {
     aVertexPosition,
     aPlotPosition,
     uModelViewMatrix,
+    uMaxIterations,
     uColormap,
     uJuliaConstant,
     vertexPositionBuffer
@@ -228,6 +233,7 @@ const render = () => {
   gl.bindBuffer(gl.ARRAY_BUFFER, plotPositionBuffer)
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(corners), gl.STATIC_DRAW)
   gl.vertexAttribPointer(currentFractalSet.aPlotPosition, 2, gl.FLOAT, false, 0, 0)
+  gl.uniform1i(currentFractalSet.uMaxIterations, maxIterations)
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
   gl.deleteBuffer(plotPositionBuffer)
 }
@@ -433,6 +439,13 @@ const onDocumentKeyDownHandler = ev => {
     setCurrentFractalSet(undefined, undefined, newColourMapId)
     return
   }
+
+  if ((ev.key === 'i' || ev.key === 'I')) {
+    const delta = DELTA_ITERATIONS * (ev.shiftKey ? -1 : +1)
+    maxIterations = Math.max(maxIterations + delta, MIN_ITERATIONS)
+    render()
+    return
+  }
 }
 
 const handleBookmarkKeys = ev => {
@@ -578,7 +591,7 @@ const createBookmark = name => ({
   colourMapId: currentColourMapId,
   regionBottomLeft: Object.assign({}, regionBottomLeft),
   regionTopRight: Object.assign({}, regionTopRight),
-  maxIterations: MAX_ITERATIONS
+  maxIterations
 })
 
 const switchToBookmark = bookmark => {
@@ -586,6 +599,7 @@ const switchToBookmark = bookmark => {
   regionBottomLeft.y = bookmark.regionBottomLeft.y
   regionTopRight.x = bookmark.regionTopRight.x
   regionTopRight.y = bookmark.regionTopRight.y
+  maxIterations = bookmark.maxIterations
   setCurrentFractalSet(bookmark.fractalSetId, bookmark.juliaConstant, bookmark.colourMapId)
 }
 
