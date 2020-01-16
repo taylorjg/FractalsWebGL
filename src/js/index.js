@@ -24,7 +24,7 @@ const createColormapTexture = (colourMap, textureUnit) => {
   gl.bindTexture(gl.TEXTURE_2D, texture)
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
-  const pixels = new Uint8Array(colourMap.map(value => value * 255))
+  const pixels = new Float32Array(colourMap)
   const level = 0
   const width = colourMap.length / 4
   const height = 1
@@ -32,12 +32,12 @@ const createColormapTexture = (colourMap, textureUnit) => {
   gl.texImage2D(
     gl.TEXTURE_2D,
     level,
-    gl.RGBA,
+    gl.RGBA32F,
     width,
     height,
     border,
     gl.RGBA,
-    gl.UNSIGNED_BYTE,
+    gl.FLOAT,
     pixels)
 }
 
@@ -100,10 +100,11 @@ let bookmarks = new Map()
 
 const initGL = canvas => {
   try {
-    gl = canvas.getContext('webgl', { preserveDrawingBuffer: true })
+    gl = canvas.getContext('webgl2', { preserveDrawingBuffer: true })
+    console.dir(gl)
   }
   catch (e) {
-    console.error(`canvas.getContext(webgl) failed: ${e.message}`)
+    console.error(`canvas.getContext(webgl2) failed: ${e.message}`)
   }
   if (!gl) {
     console.error('Failed to initialise WebGL')

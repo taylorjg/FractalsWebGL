@@ -1,10 +1,13 @@
+#version 300 es
 precision highp float;
 
 uniform sampler2D uColormap;
-varying vec2 vPosition;
+in vec2 vPosition;
+out vec4 fragColor;
+
+const int MAX_ITERATIONS = 255;
 
 void main(void) {
-  const int MAX_ITERATIONS = 255;
   float cr = vPosition.x;
   float ci = vPosition.y;
   float zr = 0.0;
@@ -20,7 +23,5 @@ void main(void) {
       break;
     }
   }
-  float s = float(divergesAt) / float(MAX_ITERATIONS + 1);
-  float t = 0.0;
-  gl_FragColor = texture2D(uColormap, vec2(s, t));
+  fragColor = texelFetch(uColormap, ivec2(divergesAt, 0), 0);
 }
