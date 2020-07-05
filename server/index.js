@@ -3,10 +3,10 @@
 const express = require('express')
 const path = require('path')
 
-const port = process.env.PORT || 3332
-const publicFolder = path.join(__dirname, 'public')
+const PORT = process.env.PORT || 3332
+const PUBLIC_FOLDER = path.join(__dirname, 'public')
 
 const app = express()
-app.use('/', express.static(publicFolder))
+app.use(express.static(PUBLIC_FOLDER))
 
-app.listen(port, () => console.log(`Listening on port ${port}`))
+app.listen(PORT, () => console.log(`Listening on http://localhost:${PORT}`))
