@@ -1,8 +1,12 @@
+import PromiseWorker from 'promise-worker'
+import * as glm from 'gl-matrix'
 import vertexShaderSource from '../shaders/shader.vert.glsl'
 import mandelbrotShaderSource from '../shaders/mandelbrot.frag.glsl'
 import juliaShaderSource from '../shaders/julia.frag.glsl'
 import { getColourMap } from './colourMaps'
-import * as glm from 'gl-matrix'
+
+const worker = new Worker('./web-worker.js', { type: 'module' })
+const promiseWorker = new PromiseWorker(worker)
 
 const INITIAL_ITERATIONS = 128
 const MIN_ITERATIONS = 64
@@ -238,7 +242,19 @@ const render = () => {
   gl.deleteBuffer(plotPositionBuffer)
 }
 
-const start = async () => {
+const displayConfiguration = async configuration => {
+  switchToBookmark(configuration)
+  const newConfiguration = await promiseWorker.postMessage({ type: 'chooseConfiguration' })
+  setTimeout(
+    displayConfiguration,
+    5000,
+    {
+      ...INITIAL_BOOKMARK,
+      ...newConfiguration,
+    })
+}
+
+const start = async manualMode => {
 
   if ('serviceWorker' in navigator) {
     try {
@@ -250,20 +266,24 @@ const start = async () => {
   }
 
   canvas = document.getElementById('canvas')
-  canvas.addEventListener('mousedown', onCanvasMouseDownHandler)
-  canvas.addEventListener('mousemove', onCanvasMouseMoveHandler)
-  canvas.addEventListener('mouseup', onCanvasMouseUpHandler)
-  canvas.addEventListener('mouseleave', onCanvasMouseLeaveHandler)
-  document.addEventListener('keydown', onDocumentKeyDownHandler)
   window.addEventListener('resize', onWindowResize)
 
   initGL(canvas)
   initShaders()
   loadColourMaps()
-  switchToBookmark(INITIAL_BOOKMARK)
 
-  bookmarks = loadBookmarks()
-  nextBookmarkId = bookmarks.size ? Math.max(...bookmarks.keys()) + 1 : 0
+  if (manualMode) {
+    canvas.addEventListener('mousedown', onCanvasMouseDownHandler)
+    canvas.addEventListener('mousemove', onCanvasMouseMoveHandler)
+    canvas.addEventListener('mouseup', onCanvasMouseUpHandler)
+    canvas.addEventListener('mouseleave', onCanvasMouseLeaveHandler)
+    document.addEventListener('keydown', onDocumentKeyDownHandler)
+    bookmarks = loadBookmarks()
+    nextBookmarkId = bookmarks.size ? Math.max(...bookmarks.keys()) + 1 : 0
+    switchToBookmark(INITIAL_BOOKMARK)
+  } else {
+    displayConfiguration(INITIAL_BOOKMARK)
+  }
 }
 
 const setCanvasAndViewportSize = () => {
@@ -446,6 +466,10 @@ const onDocumentKeyDownHandler = ev => {
     render()
     return
   }
+
+  if ((ev.key === 'r' || ev.key === 'R')) {
+    // TODO: choose a random region
+  }
 }
 
 const handleBookmarkKeys = ev => {
@@ -611,4 +635,7 @@ const saveBookmarks = bookmarks => {
   localStorage.bookmarks = JSON.stringify(Array.from(bookmarks.entries()))
 }
 
-start()
+const url = new URL(document.location)
+const manualMode = url.searchParams.get('mode') === 'manual'
+
+start(manualMode)
