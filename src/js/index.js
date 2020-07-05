@@ -3,6 +3,7 @@ import * as glm from 'gl-matrix'
 import vertexShaderSource from '../shaders/shader.vert.glsl'
 import mandelbrotShaderSource from '../shaders/mandelbrot.frag.glsl'
 import juliaShaderSource from '../shaders/julia.frag.glsl'
+import { colourMapDictionary } from './colourMapData'
 import { getColourMap } from './colourMaps'
 
 const worker = new Worker('./web-worker.js', { type: 'module' })
@@ -15,12 +16,6 @@ let maxIterations = INITIAL_ITERATIONS
 
 const FRACTAL_SET_ID_MANDELBROT = 0
 const FRACTAL_SET_ID_JULIA = 1
-
-const COLOURMAP_ID_JET = 0
-const COLOURMAP_ID_GIST_STERN = 1
-const COLOURMAP_ID_OCEAN = 2
-const COLOURMAP_ID_RAINBOW = 3
-const COLOURMAP_ID_MONOCHROME = 4
 
 let canvas
 let gl
@@ -59,19 +54,14 @@ const loadColourMap = (name, textureUnit) => {
 }
 
 const loadColourMaps = () => {
-  [
-    [COLOURMAP_ID_JET, 'jet'],
-    [COLOURMAP_ID_GIST_STERN, 'gist_stern'],
-    [COLOURMAP_ID_OCEAN, 'ocean'],
-    [COLOURMAP_ID_RAINBOW, 'rainbow'],
-    [COLOURMAP_ID_MONOCHROME, 'monochrome']
-  ].forEach(([id, name], index) => {
-    colourMaps.set(id, loadColourMap(name, index))
+  const colorMapNames = Array.from(Object.keys(colourMapDictionary))
+  colorMapNames.forEach((colorMapName, index) => {
+    colourMaps.set(index, loadColourMap(colorMapName, index))
   })
 }
 
-const colourMaps = new Map()
 const fractalSets = new Map()
+const colourMaps = new Map()
 
 let currentFractalSetId = undefined
 let currentFractalSet = undefined
@@ -86,7 +76,7 @@ let lastMousePt
 const INITIAL_BOOKMARK = {
   fractalSetId: FRACTAL_SET_ID_MANDELBROT,
   juliaConstant: { x: 0, y: 0 },
-  colourMapId: COLOURMAP_ID_JET,
+  colourMapId: 0,
   regionBottomLeft: { x: -0.22, y: -0.7 },
   regionTopRight: { x: -0.21, y: -0.69 },
   maxIterations: INITIAL_ITERATIONS
@@ -95,7 +85,7 @@ const INITIAL_BOOKMARK = {
 const HOME_BOOKMARK = {
   fractalSetId: FRACTAL_SET_ID_MANDELBROT,
   juliaConstant: { x: 0, y: 0 },
-  colourMapId: COLOURMAP_ID_JET,
+  colourMapId: 0,
   regionBottomLeft: { x: -2.25, y: -1.5 },
   regionTopRight: { x: 0.75, y: 1.5 },
   maxIterations: INITIAL_ITERATIONS
@@ -244,14 +234,13 @@ const render = () => {
 
 const displayConfiguration = async configuration => {
   switchToBookmark(configuration)
-  const newConfiguration = await promiseWorker.postMessage({ type: 'chooseConfiguration' })
-  setTimeout(
-    displayConfiguration,
-    5000,
-    {
-      ...INITIAL_BOOKMARK,
-      ...newConfiguration,
-    })
+  const message = {
+    type: 'chooseConfiguration',
+    fractalSetIds: [FRACTAL_SET_ID_MANDELBROT, FRACTAL_SET_ID_JULIA],
+    colorMapIds: Array.from(colourMaps.keys())
+  }
+  const newConfiguration = await promiseWorker.postMessage(message)
+  setTimeout(displayConfiguration, 5000, newConfiguration)
 }
 
 const start = async manualMode => {

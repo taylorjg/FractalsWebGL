@@ -24,6 +24,26 @@ const JET_DATA = {
   ]
 }
 
+const HOT_DATA = {
+  usesFuncs: false,
+  red: [
+    [0, 0.0416, 0.0416],
+    [0.365079, 1.000000, 1.000000],
+    [1, 1, 1]
+  ],
+  green: [
+    [0, 0, 0],
+    [0.365079, 0.000000, 0.000000],
+    [0.746032, 1.000000, 1.000000],
+    [1, 1, 1]
+  ],
+  blue: [
+    [0, 0, 0],
+    [0.746032, 0.000000, 0.000000],
+    [1, 1, 1]
+  ]
+}
+
 const GIST_STERN_DATA = {
   usesFuncs: false,
   red: [
@@ -87,23 +107,46 @@ const gnuplotPaletteFunctions = [
 // https://github.com/matplotlib/matplotlib/blob/master/lib/matplotlib/_cm.py
 // https://github.com/matplotlib/matplotlib/blob/master/lib/matplotlib/colors.py
 
-const OCEAN_DATA = {
+// const OCEAN_DATA = {
+//   usesFuncs: true,
+//   red: gnuplotPaletteFunctions[23],
+//   green: gnuplotPaletteFunctions[28],
+//   blue: gnuplotPaletteFunctions[3]
+// }
+
+// const RAINBOW_DATA = {
+//   usesFuncs: true,
+//   red: gnuplotPaletteFunctions[33],
+//   green: gnuplotPaletteFunctions[13],
+//   blue: gnuplotPaletteFunctions[10]
+// }
+
+const GNUPLOT_DATA = {
   usesFuncs: true,
-  red: gnuplotPaletteFunctions[23],
-  green: gnuplotPaletteFunctions[28],
-  blue: gnuplotPaletteFunctions[3]
+  red: gnuplotPaletteFunctions[7],
+  green: gnuplotPaletteFunctions[5],
+  blue: gnuplotPaletteFunctions[15]
 }
 
-const RAINBOW_DATA = {
+const GNUPLOT2_DATA = {
   usesFuncs: true,
-  red: gnuplotPaletteFunctions[33],
-  green: gnuplotPaletteFunctions[13],
-  blue: gnuplotPaletteFunctions[10]
+  red: gnuplotPaletteFunctions[30],
+  green: gnuplotPaletteFunctions[31],
+  blue: gnuplotPaletteFunctions[32]
+}
+
+const AFMHOT_DATA = {
+  usesFuncs: true,
+  red: gnuplotPaletteFunctions[34],
+  green: gnuplotPaletteFunctions[35],
+  blue: gnuplotPaletteFunctions[36]
 }
 
 export const colourMapDictionary = {
   'jet': JET_DATA,
+  'hot': HOT_DATA,
   'gist_stern': GIST_STERN_DATA,
-  'ocean': OCEAN_DATA,
-  'rainbow': RAINBOW_DATA
+  'gnuplot': GNUPLOT_DATA,
+  'gnuplot2': GNUPLOT2_DATA,
+  'afmhot': AFMHOT_DATA
 }

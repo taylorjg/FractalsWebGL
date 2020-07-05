@@ -1,6 +1,6 @@
 {
   "name": "fractalswebgl",
-  "version": "0.0.17",
+  "version": "0.0.18",
   "description": "Fractals in WebGL",
   "dependencies": {
     "express": "^4.15.2",

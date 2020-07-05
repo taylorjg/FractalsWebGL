@@ -1,9 +1,11 @@
-const CURRENT_CACHE_VERSION = 3
+const CURRENT_CACHE_VERSION = 4
 const CURRENT_CACHE_NAME = `cache-v${CURRENT_CACHE_VERSION}`
 const URLS_TO_CACHE = [
   '/',
   '/styles.css',
+  '/icon.png',
   '/bundle.js',
+  '/0.bundle.worker.js',
   'https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.css',
   'https://cdnjs.cloudflare.com/ajax/libs/bootcards/1.1.2/css/bootcards-desktop.css',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css',

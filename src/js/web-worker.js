@@ -41,20 +41,34 @@ const randomFloat = (min, max) => {
   return Math.random() * (max - min) + min
 }
 
-const createRandomConfiguration = () => {
+const randomInt = (min, max) => {
+  return Math.trunc(randomFloat(min, max))
+}
+
+const randomElement = elements => {
+  const randomIndex = Math.trunc(Math.random() * elements.length)
+  return elements[randomIndex]
+}
+
+const createRandomConfiguration = (fractalSetIds, colorMapIds) => {
+  const fractalSetId = randomElement(fractalSetIds)
+  const colourMapId = randomElement(colorMapIds)
   const cx = randomFloat(-2, 0.75)
   const cy = randomFloat(-1.5, 1.5)
   const sz = randomFloat(0.005, 0.05)
   return {
+    fractalSetId,
+    juliaConstant: { x: cx, y: cy },
+    colourMapId,
     regionBottomLeft: { x: cx - sz, y: cy - sz },
     regionTopRight: { x: cx + sz, y: cy + sz },
-    maxIterations: 128
+    maxIterations: randomInt(40, 256)
   }
 }
 
-const onChooseConfiguration = () => {
+const onChooseConfiguration = (fractalSetIds, colorMapIds) => {
   for (; ;) {
-    const configuration = createRandomConfiguration()
+    const configuration = createRandomConfiguration(fractalSetIds, colorMapIds)
     if (isInteresting(configuration)) {
       return configuration
     }
@@ -67,7 +81,9 @@ const onUnknownMessage = message => {
 
 const processMessage = message => {
   switch (message.type) {
-    case 'chooseConfiguration': return onChooseConfiguration()
+    case 'chooseConfiguration': return onChooseConfiguration(
+      message.fractalSetIds,
+      message.colorMapIds)
     default: return onUnknownMessage(message)
   }
 }
