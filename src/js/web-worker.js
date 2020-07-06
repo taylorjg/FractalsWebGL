@@ -34,7 +34,8 @@ const evaluatePoints = (configuration, gridSize) => {
 const isInteresting = configuration => {
   const gridSize = 8
   const values = evaluatePoints(configuration, gridSize)
-  return new Set(values).size >= values.length * 0.6
+  const factor = randomFloat(0.4, 0.7)
+  return new Set(values).size >= values.length * factor
 }
 
 const randomFloat = (min, max) => {
