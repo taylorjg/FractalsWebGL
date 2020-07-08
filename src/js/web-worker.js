@@ -1,4 +1,5 @@
 import registerPromiseWorker from 'promise-worker/register'
+import * as C from './constants'
 
 const evaluatePoint = (configuration, point) => {
   let z = { x: 0, y: 0 }
@@ -63,7 +64,7 @@ const createRandomConfiguration = (fractalSetIds, colorMapIds) => {
     colourMapId,
     regionBottomLeft: { x: cx - sz, y: cy - sz },
     regionTopRight: { x: cx + sz, y: cy + sz },
-    maxIterations: randomInt(40, 256)
+    maxIterations: randomInt(C.MIN_ITERATIONS, C.MAX_ITERATIONS)
   }
 }
 

@@ -5,14 +5,10 @@ import mandelbrotShaderSource from '../shaders/mandelbrot.frag.glsl'
 import juliaShaderSource from '../shaders/julia.frag.glsl'
 import { colourMapDictionary } from './colourMapData'
 import { getColourMap } from './colourMaps'
+import * as C from './constants'
 
 const worker = new Worker('./web-worker.js', { type: 'module' })
 const promiseWorker = new PromiseWorker(worker)
-
-const INITIAL_ITERATIONS = 128
-const MIN_ITERATIONS = 64
-const DELTA_ITERATIONS = 64
-let maxIterations = INITIAL_ITERATIONS
 
 const FRACTAL_SET_ID_MANDELBROT = 0
 const FRACTAL_SET_ID_JULIA = 1
@@ -63,6 +59,7 @@ const loadColourMaps = () => {
 const fractalSets = new Map()
 const colourMaps = new Map()
 
+let currentMaxIterations = C.INITIAL_ITERATIONS
 let currentFractalSetId = undefined
 let currentFractalSet = undefined
 let currentJuliaConstant = undefined
@@ -79,7 +76,7 @@ const INITIAL_BOOKMARK = {
   colourMapId: 0,
   regionBottomLeft: { x: -0.22, y: -0.7 },
   regionTopRight: { x: -0.21, y: -0.69 },
-  maxIterations: INITIAL_ITERATIONS
+  maxIterations: C.INITIAL_ITERATIONS
 }
 
 const HOME_BOOKMARK = {
@@ -88,7 +85,7 @@ const HOME_BOOKMARK = {
   colourMapId: 0,
   regionBottomLeft: { x: -2.25, y: -1.5 },
   regionTopRight: { x: 0.75, y: 1.5 },
-  maxIterations: INITIAL_ITERATIONS
+  maxIterations: C.INITIAL_ITERATIONS
 }
 
 let bookmarkMode = false
@@ -227,7 +224,7 @@ const render = () => {
   gl.bindBuffer(gl.ARRAY_BUFFER, plotPositionBuffer)
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(corners), gl.STATIC_DRAW)
   gl.vertexAttribPointer(currentFractalSet.aPlotPosition, 2, gl.FLOAT, false, 0, 0)
-  gl.uniform1i(currentFractalSet.uMaxIterations, maxIterations)
+  gl.uniform1i(currentFractalSet.uMaxIterations, currentMaxIterations)
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
   gl.deleteBuffer(plotPositionBuffer)
 }
@@ -275,32 +272,55 @@ const start = async manualMode => {
   }
 }
 
+const adjustRegionAspectRatio = (canvasWidth, canvasHeight) => {
+
+  const regionWidth = regionTopRight.x - regionBottomLeft.x
+  const regionHeight = regionTopRight.y - regionBottomLeft.y
+
+  if (canvasWidth > canvasHeight) {
+    const widthDelta = canvasWidth / canvasHeight * regionHeight - regionWidth
+    const widthDeltaHalf = widthDelta / 2
+    regionBottomLeft.x -= widthDeltaHalf
+    regionTopRight.x += widthDeltaHalf
+  }
+
+  if (canvasWidth < canvasHeight) {
+    const heightDelta = canvasHeight / canvasWidth * regionWidth - regionHeight
+    const heightDeltaHalf = heightDelta / 2
+    regionBottomLeft.y -= heightDeltaHalf
+    regionTopRight.y += heightDeltaHalf
+  }
+}
+
+const panRegion = percent => {
+  const regionWidth = regionTopRight.x - regionBottomLeft.x
+  const regionHeight = regionTopRight.y - regionBottomLeft.y
+  const widthDelta = regionWidth / 100 * percent
+  const heightDelta = regionHeight / 100 * percent
+  regionBottomLeft.x -= widthDelta
+  regionBottomLeft.y -= heightDelta
+  regionTopRight.x -= widthDelta
+  regionTopRight.y -= heightDelta
+}
+
+const zoomRegion = percent => {
+  const regionWidth = regionTopRight.x - regionBottomLeft.x
+  const regionHeight = regionTopRight.y - regionBottomLeft.y
+  const widthDelta = regionWidth / 100 * percent
+  const widthDeltaHalf = widthDelta / 2
+  const heightDelta = regionHeight / 100 * percent
+  const heightDeltaHalf = heightDelta / 2
+  regionBottomLeft.x += widthDeltaHalf
+  regionBottomLeft.y += heightDeltaHalf
+  regionTopRight.x -= widthDeltaHalf
+  regionTopRight.y -= heightDeltaHalf
+}
+
 const setCanvasAndViewportSize = () => {
-
-  const cw = canvas.clientWidth
-  const ch = canvas.clientHeight
-  const rw = regionTopRight.x - regionBottomLeft.x
-  const rh = regionTopRight.y - regionBottomLeft.y
-
-  canvas.width = cw
-  canvas.height = ch
-  gl.viewport(0, 0, cw, ch)
-
-  if (cw > ch) {
-    const rwNew = cw * rh / ch
-    const rwDelta = rwNew - rw
-    const rwDeltaHalf = rwDelta / 2
-    regionBottomLeft.x -= rwDeltaHalf
-    regionTopRight.x += rwDeltaHalf
-  }
-
-  if (cw < ch) {
-    const rhNew = ch * rw / cw
-    const rhDelta = rhNew - rh
-    const rhDeltaHalf = rhDelta / 2
-    regionBottomLeft.y -= rhDeltaHalf
-    regionTopRight.y += rhDeltaHalf
-  }
+  canvas.width = canvas.clientWidth
+  canvas.height = canvas.clientHeight
+  gl.viewport(0, 0, canvas.width, canvas.height)
+  adjustRegionAspectRatio(canvas.width, canvas.height)
 }
 
 const onWindowResize = () => {
@@ -309,80 +329,69 @@ const onWindowResize = () => {
 }
 
 const mouseToRegion = (mouseX, mouseY) => {
-  const cw = canvas.clientWidth
-  const ch = canvas.clientHeight
-  const rw = regionTopRight.x - regionBottomLeft.x
-  const rh = regionTopRight.y - regionBottomLeft.y
+  const regionWidth = regionTopRight.x - regionBottomLeft.x
+  const regionHeight = regionTopRight.y - regionBottomLeft.y
   return {
-    regionMouseX: regionBottomLeft.x + (mouseX * (rw / cw)),
-    regionMouseY: regionBottomLeft.y + (mouseY * (rh / ch))
+    regionMouseX: regionBottomLeft.x + mouseX * regionWidth / canvas.width,
+    regionMouseY: regionBottomLeft.y + mouseY * regionHeight / canvas.height
   }
 }
 
-const onCanvasMouseDownHandler = ev => {
+const onCanvasMouseDownHandler = e => {
 
-  const mouseX = ev.offsetX
-  const mouseY = ev.offsetY
+  const mouseX = e.offsetX
+  const mouseY = e.offsetY
   const { regionMouseX, regionMouseY } = mouseToRegion(mouseX, mouseY)
 
-  if (ev.shiftKey) {
-    const rw = regionTopRight.x - regionBottomLeft.x
-    const rh = regionTopRight.y - regionBottomLeft.y
-    const rcx = regionBottomLeft.x + rw / 2
-    const rcy = regionBottomLeft.y + rh / 2
-    const drcx = regionMouseX - rcx
-    const drcy = regionMouseY - rcy
-    regionBottomLeft.x += drcx
-    regionBottomLeft.y += drcy
-    regionTopRight.x += drcx
-    regionTopRight.y += drcy
-    render()
-    return
+  if (e.shiftKey) {
+    const regionWidth = regionTopRight.x - regionBottomLeft.x
+    const regionHeight = regionTopRight.y - regionBottomLeft.y
+    const regionCentreX = regionBottomLeft.x + regionWidth / 2
+    const regionCentreY = regionBottomLeft.y + regionHeight / 2
+    const translationX = regionMouseX - regionCentreX
+    const translationY = regionMouseY - regionCentreY
+    regionBottomLeft.x += translationX
+    regionBottomLeft.y += translationY
+    regionTopRight.x += translationX
+    regionTopRight.y += translationY
+    return render()
   }
 
-  if (ev.altKey) {
+  if (e.altKey) {
     switch (currentFractalSetId) {
       case FRACTAL_SET_ID_MANDELBROT:
-        setCurrentFractalSet(FRACTAL_SET_ID_JULIA, { x: regionMouseX, y: regionMouseY })
-        break
+        return setCurrentFractalSet(FRACTAL_SET_ID_JULIA, { x: regionMouseX, y: regionMouseY })
 
       case FRACTAL_SET_ID_JULIA:
-        setCurrentFractalSet(FRACTAL_SET_ID_MANDELBROT)
-        break
+        return setCurrentFractalSet(FRACTAL_SET_ID_MANDELBROT)
 
       default:
-        break
+        return
     }
-    return
   }
 
   panning = true
   lastMousePt = { mouseX, mouseY }
 }
 
-const onCanvasMouseMoveHandler = ev => {
+const onCanvasMouseMoveHandler = e => {
 
   if (!panning) {
     return
   }
 
-  const mouseX = ev.offsetX
-  const mouseY = ev.offsetY
-  const mouseDx = mouseX - lastMousePt.mouseX
-  const mouseDy = mouseY - lastMousePt.mouseY
-
-  const cw = canvas.clientWidth
-  const ch = canvas.clientHeight
-  const rw = regionTopRight.x - regionBottomLeft.x
-  const rh = regionTopRight.y - regionBottomLeft.y
-
-  const regionDx = mouseDx * rw / cw
-  const regionDy = mouseDy * rh / ch
-
-  regionBottomLeft.x -= regionDx
-  regionBottomLeft.y -= regionDy
-  regionTopRight.x -= regionDx
-  regionTopRight.y -= regionDy
+  const mouseX = e.offsetX
+  const mouseY = e.offsetY
+  const mouseDeltaX = mouseX - lastMousePt.mouseX
+  const mouseDeltaY = mouseY - lastMousePt.mouseY
+  const regionWidth = regionTopRight.x - regionBottomLeft.x
+  const regionHeight = regionTopRight.y - regionBottomLeft.y
+  const regionDeltaX = mouseDeltaX * regionWidth / canvas.width
+  const regionDeltaY = mouseDeltaY * regionHeight / canvas.height
+  regionBottomLeft.x -= regionDeltaX
+  regionBottomLeft.y -= regionDeltaY
+  regionTopRight.x -= regionDeltaX
+  regionTopRight.y -= regionDeltaY
 
   render()
 
@@ -397,83 +406,64 @@ const onCanvasMouseLeaveHandler = () => {
   panning = false
 }
 
-const onDocumentKeyDownHandler = ev => {
+const onDocumentKeyDownHandler = e => {
 
   if (bookmarkMode) {
-    handleBookmarkKeys(ev)
-    return
+    return handleBookmarkKeys(e)
   }
 
-  if (!bookmarkMode && ev.key === 'b' && ev.ctrlKey) {
+  if (!bookmarkMode && e.key === 'b' && e.ctrlKey) {
     bookmarkMode = true
     return
   }
 
-  const rw = regionTopRight.x - regionBottomLeft.x
-  const rh = regionTopRight.y - regionBottomLeft.y
-
-  if (ev.key === '+') {
-    const drw = rw / 4
-    const drh = rh / 4
-    regionBottomLeft.x += drw
-    regionBottomLeft.y += drh
-    regionTopRight.x -= drw
-    regionTopRight.y -= drh
-    render()
-    return
+  if (e.key === '+') {
+    zoomRegion(50)
+    return render()
   }
 
-  if (ev.key === '-') {
-    const drw = rw / 2
-    const drh = rh / 2
-    regionBottomLeft.x -= drw
-    regionBottomLeft.y -= drh
-    regionTopRight.x += drw
-    regionTopRight.y += drh
-    render()
-    return
+  if (e.key === '-') {
+    zoomRegion(-100)
+    return render()
   }
 
-  if (ev.key === 'h' && ev.ctrlKey) {
-    switchToBookmark(HOME_BOOKMARK)
-    return
+  if (e.key === 'h' && e.ctrlKey) {
+    return switchToBookmark(HOME_BOOKMARK)
   }
 
-  if ((ev.key === 'c' || ev.key === 'C') && ev.ctrlKey) {
+  if ((e.key === 'c' || e.key === 'C') && e.ctrlKey) {
     const keys = Array.from(colourMaps.keys())
     const maxIndex = keys.length
     const oldIndex = keys.indexOf(currentColourMapId)
-    const newIndex = (oldIndex + (ev.shiftKey ? maxIndex - 1 : 1)) % maxIndex
+    const newIndex = (oldIndex + (e.shiftKey ? maxIndex - 1 : 1)) % maxIndex
     const newColourMapId = keys[newIndex]
-    setCurrentFractalSet(undefined, undefined, newColourMapId)
-    return
+    return setCurrentFractalSet(undefined, undefined, newColourMapId)
   }
 
-  if ((ev.key === 'i' || ev.key === 'I')) {
-    const delta = DELTA_ITERATIONS * (ev.shiftKey ? -1 : +1)
-    maxIterations = Math.max(maxIterations + delta, MIN_ITERATIONS)
-    render()
-    return
+  if ((e.key === 'i' || e.key === 'I')) {
+    const delta = C.DELTA_ITERATIONS * (e.shiftKey ? -1 : +1)
+    currentMaxIterations = currentMaxIterations + delta
+    currentMaxIterations = Math.min(currentMaxIterations, C.MAX_ITERATIONS)
+    currentMaxIterations = Math.max(currentMaxIterations, C.MIN_ITERATIONS)
+    return render()
   }
 
-  if ((ev.key === 'r' || ev.key === 'R')) {
+  if ((e.key === 'r' || e.key === 'R')) {
     // TODO: choose a random region
   }
 }
 
-const handleBookmarkKeys = ev => {
+const handleBookmarkKeys = e => {
 
   bookmarkMode = false
 
-  if (ev.key === 'n') {
+  if (e.key === 'n') {
     const bookmark = createBookmark()
-    presentBookmarkModal(bookmark)
-    return
+    return presentBookmarkModal(bookmark)
   }
 
-  if (ev.key === 'l') {
-    presentManageBookmarksModal()
-    return
+  if (e.key === 'l') {
+    return presentManageBookmarksModal()
   }
 }
 
@@ -488,8 +478,8 @@ const presentBookmarkModal = bookmark => {
 
   $('input[type="submit"]', modal)
     .off('click')
-    .on('click', ev => {
-      ev.preventDefault()
+    .on('click', e => {
+      e.preventDefault()
       bookmark.name = $('#name', modal).val()
       if (!hasId) {
         bookmark.id = nextBookmarkId++
@@ -514,14 +504,14 @@ const presentBookmarkModal = bookmark => {
         thumbnailImg.hide()
         thumbnailCanvas.show()
         const thumbnailCanvasElement = thumbnailCanvas[0]
-        const thumbnail2d = thumbnailCanvasElement.getContext('2d')
+        const thumbnailCtx = thumbnailCanvasElement.getContext('2d')
         const swidth = Math.min(canvas.width, canvas.height)
         const sheight = Math.min(canvas.width, canvas.height)
         const sx = (canvas.width - swidth) / 2
         const sy = (canvas.height - sheight) / 2
         const dwidth = thumbnailCanvasElement.width
         const dheight = thumbnailCanvasElement.height
-        thumbnail2d.drawImage(canvas, sx, sy, swidth, sheight, 0, 0, dwidth, dheight)
+        thumbnailCtx.drawImage(canvas, sx, sy, swidth, sheight, 0, 0, dwidth, dheight)
         bookmark.thumbnail = thumbnailCanvasElement.toDataURL('image/jpeg', 1.0)
       }
 
@@ -554,27 +544,27 @@ const presentManageBookmarksModal = () => {
       bookmarks.forEach(bookmark => {
         const thumbnail = $('<img>', {
           'class': 'thumbnail',
-          src: bookmark.thumbnail
-        })
-        const thumbnailAnchor = $('<a>', {
-          html: thumbnail
+          src: bookmark.thumbnail,
+          'style': 'cursor: pointer;'
         })
         const editButton = $('<i>', {
           'class': 'fa fa-pencil',
-          'aria-hidden': 'true'
+          'aria-hidden': 'true',
+          'style': 'cursor: pointer;'
         })
         const deleteButton = $('<i>', {
           'class': 'fa fa-trash',
-          'aria-hidden': 'true'
+          'aria-hidden': 'true',
+          'style': 'cursor: pointer;'
         })
-        thumbnailAnchor.on('click', invokeWithBookmark(onSwitchTo))
+        thumbnail.on('click', invokeWithBookmark(onSwitchTo))
         editButton.on('click', invokeWithBookmark(onEdit))
         deleteButton.on('click', invokeWithBookmark(onDelete))
         const tr = $('<tr>', { 'data-id': bookmark.id })
-        tr.append($('<td>', { html: thumbnailAnchor }))
-        tr.append($('<td>', { html: bookmark.name }))
-        tr.append($('<td>', { html: editButton }))
-        tr.append($('<td>', { html: deleteButton }))
+        tr.append($('<td>', { html: thumbnail, style: 'width: 1px;' }))
+        tr.append($('<td>', { html: bookmark.name, style: 'vertical-align: middle; text-align: left;' }))
+        tr.append($('<td>', { html: editButton, style: 'vertical-align: middle; text-align: center;' }))
+        tr.append($('<td>', { html: deleteButton, style: 'vertical-align: middle; text-align: center;' }))
         tbody.append(tr)
       })
     })
@@ -600,11 +590,11 @@ const presentManageBookmarksModal = () => {
 const createBookmark = name => ({
   name: name || `Bookmark${nextBookmarkId}`,
   fractalSetId: currentFractalSetId,
-  juliaConstant: Object.assign({}, currentJuliaConstant),
+  juliaConstant: { ...currentJuliaConstant },
   colourMapId: currentColourMapId,
-  regionBottomLeft: Object.assign({}, regionBottomLeft),
-  regionTopRight: Object.assign({}, regionTopRight),
-  maxIterations
+  regionBottomLeft: { ...regionBottomLeft },
+  regionTopRight: { ...regionTopRight },
+  maxIterations: currentMaxIterations
 })
 
 const switchToBookmark = bookmark => {
@@ -612,7 +602,7 @@ const switchToBookmark = bookmark => {
   regionBottomLeft.y = bookmark.regionBottomLeft.y
   regionTopRight.x = bookmark.regionTopRight.x
   regionTopRight.y = bookmark.regionTopRight.y
-  maxIterations = bookmark.maxIterations
+  currentMaxIterations = bookmark.maxIterations
   setCurrentFractalSet(bookmark.fractalSetId, bookmark.juliaConstant, bookmark.colourMapId)
 }
 
