@@ -269,6 +269,13 @@ const start = async manualMode => {
     switchToBookmark(INITIAL_BOOKMARK)
   } else {
     displayConfiguration(INITIAL_BOOKMARK)
+    const animate = () => {
+      panRegion(0.1)
+      zoomRegion(1.0)
+      render()
+      setTimeout(animate, 50)
+    }
+    animate()
   }
 }
 
