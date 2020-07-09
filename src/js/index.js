@@ -475,123 +475,87 @@ const handleBookmarkKeys = e => {
 }
 
 const presentBookmarkModal = bookmark => {
-
+  const bookmarkModal = $('#bookmarkModal')
   const hasId = Number.isInteger(bookmark.id)
-
-  const modal = $('#bookmarkModal')
-
-  const title = hasId ? 'Edit Bookmark' : 'New Bookmark'
-  $('.modal-title', modal).text(title)
-
-  $('input[type="submit"]', modal)
+  const title = hasId ? 'Edit Bookmark' : 'Create Bookmark'
+  $('.modal-title', bookmarkModal).text(title)
+  $('input[type="submit"]', bookmarkModal)
     .off('click')
     .on('click', e => {
       e.preventDefault()
-      bookmark.name = $('#name', modal).val()
+      bookmark.name = $('#name', bookmarkModal).val()
       if (!hasId) {
         bookmark.id = nextBookmarkId++
         bookmarks.set(bookmark.id, bookmark)
       }
       saveBookmarks(bookmarks)
-      modal.modal('hide')
+      bookmarkModal.modal('hide')
     })
-
-  modal
-    .modal()
-    .off('shown.bs.modal')
-    .on('shown.bs.modal', () => {
-
-      const thumbnailImg = $('img.thumbnail', modal)
-      const thumbnailCanvas = $('canvas.thumbnail', modal)
-      if (hasId) {
-        thumbnailCanvas.hide()
-        thumbnailImg.show()
-        thumbnailImg[0].src = bookmark.thumbnail
-      } else {
-        thumbnailImg.hide()
-        thumbnailCanvas.show()
-        const thumbnailCanvasElement = thumbnailCanvas[0]
-        const thumbnailCtx = thumbnailCanvasElement.getContext('2d')
-        const swidth = Math.min(canvas.width, canvas.height)
-        const sheight = Math.min(canvas.width, canvas.height)
-        const sx = (canvas.width - swidth) / 2
-        const sy = (canvas.height - sheight) / 2
-        const dwidth = thumbnailCanvasElement.width
-        const dheight = thumbnailCanvasElement.height
-        thumbnailCtx.drawImage(canvas, sx, sy, swidth, sheight, 0, 0, dwidth, dheight)
-        bookmark.thumbnail = thumbnailCanvasElement.toDataURL('image/jpeg', 1.0)
-      }
-
-      $('#name', modal).val(bookmark.name).focus()
-      $('.fractal-set', modal).text(fractalSets.get(bookmark.fractalSetId).name)
-      $('.colour-map', modal).text(colourMaps.get(bookmark.colourMapId).name)
-      $('.max-iterations', modal).text(bookmark.maxIterations)
-      $('.region-bottom-left', modal).text(`(${bookmark.regionBottomLeft.x}, ${bookmark.regionBottomLeft.y})`)
-      $('.region-top-right', modal).text(`(${bookmark.regionTopRight.x}, ${bookmark.regionTopRight.y})`)
-      const juliaConstantP = $('.julia-constant', modal)
-      const juliaConstantDiv = juliaConstantP.closest('div')
-      if (bookmark.fractalSetId === FRACTAL_SET_ID_JULIA) {
-        juliaConstantP.text(`(${bookmark.juliaConstant.x}, ${bookmark.juliaConstant.y})`)
-        juliaConstantDiv.show()
-      } else {
-        juliaConstantDiv.hide()
-      }
-    })
+  const thumbnailImg = $('img.thumbnail', bookmarkModal)
+  const thumbnailCanvas = $('canvas.thumbnail', bookmarkModal)
+  if (hasId) {
+    thumbnailCanvas.hide()
+    thumbnailImg.show()
+    thumbnailImg[0].src = bookmark.thumbnail
+  } else {
+    thumbnailImg.hide()
+    thumbnailCanvas.show()
+    const thumbnailCanvasElement = thumbnailCanvas[0]
+    const thumbnailCtx = thumbnailCanvasElement.getContext('2d')
+    const swidth = Math.min(canvas.width, canvas.height)
+    const sheight = Math.min(canvas.width, canvas.height)
+    const sx = (canvas.width - swidth) / 2
+    const sy = (canvas.height - sheight) / 2
+    const dwidth = thumbnailCanvasElement.width
+    const dheight = thumbnailCanvasElement.height
+    thumbnailCtx.drawImage(canvas, sx, sy, swidth, sheight, 0, 0, dwidth, dheight)
+    bookmark.thumbnail = thumbnailCanvasElement.toDataURL('image/jpeg', 1.0)
+  }
+  $('#name', bookmarkModal).val(bookmark.name).focus()
+  $('.fractal-set', bookmarkModal).text(fractalSets.get(bookmark.fractalSetId).name)
+  $('.colour-map', bookmarkModal).text(colourMaps.get(bookmark.colourMapId).name)
+  $('.max-iterations', bookmarkModal).text(bookmark.maxIterations)
+  $('.region-bottom-left', bookmarkModal).text(`(${bookmark.regionBottomLeft.x}, ${bookmark.regionBottomLeft.y})`)
+  $('.region-top-right', bookmarkModal).text(`(${bookmark.regionTopRight.x}, ${bookmark.regionTopRight.y})`)
+  const juliaConstantP = $('.julia-constant', bookmarkModal)
+  const juliaConstantDiv = juliaConstantP.closest('div')
+  if (bookmark.fractalSetId === FRACTAL_SET_ID_JULIA) {
+    juliaConstantP.text(`(${bookmark.juliaConstant.x}, ${bookmark.juliaConstant.y})`)
+    juliaConstantDiv.show()
+  } else {
+    juliaConstantDiv.hide()
+  }
+  bookmarkModal.modal()
 }
 
 const presentManageBookmarksModal = () => {
-
-  const modal = $('#manageBookmarksModal')
-
-  modal
-    .modal()
-    .off('shown.bs.modal')
-    .on('shown.bs.modal', () => {
-      const tbody = $('tbody', modal).empty()
-      bookmarks.forEach(bookmark => {
-        const thumbnail = $('<img>', {
-          'class': 'thumbnail',
-          src: bookmark.thumbnail,
-          'style': 'cursor: pointer;'
-        })
-        const editButton = $('<i>', {
-          'class': 'fa fa-pencil',
-          'aria-hidden': 'true',
-          'style': 'cursor: pointer;'
-        })
-        const deleteButton = $('<i>', {
-          'class': 'fa fa-trash',
-          'aria-hidden': 'true',
-          'style': 'cursor: pointer;'
-        })
-        thumbnail.on('click', invokeWithBookmark(onSwitchTo))
-        editButton.on('click', invokeWithBookmark(onEdit))
-        deleteButton.on('click', invokeWithBookmark(onDelete))
-        const tr = $('<tr>', { 'data-id': bookmark.id })
-        tr.append($('<td>', { html: thumbnail, style: 'width: 1px;' }))
-        tr.append($('<td>', { html: bookmark.name, style: 'vertical-align: middle; text-align: left;' }))
-        tr.append($('<td>', { html: editButton, style: 'vertical-align: middle; text-align: center;' }))
-        tr.append($('<td>', { html: deleteButton, style: 'vertical-align: middle; text-align: center;' }))
-        tbody.append(tr)
-      })
-    })
-
-  function invokeWithBookmark(fn) {
-    return function () {
-      modal.modal('hide')
-      const tr = $(this).closest('tr')
-      const id = Number(tr.attr('data-id'))
-      const bookmark = bookmarks.get(id)
-      fn(bookmark)
-    }
+  const manageBookmarksModal = $('#manageBookmarksModal')
+  const tbody = $('tbody', manageBookmarksModal).empty()
+  const invokeHandler = (handler, bookmark) => () => {
+    manageBookmarksModal.modal('hide')
+    handler(bookmark)
   }
-
   const onSwitchTo = bookmark => switchToBookmark(bookmark)
   const onEdit = bookmark => presentBookmarkModal(bookmark)
   const onDelete = bookmark => {
     bookmarks.delete(bookmark.id)
     saveBookmarks(bookmarks)
   }
+  const bookmarkRowTemplate = document.getElementById('bookmark-row-template')
+  bookmarks.forEach(bookmark => {
+    const tr = document.importNode(bookmarkRowTemplate.content, true)
+    const img = tr.querySelector(':nth-child(1) img')
+    const name = tr.querySelector(':nth-child(2)')
+    const editButton = tr.querySelector(':nth-child(3) i')
+    const deleteButton = tr.querySelector(':nth-child(4) i')
+    img.src = bookmark.thumbnail
+    name.innerText = bookmark.name
+    img.addEventListener('click', invokeHandler(onSwitchTo, bookmark))
+    editButton.addEventListener('click', invokeHandler(onEdit, bookmark))
+    deleteButton.addEventListener('click', invokeHandler(onDelete, bookmark))
+    tbody.append(tr)
+  })
+  manageBookmarksModal.modal()
 }
 
 const createBookmark = name => ({
