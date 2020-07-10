@@ -258,12 +258,15 @@ const start = async manualMode => {
     }
   }
 
+  console.log('Calling initGL')
+  initGL(canvas)
+  console.log('Calling initShaders')
+  initShaders()
+  console.log('Calling loadColourMaps')
+  loadColourMaps()
+
   canvas = document.getElementById('canvas')
   window.addEventListener('resize', onWindowResize)
-
-  initGL(canvas)
-  initShaders()
-  loadColourMaps()
 
   if (manualMode) {
     canvas.addEventListener('mousedown', onCanvasMouseDownHandler)
