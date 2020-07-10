@@ -9,7 +9,7 @@ in vec2 vPosition;
 out vec4 fragColor;
 
 void main(void) {
-  vec2 z = vec2(0, 0);
+  vec2 z;
   vec2 c = vPosition;
   fragColor = loop(uMaxIterations, uColormap, z, c);
 }

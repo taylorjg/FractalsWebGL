@@ -6,6 +6,9 @@ vec4 loop(int maxIterations, sampler2D colormap, vec2 z, vec2 c) {
     z = zSquared + c;
     iteration++;
   }
-  int index = 255 * iteration / maxIterations;
-  return texelFetch(colormap, ivec2(index, 0), 0);
+  int s = 255 * iteration / maxIterations;
+  int t = 0;
+  ivec2 coord = ivec2(s, t);
+  int lod = 0;
+  return texelFetch(colormap, coord, lod);
 }

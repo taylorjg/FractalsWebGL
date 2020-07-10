@@ -1,8 +1,11 @@
 import PromiseWorker from 'promise-worker'
 import * as glm from 'gl-matrix'
-import vertexShaderSource from '../shaders/shader.vert.glsl'
-import mandelbrotShaderSource from '../shaders/mandelbrot.frag.glsl'
-import juliaShaderSource from '../shaders/julia.frag.glsl'
+import vertexShaderSourceWebGL1 from '../shaders/webgl1/shader.vert.glsl'
+import mandelbrotShaderSourceWebGL1 from '../shaders/webgl1/mandelbrot.frag.glsl'
+import juliaShaderSourceWebGL1 from '../shaders/webgl1/julia.frag.glsl'
+import vertexShaderSourceWebGL2 from '../shaders/webgl2/shader.vert.glsl'
+import mandelbrotShaderSourceWebGL2 from '../shaders/webgl2/mandelbrot.frag.glsl'
+import juliaShaderSourceWebGL2 from '../shaders/webgl2/julia.frag.glsl'
 import { colourMapDictionary } from './colourMapData'
 import { getColourMap } from './colourMaps'
 import * as C from './constants'
@@ -22,7 +25,7 @@ const createColormapTexture = (colourMap, textureUnit) => {
   gl.bindTexture(gl.TEXTURE_2D, texture)
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
-  const pixels = new Float32Array(colourMap)
+  const pixels = new Uint8Array(colourMap.map(value => value * 255))
   const level = 0
   const width = colourMap.length / 4
   const height = 1
@@ -30,12 +33,12 @@ const createColormapTexture = (colourMap, textureUnit) => {
   gl.texImage2D(
     gl.TEXTURE_2D,
     level,
-    gl.RGBA32F,
+    gl.RGBA,
     width,
     height,
     border,
     gl.RGBA,
-    gl.FLOAT,
+    gl.UNSIGNED_BYTE,
     pixels)
 }
 
@@ -93,17 +96,13 @@ let nextBookmarkId = 0
 let bookmarks = new Map()
 
 const initGL = canvas => {
-  try {
-    gl = canvas.getContext('webgl2', { preserveDrawingBuffer: true })
-    console.dir(gl)
-  }
-  catch (e) {
-    console.error(`canvas.getContext(webgl2) failed: ${e.message}`)
-  }
+  gl = canvas.getContext('webgl2') || canvas.getContext('webgl')
   if (!gl) {
     console.error('Failed to initialise WebGL')
   }
 }
+
+const isWebGL2 = () => gl instanceof WebGL2RenderingContext
 
 const getShader = (gl, source, shaderType) => {
   const shader = gl.createShader(shaderType)
@@ -117,7 +116,7 @@ const getShader = (gl, source, shaderType) => {
   return shader
 }
 
-const initShadersHelper = (name, fragmentShaderSource) => {
+const initShadersHelper = (name, vertexShaderSource, fragmentShaderSource) => {
 
   const vertexShader = getShader(gl, vertexShaderSource, gl.VERTEX_SHADER)
   const fragmentShader = getShader(gl, fragmentShaderSource, gl.FRAGMENT_SHADER)
@@ -138,9 +137,12 @@ const initShadersHelper = (name, fragmentShaderSource) => {
   gl.enableVertexAttribArray(aPlotPosition)
 
   const uModelViewMatrix = gl.getUniformLocation(program, 'uModelViewMatrix')
-  const uMaxIterations = gl.getUniformLocation(program, 'uMaxIterations')
   const uColormap = gl.getUniformLocation(program, 'uColormap')
   const uJuliaConstant = gl.getUniformLocation(program, 'uJuliaConstant')
+
+  const maybeMaxIterationsUniform = isWebGL2()
+    ? { uMaxIterations: gl.getUniformLocation(program, 'uMaxIterations') }
+    : undefined
 
   const vertices = [
     1.0, 1.0,
@@ -159,7 +161,7 @@ const initShadersHelper = (name, fragmentShaderSource) => {
     aVertexPosition,
     aPlotPosition,
     uModelViewMatrix,
-    uMaxIterations,
+    ...maybeMaxIterationsUniform,
     uColormap,
     uJuliaConstant,
     vertexPositionBuffer
@@ -167,8 +169,11 @@ const initShadersHelper = (name, fragmentShaderSource) => {
 }
 
 const initShaders = () => {
-  const mandelbrotSet = initShadersHelper('Mandelbrot', mandelbrotShaderSource)
-  const juliaSet = initShadersHelper('Julia', juliaShaderSource)
+  const vertexShaderSource = isWebGL2() ? vertexShaderSourceWebGL2 : vertexShaderSourceWebGL1
+  const mandelbrotShaderSource = isWebGL2() ? mandelbrotShaderSourceWebGL2 : mandelbrotShaderSourceWebGL1
+  const juliaShaderSource = isWebGL2() ? juliaShaderSourceWebGL2 : juliaShaderSourceWebGL1
+  const mandelbrotSet = initShadersHelper('Mandelbrot', vertexShaderSource, mandelbrotShaderSource)
+  const juliaSet = initShadersHelper('Julia', vertexShaderSource, juliaShaderSource)
   fractalSets.set(FRACTAL_SET_ID_MANDELBROT, mandelbrotSet)
   fractalSets.set(FRACTAL_SET_ID_JULIA, juliaSet)
 }
@@ -224,7 +229,9 @@ const render = () => {
   gl.bindBuffer(gl.ARRAY_BUFFER, plotPositionBuffer)
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(corners), gl.STATIC_DRAW)
   gl.vertexAttribPointer(currentFractalSet.aPlotPosition, 2, gl.FLOAT, false, 0, 0)
-  gl.uniform1i(currentFractalSet.uMaxIterations, currentMaxIterations)
+  if (isWebGL2()) {
+    gl.uniform1i(currentFractalSet.uMaxIterations, currentMaxIterations)
+  }
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
   gl.deleteBuffer(plotPositionBuffer)
 }
@@ -447,12 +454,14 @@ const onDocumentKeyDownHandler = e => {
     return setCurrentFractalSet(undefined, undefined, newColourMapId)
   }
 
-  if ((e.key === 'i' || e.key === 'I')) {
-    const delta = C.DELTA_ITERATIONS * (e.shiftKey ? -1 : +1)
-    currentMaxIterations = currentMaxIterations + delta
-    currentMaxIterations = Math.min(currentMaxIterations, C.MAX_ITERATIONS)
-    currentMaxIterations = Math.max(currentMaxIterations, C.MIN_ITERATIONS)
-    return render()
+  if (isWebGL2()) {
+    if ((e.key === 'i' || e.key === 'I')) {
+      const delta = C.DELTA_ITERATIONS * (e.shiftKey ? -1 : +1)
+      currentMaxIterations = currentMaxIterations + delta
+      currentMaxIterations = Math.min(currentMaxIterations, C.MAX_ITERATIONS)
+      currentMaxIterations = Math.max(currentMaxIterations, C.MIN_ITERATIONS)
+      return render()
+    }
   }
 
   if ((e.key === 'r' || e.key === 'R')) {
