@@ -258,6 +258,8 @@ const start = async manualMode => {
     }
   }
 
+  canvas = document.getElementById('canvas')
+  
   console.log('Calling initGL')
   initGL(canvas)
   console.log('Calling initShaders')
@@ -265,7 +267,6 @@ const start = async manualMode => {
   console.log('Calling loadColourMaps')
   loadColourMaps()
 
-  canvas = document.getElementById('canvas')
   window.addEventListener('resize', onWindowResize)
 
   if (manualMode) {
