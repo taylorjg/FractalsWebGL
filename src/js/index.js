@@ -249,17 +249,17 @@ const displayConfiguration = async configuration => {
 
 const start = async manualMode => {
 
-  if ('serviceWorker' in navigator) {
-    try {
-      const registration = await navigator.serviceWorker.register('service-worker.js')
-      console.log('Successfully registered service worker', registration)
-    } catch (error) {
-      console.error(`Failed to register service worker: ${error.message}`)
-    }
-  }
+  // if ('serviceWorker' in navigator) {
+  //   try {
+  //     const registration = await navigator.serviceWorker.register('service-worker.js')
+  //     console.log('Successfully registered service worker', registration)
+  //   } catch (error) {
+  //     console.error(`Failed to register service worker: ${error.message}`)
+  //   }
+  // }
 
   canvas = document.getElementById('canvas')
-  
+
   console.log('Calling initGL')
   initGL(canvas)
   console.log('Calling initShaders')
