@@ -10,7 +10,7 @@ const { version } = require('./package.json')
 const serverPublic = path.join(__dirname, 'server', 'public')
 
 module.exports = {
-  mode: 'development', // 'production',
+  mode: 'production',
   entry: './src/js/index.js',
   output: {
     path: serverPublic,

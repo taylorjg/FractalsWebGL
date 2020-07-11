@@ -96,7 +96,10 @@ let nextBookmarkId = 0
 let bookmarks = new Map()
 
 const initGL = canvas => {
-  gl = canvas.getContext('webgl2') || canvas.getContext('webgl')
+  // gl = canvas.getContext('webgl2') || canvas.getContext('webgl')
+  // I'm just using 'webgl' for the moment because I'm having problems
+  // with 'webgl2' on iPad (Safari/Chrome).
+  gl = canvas.getContext('webgl')
   if (!gl) {
     console.error('Failed to initialise WebGL')
   }
@@ -249,22 +252,19 @@ const displayConfiguration = async configuration => {
 
 const start = async manualMode => {
 
-  // if ('serviceWorker' in navigator) {
-  //   try {
-  //     const registration = await navigator.serviceWorker.register('service-worker.js')
-  //     console.log('Successfully registered service worker', registration)
-  //   } catch (error) {
-  //     console.error(`Failed to register service worker: ${error.message}`)
-  //   }
-  // }
+  if ('serviceWorker' in navigator) {
+    try {
+      const registration = await navigator.serviceWorker.register('service-worker.js')
+      console.log('Successfully registered service worker', registration)
+    } catch (error) {
+      console.error(`Failed to register service worker: ${error.message}`)
+    }
+  }
 
   canvas = document.getElementById('canvas')
 
-  console.log('Calling initGL')
   initGL(canvas)
-  console.log('Calling initShaders')
   initShaders()
-  console.log('Calling loadColourMaps')
   loadColourMaps()
 
   window.addEventListener('resize', onWindowResize)
