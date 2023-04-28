@@ -7,13 +7,13 @@ const WorkerPlugin = require('worker-plugin')
 const path = require('path')
 const { version } = require('./package.json')
 
-const serverPublic = path.join(__dirname, 'server', 'public')
+const buildFolder = path.join(__dirname, 'build')
 
 module.exports = {
   mode: 'production',
   entry: './src/js/index.js',
   output: {
-    path: serverPublic,
+    path: buildFolder,
     filename: 'bundle.js',
   },
   plugins: [
@@ -42,6 +42,6 @@ module.exports = {
   },
   devtool: 'source-map',
   devServer: {
-    contentBase: serverPublic
+    contentBase: buildFolder
   }
 }

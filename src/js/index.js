@@ -284,7 +284,7 @@ const start = async manualMode => {
       panRegion(0.1)
       zoomRegion(1.0)
       render()
-      setTimeout(animate, 50)
+      requestAnimationFrame(animate)
     }
     animate()
   }
