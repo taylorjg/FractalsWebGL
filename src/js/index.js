@@ -247,7 +247,7 @@ const displayConfiguration = async configuration => {
     colorMapIds: Array.from(colourMaps.keys())
   }
   const newConfiguration = await promiseWorker.postMessage(message)
-  setTimeout(displayConfiguration, 5000, newConfiguration)
+  setTimeout(displayConfiguration, 10000, newConfiguration)
 }
 
 const start = async manualMode => {
@@ -281,8 +281,8 @@ const start = async manualMode => {
   } else {
     displayConfiguration(INITIAL_BOOKMARK)
     const animate = () => {
-      panRegion(0.1)
-      zoomRegion(1.0)
+      panRegion(0.01)
+      zoomRegion(0.01)
       render()
       requestAnimationFrame(animate)
     }

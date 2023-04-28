@@ -33,7 +33,7 @@ const evaluatePoints = (configuration, gridSize) => {
 }
 
 const isInteresting = configuration => {
-  const gridSize = 8
+  const gridSize = 12
   const values = evaluatePoints(configuration, gridSize)
   const factor = randomFloat(0.4, 0.7)
   return new Set(values).size >= values.length * factor
@@ -57,7 +57,7 @@ const createRandomConfiguration = (fractalSetIds, colorMapIds) => {
   const colourMapId = randomElement(colorMapIds)
   const cx = randomFloat(-2, 0.75)
   const cy = randomFloat(-1.5, 1.5)
-  const sz = randomFloat(0.005, 0.05)
+  const sz = randomFloat(0.01, 0.5)
   return {
     fractalSetId,
     juliaConstant: { x: cx, y: cy },
