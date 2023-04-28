@@ -1,6 +1,6 @@
 {
   "name": "fractalswebgl",
-  "version": "0.0.28",
+  "version": "0.0.29",
   "description": "Fractals in WebGL",
   "dependencies": {
     "gl-matrix": "^3.3.0",
