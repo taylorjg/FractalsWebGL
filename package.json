@@ -7,9 +7,9 @@
     "promise-worker": "^2.0.1"
   },
   "devDependencies": {
-    "babel-eslint": "^10.1.0",
+    "@babel/eslint-parser": "^7.21.3",
     "copy-webpack-plugin": "^11.0.0",
-    "eslint": "^7.4.0",
+    "eslint": "^8.39.0",
     "gh-pages": "^5.0.0",
     "html-webpack-plugin": "^5.5.1",
     "webpack": "^5.81.0",
@@ -22,7 +22,8 @@
     "build": "webpack",
     "start:dev": "webpack-dev-server",
     "deploy": "gh-pages -d build",
-    "predeploy": "npm run build"
+    "predeploy": "npm run build",
+    "open": "open https://taylorjg.github.io/FractalsWebGL"
   },
   "repository": {
     "type": "git",
