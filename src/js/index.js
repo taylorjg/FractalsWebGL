@@ -215,19 +215,12 @@ const setCurrentFractalSet = (fractalSetId, juliaConstant, colourMapId) => {
 }
 
 const render = () => {
-  const baseCorners = [
-    [regionTopRight.x, regionTopRight.y],
-    [regionBottomLeft.x, regionTopRight.y],
-    [regionTopRight.x, regionBottomLeft.y],
-    [regionBottomLeft.x, regionBottomLeft.y]
+  const corners = [
+    regionTopRight.x, regionTopRight.y,
+    regionBottomLeft.x, regionTopRight.y,
+    regionTopRight.x, regionBottomLeft.y,
+    regionBottomLeft.x, regionBottomLeft.y
   ]
-  const corners = []
-  for (const index in baseCorners) {
-    const x = baseCorners[index][0]
-    const y = baseCorners[index][1]
-    corners.push(x)
-    corners.push(y)
-  }
   const plotPositionBuffer = gl.createBuffer()
   gl.bindBuffer(gl.ARRAY_BUFFER, plotPositionBuffer)
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(corners), gl.STATIC_DRAW)
