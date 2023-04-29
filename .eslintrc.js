@@ -1,15 +1,15 @@
 /* eslint-env node */
 
 module.exports = {
-  extends: 'eslint:recommended',
+  extends: ["eslint:recommended", "prettier", "plugin:prettier/recommended"],
   env: {
-    es6: true
+    es6: true,
   },
   parserOptions: {
     ecmaVersion: 2018,
-    sourceType: 'module'
+    sourceType: "module",
   },
   rules: {
-    'no-console': 'off'
-  }
-}
+    "no-console": "off",
+  },
+};

@@ -1,35 +1,34 @@
 /* eslint-env node */
 
-const CopyWebpackPlugin = require('copy-webpack-plugin')
-const HtmlWebpackPlugin = require('html-webpack-plugin')
-const { InjectManifest } = require('workbox-webpack-plugin');
+const CopyWebpackPlugin = require("copy-webpack-plugin");
+const HtmlWebpackPlugin = require("html-webpack-plugin");
+const { InjectManifest } = require("workbox-webpack-plugin");
 
-const path = require('path')
-const packageJson = require('./package.json')
+const path = require("path");
+const packageJson = require("./package.json");
 
-const buildFolder = path.join(__dirname, 'build')
+const buildFolder = path.join(__dirname, "build");
 
 module.exports = {
-  mode: 'production',
+  mode: "production",
   entry: {
     bundle: "./src/js/index.js",
   },
   output: {
     path: buildFolder,
-    filename: '[name].js',
+    filename: "[name].js",
   },
   plugins: [
     new CopyWebpackPlugin({
       patterns: [
-        { context: './src', from: '*.css' },
-        { context: './src', from: '*.png' },
-        { context: './src', from: 'manifest.json' },
-        // { context: './src', from: 'service-worker.js' },
-      ]
+        { context: "./src", from: "*.css" },
+        { context: "./src", from: "*.png" },
+        { context: "./src", from: "manifest.json" },
+      ],
     }),
     new HtmlWebpackPlugin({
-      template: './src/index.html',
-      version: packageJson.version
+      template: "./src/index.html",
+      version: packageJson.version,
     }),
     // Replace "self.__WB_MANIFEST" in ./src/service-worker.js with an array
     // containing details of the files outputted by this webpack build e.g.
@@ -53,8 +52,8 @@ module.exports = {
     //   'url': 'styles.css'
     // }]
     new InjectManifest({
-      swSrc: './src/service-worker.js',
-    })
+      swSrc: "./src/service-worker.js",
+    }),
   ],
   module: {
     rules: [
@@ -62,12 +61,12 @@ module.exports = {
       // https://webpack.js.org/guides/asset-modules/#source-assets
       {
         test: /\.glsl$/,
-        type: 'asset/source'
-      }
-    ]
+        type: "asset/source",
+      },
+    ],
   },
-  devtool: 'source-map',
+  devtool: "source-map",
   devServer: {
-    static: buildFolder
-  }
-}
+    static: buildFolder,
+  },
+};
