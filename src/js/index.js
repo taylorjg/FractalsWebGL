@@ -10,7 +10,7 @@ import { colourMapDictionary } from './colourMapData'
 import { getColourMap } from './colourMaps'
 import * as C from './constants'
 
-const worker = new Worker('./web-worker.js', { type: 'module' })
+const worker = new Worker(new URL("./web-worker.js", import.meta.url))
 const promiseWorker = new PromiseWorker(worker)
 
 const FRACTAL_SET_ID_MANDELBROT = 0
@@ -245,14 +245,15 @@ const displayConfiguration = async configuration => {
 
 const start = async manualMode => {
 
-  if ('serviceWorker' in navigator) {
-    try {
-      const registration = await navigator.serviceWorker.register('service-worker.js')
-      console.log('Successfully registered service worker', registration)
-    } catch (error) {
-      console.error(`Failed to register service worker: ${error.message}`)
-    }
-  }
+  // Turning off the service worker for the moment. Not quite happy with it yet.
+  // if ('serviceWorker' in navigator) {
+  //   try {
+  //     const registration = await navigator.serviceWorker.register('service-worker.js')
+  //     console.log('Successfully registered service worker', registration)
+  //   } catch (error) {
+  //     console.error(`Failed to register service worker: ${error.message}`)
+  //   }
+  // }
 
   canvas = document.getElementById('canvas')
 

@@ -72,6 +72,7 @@ const onChooseConfiguration = (fractalSetIds, colorMapIds) => {
   for (; ;) {
     const configuration = createRandomConfiguration(fractalSetIds, colorMapIds)
     if (isInteresting(configuration)) {
+      // console.log("[onChooseConfiguration]", "configuration:", JSON.stringify(configuration, null, 2));
       return configuration
     }
   }
@@ -82,6 +83,7 @@ const onUnknownMessage = message => {
 }
 
 const processMessage = message => {
+  // console.log("[processMessage]", "message.type:", message.type);
   switch (message.type) {
     case 'chooseConfiguration': return onChooseConfiguration(
       message.fractalSetIds,
