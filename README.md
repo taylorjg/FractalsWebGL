@@ -1,15 +1,15 @@
-[![CircleCI](https://circleci.com/gh/taylorjg/FractalsWebGL.svg?style=svg)](https://circleci.com/gh/taylorjg/FractalsWebGL)
-
 ## Description
 
 Playing around with fractals in a web browser using WebGL.
 
-## Try it out
+## Try It Out
 
-[Try it on Heroku](http://fractalswebgl.herokuapp.com/)
-(_it may take 10s to re-activate_)
+* [Manual Mode](https://taylorjg.github.io/FractalsWebGL?mode=manual)
+  * _Allows you to pan and zoom around manually_
+* [Auto Mode](https://taylorjg.github.io/FractalsWebGL)
+  * _Shows a different random region every 10 seconds_
 
-## Controls
+## Controls (Manual Mode)
 
 * Shift + Left Click
     * _Re-centre on the clicked point (maintain current zoom level)._
@@ -30,11 +30,14 @@ Playing around with fractals in a web browser using WebGL.
 
 ## Colourmaps
 
+Some of [Matplotlib's miscellaneous colourmaps](https://matplotlib.org/stable/tutorials/colors/colormaps.html#miscellaneous) are supported:
+
 * jet
+* hot
 * gist_stern
-* ocean
-* rainbow
-* monochrome
+* gnuplot
+* gnuplot2
+* afmhot
 
 ## TODO
 
