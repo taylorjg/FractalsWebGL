@@ -3,6 +3,7 @@
   "version": "0.0.33",
   "description": "Fractals in WebGL",
   "dependencies": {
+    "colormap": "^2.3.2",
     "gl-matrix": "^3.3.0",
     "promise-worker": "^2.0.1"
   },

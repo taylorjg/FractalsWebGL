@@ -2,7 +2,7 @@
 
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
-const { InjectManifest } = require("workbox-webpack-plugin");
+// const { InjectManifest } = require("workbox-webpack-plugin");
 
 const path = require("path");
 const packageJson = require("./package.json");
@@ -51,9 +51,9 @@ module.exports = {
     //   'revision': 'd391616d1f8c5a980e0045e395b32a57',
     //   'url': 'styles.css'
     // }]
-    new InjectManifest({
-      swSrc: "./src/service-worker.js",
-    }),
+    // new InjectManifest({
+    //   swSrc: "./src/service-worker.js",
+    // }),
   ],
   module: {
     rules: [

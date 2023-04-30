@@ -1,13 +1,12 @@
 import PromiseWorker from "promise-worker";
 import * as glm from "gl-matrix";
+import colormap from "colormap";
 import vertexShaderSourceWebGL1 from "../shaders/webgl1/shader.vert.glsl";
 import mandelbrotShaderSourceWebGL1 from "../shaders/webgl1/mandelbrot.frag.glsl";
 import juliaShaderSourceWebGL1 from "../shaders/webgl1/julia.frag.glsl";
 import vertexShaderSourceWebGL2 from "../shaders/webgl2/shader.vert.glsl";
 import mandelbrotShaderSourceWebGL2 from "../shaders/webgl2/mandelbrot.frag.glsl";
 import juliaShaderSourceWebGL2 from "../shaders/webgl2/julia.frag.glsl";
-import { colourMapDictionary } from "./colourMapData";
-import { getColourMap } from "./colourMaps";
 import * as C from "./constants";
 
 const worker = new Worker(new URL("./web-worker.js", import.meta.url));
@@ -44,7 +43,11 @@ const createColormapTexture = (colourMap, textureUnit) => {
 };
 
 const loadColourMap = (name, textureUnit) => {
-  const colourMap = getColourMap(name);
+  const colourMap = colormap({
+    colormap: name,
+    nshades: 256,
+    format: "float",
+  }).flat();
   createColormapTexture(colourMap, textureUnit);
   return {
     name,
@@ -54,7 +57,40 @@ const loadColourMap = (name, textureUnit) => {
 };
 
 const loadColourMaps = () => {
-  const colorMapNames = Array.from(Object.keys(colourMapDictionary));
+  const colorMapNames = [
+    "jet",
+    "hsv",
+    "hot",
+    "cool",
+    "warm",
+    "spring",
+    "summer",
+    "autumn",
+    "winter",
+    "bone",
+    "copper",
+    "greys",
+    "YIOrRd",
+    "bluered",
+    "RdBu",
+    "picnic",
+    "rainbow",
+    "portland",
+    "blackbody",
+    "earth",
+    "electric",
+    "viridis",
+    "inferno",
+    "magma",
+    "plasma",
+    "rainbow-soft",
+    "bathymetry",
+    "cdom",
+    "chlorophyll",
+    "density",
+    "freesurface-blue",
+    "freesurface-red",
+  ];
   colorMapNames.forEach((colorMapName, index) => {
     colourMaps.set(index, loadColourMap(colorMapName, index));
   });
