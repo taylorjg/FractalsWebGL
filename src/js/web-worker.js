@@ -52,9 +52,9 @@ const randomElement = (elements) => {
   return elements[randomIndex];
 };
 
-const createRandomConfiguration = (fractalSetIds, colorMapIds) => {
+const createRandomConfiguration = (fractalSetIds, colourMapIds) => {
   const fractalSetId = randomElement(fractalSetIds);
-  const colourMapId = randomElement(colorMapIds);
+  const colourMapId = randomElement(colourMapIds);
   const cx = randomFloat(-2, 0.75);
   const cy = randomFloat(-1.5, 1.5);
   const sz = randomFloat(0.01, 0.5);
@@ -68,9 +68,12 @@ const createRandomConfiguration = (fractalSetIds, colorMapIds) => {
   };
 };
 
-const onChooseConfiguration = (fractalSetIds, colorMapIds) => {
+const onChooseConfiguration = (fractalSetIds, colourMapIds) => {
   for (;;) {
-    const configuration = createRandomConfiguration(fractalSetIds, colorMapIds);
+    const configuration = createRandomConfiguration(
+      fractalSetIds,
+      colourMapIds
+    );
     if (isInteresting(configuration)) {
       // console.log("[onChooseConfiguration]", "configuration:", JSON.stringify(configuration, null, 2));
       return configuration;
@@ -86,7 +89,7 @@ const processMessage = (message) => {
   // console.log("[processMessage]", "message.type:", message.type);
   switch (message.type) {
     case "chooseConfiguration":
-      return onChooseConfiguration(message.fractalSetIds, message.colorMapIds);
+      return onChooseConfiguration(message.fractalSetIds, message.colourMapIds);
     default:
       return onUnknownMessage(message);
   }

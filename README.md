@@ -28,17 +28,6 @@ Playing around with fractals in a web browser using WebGL.
 * SHIFT + CTRL + `c`
     * _Cycle backwards through the colour maps._
 
-## Colourmaps
-
-Some of [Matplotlib's miscellaneous colourmaps](https://matplotlib.org/stable/tutorials/colors/colormaps.html#miscellaneous) are supported:
-
-* jet
-* hot
-* gist_stern
-* gnuplot
-* gnuplot2
-* afmhot
-
 ## TODO
 
 * ~~Implement panning~~

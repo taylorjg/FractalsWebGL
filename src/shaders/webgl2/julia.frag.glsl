@@ -6,7 +6,7 @@ precision highp float;
 // https://www.npmjs.com/package/webpack-glsl-loader
 // @import ./common;
 
-vec4 loop(int maxIterations, sampler2D colormap, vec2 z, vec2 c) {
+vec4 loop(int maxIterations, sampler2D colourMap, vec2 z, vec2 c) {
   int iteration = 0;
   while (iteration < maxIterations) {
     if (dot(z, z) >= 4.0) break;
@@ -18,11 +18,11 @@ vec4 loop(int maxIterations, sampler2D colormap, vec2 z, vec2 c) {
   int t = 0;
   ivec2 coord = ivec2(s, t);
   int lod = 0;
-  return texelFetch(colormap, coord, lod);
+  return texelFetch(colourMap, coord, lod);
 }
 
 uniform int uMaxIterations;
-uniform sampler2D uColormap;
+uniform sampler2D uColourMap;
 uniform vec2 uJuliaConstant;
 in vec2 vPosition;
 out vec4 fragColor;
@@ -30,5 +30,5 @@ out vec4 fragColor;
 void main(void) {
   vec2 z = vPosition;
   vec2 c = uJuliaConstant;
-  fragColor = loop(uMaxIterations, uColormap, z, c);
+  fragColor = loop(uMaxIterations, uColourMap, z, c);
 }

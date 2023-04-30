@@ -1,4 +1,4 @@
-vec4 loop(int maxIterations, sampler2D colormap, vec2 z, vec2 c) {
+vec4 loop(int maxIterations, sampler2D colourMap, vec2 z, vec2 c) {
   int iteration = 0;
   while (iteration < maxIterations) {
     if (dot(z, z) >= 4.0) break;
@@ -10,5 +10,5 @@ vec4 loop(int maxIterations, sampler2D colormap, vec2 z, vec2 c) {
   int t = 0;
   ivec2 coord = ivec2(s, t);
   int lod = 0;
-  return texelFetch(colormap, coord, lod);
+  return texelFetch(colourMap, coord, lod);
 }

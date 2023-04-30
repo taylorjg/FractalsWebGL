@@ -7,18 +7,16 @@ import juliaShaderSourceWebGL1 from "../shaders/webgl1/julia.frag.glsl";
 import vertexShaderSourceWebGL2 from "../shaders/webgl2/shader.vert.glsl";
 import mandelbrotShaderSourceWebGL2 from "../shaders/webgl2/mandelbrot.frag.glsl";
 import juliaShaderSourceWebGL2 from "../shaders/webgl2/julia.frag.glsl";
+import { configureUI } from "./ui";
 import * as C from "./constants";
 
 const worker = new Worker(new URL("./web-worker.js", import.meta.url));
 const promiseWorker = new PromiseWorker(worker);
 
-const FRACTAL_SET_ID_MANDELBROT = 0;
-const FRACTAL_SET_ID_JULIA = 1;
-
 let canvas;
 let gl;
 
-const createColormapTexture = (colourMap, textureUnit) => {
+const createColourMapTexture = (colourMap, textureUnit) => {
   const texture = gl.createTexture();
   gl.activeTexture(gl.TEXTURE0 + textureUnit);
   gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -48,7 +46,7 @@ const loadColourMap = (name, textureUnit) => {
     nshades: 256,
     format: "float",
   }).flat();
-  createColormapTexture(colourMap, textureUnit);
+  createColourMapTexture(colourMap, textureUnit);
   return {
     name,
     colourMap,
@@ -57,42 +55,8 @@ const loadColourMap = (name, textureUnit) => {
 };
 
 const loadColourMaps = () => {
-  const colorMapNames = [
-    "jet",
-    "hsv",
-    "hot",
-    "cool",
-    "warm",
-    "spring",
-    "summer",
-    "autumn",
-    "winter",
-    "bone",
-    "copper",
-    "greys",
-    "YIOrRd",
-    "bluered",
-    "RdBu",
-    "picnic",
-    "rainbow",
-    "portland",
-    "blackbody",
-    "earth",
-    "electric",
-    "viridis",
-    "inferno",
-    "magma",
-    "plasma",
-    "rainbow-soft",
-    "bathymetry",
-    "cdom",
-    "chlorophyll",
-    "density",
-    "freesurface-blue",
-    "freesurface-red",
-  ];
-  colorMapNames.forEach((colorMapName, index) => {
-    colourMaps.set(index, loadColourMap(colorMapName, index));
+  C.COLOUR_MAP_NAMES.forEach((colourMapName, index) => {
+    colourMaps.set(index, loadColourMap(colourMapName, index));
   });
 };
 
@@ -109,34 +73,87 @@ let regionBottomLeft = {};
 let regionTopRight = {};
 let panning = false;
 let lastMousePt;
-
-const INITIAL_BOOKMARK = {
-  fractalSetId: FRACTAL_SET_ID_MANDELBROT,
-  juliaConstant: { x: 0, y: 0 },
-  colourMapId: 0,
-  regionBottomLeft: { x: -0.22, y: -0.7 },
-  regionTopRight: { x: -0.21, y: -0.69 },
-  maxIterations: C.INITIAL_ITERATIONS,
-};
-
-const HOME_BOOKMARK = {
-  fractalSetId: FRACTAL_SET_ID_MANDELBROT,
-  juliaConstant: { x: 0, y: 0 },
-  colourMapId: 0,
-  regionBottomLeft: { x: -2.25, y: -1.5 },
-  regionTopRight: { x: 0.75, y: 1.5 },
-  maxIterations: C.INITIAL_ITERATIONS,
-};
-
 let bookmarkMode = false;
-let nextBookmarkId = 0;
 let bookmarks = new Map();
+let nextBookmarkId = 0;
+let modalOpen = false;
+
+const onModalOpen = () => {
+  console.log("[onModalOpen]");
+  modalOpen = true;
+};
+
+const onModalClose = () => {
+  console.log("[onModalClose]");
+  modalOpen = false;
+};
+
+const loadBookmarks = (bookmarks) => {
+  const mapEntries = JSON.parse(localStorage.bookmarks || "[]");
+  for (const [id, bookmark] of mapEntries) {
+    bookmarks.set(id, bookmark);
+  }
+};
+
+const saveBookmarks = (bookmarks) => {
+  localStorage.bookmarks = JSON.stringify(Array.from(bookmarks.entries()));
+};
+
+const addBookmark = (bookmark) => {
+  bookmark.id = nextBookmarkId++;
+  bookmarks.set(bookmark.id, bookmark);
+  saveBookmarks(bookmarks);
+};
+
+const updateBookmark = (bookmark) => {
+  bookmarks.set(bookmark.id, bookmark);
+  saveBookmarks(bookmarks);
+};
+
+const deleteBookmark = (bookmark) => {
+  bookmarks.delete(bookmark.id);
+  saveBookmarks(bookmarks);
+};
+
+const createBookmark = (name) => ({
+  name: name || `Bookmark${nextBookmarkId}`,
+  fractalSetId: currentFractalSetId,
+  juliaConstant: { ...currentJuliaConstant },
+  colourMapId: currentColourMapId,
+  regionBottomLeft: { ...regionBottomLeft },
+  regionTopRight: { ...regionTopRight },
+  maxIterations: currentMaxIterations,
+});
+
+const switchToBookmark = (bookmark) => {
+  regionBottomLeft.x = bookmark.regionBottomLeft.x;
+  regionBottomLeft.y = bookmark.regionBottomLeft.y;
+  regionTopRight.x = bookmark.regionTopRight.x;
+  regionTopRight.y = bookmark.regionTopRight.y;
+  currentMaxIterations = bookmark.maxIterations;
+  setCurrentFractalSet(
+    bookmark.fractalSetId,
+    bookmark.juliaConstant,
+    bookmark.colourMapId
+  );
+};
+
+const ui = configureUI({
+  addBookmark,
+  updateBookmark,
+  deleteBookmark,
+  switchToBookmark,
+  fractalSets,
+  colourMaps,
+  onModalOpen,
+  onModalClose,
+});
 
 const initGL = (canvas) => {
-  // gl = canvas.getContext('webgl2') || canvas.getContext('webgl')
-  // I'm just using 'webgl' for the moment because I'm having problems
-  // with 'webgl2' on iPad (Safari/Chrome).
-  gl = canvas.getContext("webgl");
+  const contextAttributes = { preserveDrawingBuffer: true };
+  // gl = canvas.getContext("webgl2", contextAttributes) || canvas.getContext("webgl", contextAttributes)
+  // I'm just using "webgl" for the moment because I'm having problems with "webgl2" on iPad (Safari/Chrome).
+  gl = canvas.getContext("webgl", contextAttributes);
   if (!gl) {
     console.error("Failed to initialise WebGL");
   }
@@ -180,7 +197,7 @@ const initShadersHelper = (name, vertexShaderSource, fragmentShaderSource) => {
   gl.enableVertexAttribArray(aPlotPosition);
 
   const uModelViewMatrix = gl.getUniformLocation(program, "uModelViewMatrix");
-  const uColormap = gl.getUniformLocation(program, "uColormap");
+  const uColourMap = gl.getUniformLocation(program, "uColourMap");
   const uJuliaConstant = gl.getUniformLocation(program, "uJuliaConstant");
 
   const maybeMaxIterationsUniform = isWebGL2()
@@ -200,7 +217,7 @@ const initShadersHelper = (name, vertexShaderSource, fragmentShaderSource) => {
     aPlotPosition,
     uModelViewMatrix,
     ...maybeMaxIterationsUniform,
-    uColormap,
+    uColourMap,
     uJuliaConstant,
     vertexPositionBuffer,
   };
@@ -226,8 +243,8 @@ const initShaders = () => {
     vertexShaderSource,
     juliaShaderSource
   );
-  fractalSets.set(FRACTAL_SET_ID_MANDELBROT, mandelbrotSet);
-  fractalSets.set(FRACTAL_SET_ID_JULIA, juliaSet);
+  fractalSets.set(C.FRACTAL_SET_ID_MANDELBROT, mandelbrotSet);
+  fractalSets.set(C.FRACTAL_SET_ID_JULIA, juliaSet);
 };
 
 const setCurrentFractalSet = (fractalSetId, juliaConstant, colourMapId) => {
@@ -258,7 +275,7 @@ const setCurrentFractalSet = (fractalSetId, juliaConstant, colourMapId) => {
     modelViewMatrix
   );
 
-  gl.uniform1i(currentFractalSet.uColormap, currentColourMap.textureUnit);
+  gl.uniform1i(currentFractalSet.uColourMap, currentColourMap.textureUnit);
   gl.uniform2f(
     currentFractalSet.uJuliaConstant,
     currentJuliaConstant.x,
@@ -303,8 +320,8 @@ const displayConfiguration = async (configuration) => {
   switchToBookmark(configuration);
   const message = {
     type: "chooseConfiguration",
-    fractalSetIds: [FRACTAL_SET_ID_MANDELBROT, FRACTAL_SET_ID_JULIA],
-    colorMapIds: Array.from(colourMaps.keys()),
+    fractalSetIds: [C.FRACTAL_SET_ID_MANDELBROT, C.FRACTAL_SET_ID_JULIA],
+    colourMapIds: Array.from(colourMaps.keys()),
   };
   const newConfiguration = await promiseWorker.postMessage(message);
   setTimeout(displayConfiguration, 10000, newConfiguration);
@@ -335,11 +352,11 @@ const start = async (manualMode) => {
     canvas.addEventListener("mouseup", onCanvasMouseUpHandler);
     canvas.addEventListener("mouseleave", onCanvasMouseLeaveHandler);
     document.addEventListener("keydown", onDocumentKeyDownHandler);
-    bookmarks = loadBookmarks();
+    loadBookmarks(bookmarks);
     nextBookmarkId = bookmarks.size ? Math.max(...bookmarks.keys()) + 1 : 0;
-    switchToBookmark(INITIAL_BOOKMARK);
+    switchToBookmark(C.INITIAL_BOOKMARK);
   } else {
-    displayConfiguration(INITIAL_BOOKMARK);
+    displayConfiguration(C.INITIAL_BOOKMARK);
     const animate = () => {
       panRegion(0.01);
       zoomRegion(0.01);
@@ -437,14 +454,14 @@ const onCanvasMouseDownHandler = (e) => {
 
   if (e.altKey) {
     switch (currentFractalSetId) {
-      case FRACTAL_SET_ID_MANDELBROT:
-        return setCurrentFractalSet(FRACTAL_SET_ID_JULIA, {
+      case C.FRACTAL_SET_ID_MANDELBROT:
+        return setCurrentFractalSet(C.FRACTAL_SET_ID_JULIA, {
           x: regionMouseX,
           y: regionMouseY,
         });
 
-      case FRACTAL_SET_ID_JULIA:
-        return setCurrentFractalSet(FRACTAL_SET_ID_MANDELBROT);
+      case C.FRACTAL_SET_ID_JULIA:
+        return setCurrentFractalSet(C.FRACTAL_SET_ID_MANDELBROT);
 
       default:
         return;
@@ -487,6 +504,8 @@ const onCanvasMouseLeaveHandler = () => {
 };
 
 const onDocumentKeyDownHandler = (e) => {
+  if (modalOpen) return;
+
   if (bookmarkMode) {
     return handleBookmarkKeys(e);
   }
@@ -507,7 +526,7 @@ const onDocumentKeyDownHandler = (e) => {
   }
 
   if (e.key === "h" && e.ctrlKey) {
-    return switchToBookmark(HOME_BOOKMARK);
+    return switchToBookmark(C.HOME_BOOKMARK);
   }
 
   if ((e.key === "c" || e.key === "C") && e.ctrlKey) {
@@ -528,10 +547,6 @@ const onDocumentKeyDownHandler = (e) => {
       return render();
     }
   }
-
-  if (e.key === "r" || e.key === "R") {
-    // TODO: choose a random region
-  }
 };
 
 const handleBookmarkKeys = (e) => {
@@ -539,147 +554,12 @@ const handleBookmarkKeys = (e) => {
 
   if (e.key === "n") {
     const bookmark = createBookmark();
-    return presentBookmarkModal(bookmark);
+    return ui.presentBookmarkModal(bookmark);
   }
 
   if (e.key === "l") {
-    return presentManageBookmarksModal();
+    return ui.presentManageBookmarksModal(bookmarks);
   }
-};
-
-const presentBookmarkModal = (bookmark) => {
-  const bookmarkModal = $("#bookmarkModal");
-  const hasId = Number.isInteger(bookmark.id);
-  const title = hasId ? "Edit Bookmark" : "Create Bookmark";
-  $(".modal-title", bookmarkModal).text(title);
-  $('input[type="submit"]', bookmarkModal)
-    .off("click")
-    .on("click", (e) => {
-      e.preventDefault();
-      bookmark.name = $("#name", bookmarkModal).val();
-      if (!hasId) {
-        bookmark.id = nextBookmarkId++;
-        bookmarks.set(bookmark.id, bookmark);
-      }
-      saveBookmarks(bookmarks);
-      bookmarkModal.modal("hide");
-    });
-  const thumbnailImg = $("img.thumbnail", bookmarkModal);
-  const thumbnailCanvas = $("canvas.thumbnail", bookmarkModal);
-  if (hasId) {
-    thumbnailCanvas.hide();
-    thumbnailImg.show();
-    thumbnailImg[0].src = bookmark.thumbnail;
-  } else {
-    thumbnailImg.hide();
-    thumbnailCanvas.show();
-    const thumbnailCanvasElement = thumbnailCanvas[0];
-    const thumbnailCtx = thumbnailCanvasElement.getContext("2d");
-    const swidth = Math.min(canvas.width, canvas.height);
-    const sheight = Math.min(canvas.width, canvas.height);
-    const sx = (canvas.width - swidth) / 2;
-    const sy = (canvas.height - sheight) / 2;
-    const dwidth = thumbnailCanvasElement.width;
-    const dheight = thumbnailCanvasElement.height;
-    thumbnailCtx.drawImage(
-      canvas,
-      sx,
-      sy,
-      swidth,
-      sheight,
-      0,
-      0,
-      dwidth,
-      dheight
-    );
-    bookmark.thumbnail = thumbnailCanvasElement.toDataURL("image/jpeg", 1.0);
-  }
-  $("#name", bookmarkModal).val(bookmark.name).focus();
-  $(".fractal-set", bookmarkModal).text(
-    fractalSets.get(bookmark.fractalSetId).name
-  );
-  $(".colour-map", bookmarkModal).text(
-    colourMaps.get(bookmark.colourMapId).name
-  );
-  $(".max-iterations", bookmarkModal).text(bookmark.maxIterations);
-  $(".region-bottom-left", bookmarkModal).text(
-    `(${bookmark.regionBottomLeft.x}, ${bookmark.regionBottomLeft.y})`
-  );
-  $(".region-top-right", bookmarkModal).text(
-    `(${bookmark.regionTopRight.x}, ${bookmark.regionTopRight.y})`
-  );
-  const juliaConstantP = $(".julia-constant", bookmarkModal);
-  const juliaConstantDiv = juliaConstantP.closest("div");
-  if (bookmark.fractalSetId === FRACTAL_SET_ID_JULIA) {
-    juliaConstantP.text(
-      `(${bookmark.juliaConstant.x}, ${bookmark.juliaConstant.y})`
-    );
-    juliaConstantDiv.show();
-  } else {
-    juliaConstantDiv.hide();
-  }
-  bookmarkModal.modal();
-};
-
-const presentManageBookmarksModal = () => {
-  const manageBookmarksModal = $("#manageBookmarksModal");
-  const tbody = $("tbody", manageBookmarksModal).empty();
-  const invokeHandler = (handler, bookmark) => () => {
-    manageBookmarksModal.modal("hide");
-    handler(bookmark);
-  };
-  const onSwitchTo = (bookmark) => switchToBookmark(bookmark);
-  const onEdit = (bookmark) => presentBookmarkModal(bookmark);
-  const onDelete = (bookmark) => {
-    bookmarks.delete(bookmark.id);
-    saveBookmarks(bookmarks);
-  };
-  const bookmarkRowTemplate = document.getElementById("bookmark-row-template");
-  bookmarks.forEach((bookmark) => {
-    const tr = document.importNode(bookmarkRowTemplate.content, true);
-    const img = tr.querySelector(":nth-child(1) img");
-    const name = tr.querySelector(":nth-child(2)");
-    const editButton = tr.querySelector(":nth-child(3) i");
-    const deleteButton = tr.querySelector(":nth-child(4) i");
-    img.src = bookmark.thumbnail;
-    name.innerText = bookmark.name;
-    img.addEventListener("click", invokeHandler(onSwitchTo, bookmark));
-    editButton.addEventListener("click", invokeHandler(onEdit, bookmark));
-    deleteButton.addEventListener("click", invokeHandler(onDelete, bookmark));
-    tbody.append(tr);
-  });
-  manageBookmarksModal.modal();
-};
-
-const createBookmark = (name) => ({
-  name: name || `Bookmark${nextBookmarkId}`,
-  fractalSetId: currentFractalSetId,
-  juliaConstant: { ...currentJuliaConstant },
-  colourMapId: currentColourMapId,
-  regionBottomLeft: { ...regionBottomLeft },
-  regionTopRight: { ...regionTopRight },
-  maxIterations: currentMaxIterations,
-});
-
-const switchToBookmark = (bookmark) => {
-  regionBottomLeft.x = bookmark.regionBottomLeft.x;
-  regionBottomLeft.y = bookmark.regionBottomLeft.y;
-  regionTopRight.x = bookmark.regionTopRight.x;
-  regionTopRight.y = bookmark.regionTopRight.y;
-  currentMaxIterations = bookmark.maxIterations;
-  setCurrentFractalSet(
-    bookmark.fractalSetId,
-    bookmark.juliaConstant,
-    bookmark.colourMapId
-  );
-};
-
-const loadBookmarks = () => {
-  return new Map(JSON.parse(localStorage.bookmarks || "[]"));
-};
-
-const saveBookmarks = (bookmarks) => {
-  localStorage.bookmarks = JSON.stringify(Array.from(bookmarks.entries()));
 };
 
 const url = new URL(document.location);
