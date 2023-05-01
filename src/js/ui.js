@@ -10,7 +10,34 @@ export const configureUI = ({
   onModalOpen,
   onModalClose,
 }) => {
-  const canvas = document.getElementById("canvas");
+  const createThumbnail = () => {
+    const canvas = document.getElementById("canvas");
+    const swidth = Math.min(canvas.width, canvas.height);
+    const sheight = Math.min(canvas.width, canvas.height);
+    const sx = (canvas.width - swidth) / 2;
+    const sy = (canvas.height - sheight) / 2;
+
+    const tempCanvas = document.createElement("canvas");
+    const tempCanvasCtx = tempCanvas.getContext("2d");
+    const dwidth = 64;
+    const dheight = 64;
+    tempCanvas.width = dwidth;
+    tempCanvas.height = dheight;
+
+    tempCanvasCtx.drawImage(
+      canvas,
+      sx,
+      sy,
+      swidth,
+      sheight,
+      0,
+      0,
+      dwidth,
+      dheight
+    );
+
+    return tempCanvas.toDataURL("image/jpeg", 1.0);
+  };
 
   const presentBookmarkModal = (bookmark) => {
     console.log("[presentBookmarkModal]", "bookmark:", bookmark);
@@ -28,36 +55,11 @@ export const configureUI = ({
         hasId ? updateBookmark(bookmark) : addBookmark(bookmark);
         bookmarkModal.modal("hide");
       });
-    const thumbnailImg = $("img.thumbnail", bookmarkModal);
-    const thumbnailCanvas = $("canvas.thumbnail", bookmarkModal);
-    if (hasId) {
-      thumbnailCanvas.hide();
-      thumbnailImg.show();
-      thumbnailImg[0].src = bookmark.thumbnail;
-    } else {
-      thumbnailImg.hide();
-      thumbnailCanvas.show();
-      const swidth = Math.min(canvas.width, canvas.height);
-      const sheight = Math.min(canvas.width, canvas.height);
-      const sx = (canvas.width - swidth) / 2;
-      const sy = (canvas.height - sheight) / 2;
-      const thumbnailCanvasElement = thumbnailCanvas[0];
-      const thumbnailCtx = thumbnailCanvasElement.getContext("2d");
-      const dwidth = thumbnailCanvasElement.width;
-      const dheight = thumbnailCanvasElement.height;
-      thumbnailCtx.drawImage(
-        canvas,
-        sx,
-        sy,
-        swidth,
-        sheight,
-        0,
-        0,
-        dwidth,
-        dheight
-      );
-      bookmark.thumbnail = thumbnailCanvasElement.toDataURL("image/jpeg", 1.0);
+    if (!hasId) {
+      bookmark.thumbnail = createThumbnail();
     }
+    const thumbnailImg = $("img.thumbnail", bookmarkModal);
+    thumbnailImg[0].src = bookmark.thumbnail;
     $("#name", bookmarkModal).val(bookmark.name).focus();
     $(".fractal-set", bookmarkModal).text(
       fractalSets.get(bookmark.fractalSetId).name

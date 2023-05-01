@@ -79,12 +79,10 @@ let nextBookmarkId = 0;
 let modalOpen = false;
 
 const onModalOpen = () => {
-  console.log("[onModalOpen]");
   modalOpen = true;
 };
 
 const onModalClose = () => {
-  console.log("[onModalClose]");
   modalOpen = false;
 };
 
@@ -151,9 +149,9 @@ const ui = configureUI({
 
 const initGL = (canvas) => {
   const contextAttributes = { preserveDrawingBuffer: true };
-  // gl = canvas.getContext("webgl2", contextAttributes) || canvas.getContext("webgl", contextAttributes)
-  // I'm just using "webgl" for the moment because I'm having problems with "webgl2" on iPad (Safari/Chrome).
-  gl = canvas.getContext("webgl", contextAttributes);
+  gl =
+    canvas.getContext("webgl2", contextAttributes) ||
+    canvas.getContext("webgl", contextAttributes);
   if (!gl) {
     console.error("Failed to initialise WebGL");
   }

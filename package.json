@@ -24,7 +24,7 @@
   "scripts": {
     "lint": "eslint .",
     "build": "webpack",
-    "start:dev": "webpack-dev-server",
+    "start:dev": "webpack-dev-server --mode development",
     "deploy": "gh-pages -d build",
     "predeploy": "npm run build",
     "open": "open https://taylorjg.github.io/FractalsWebGL"
