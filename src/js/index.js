@@ -192,6 +192,10 @@ const initShadersHelper = (name, vertexShaderSource, fragmentShaderSource) => {
   const aPlotPosition = gl.getAttribLocation(program, "aPlotPosition");
   gl.enableVertexAttribArray(aPlotPosition);
 
+  const plotPositionBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, plotPositionBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, 4 * 2 * 4, gl.DYNAMIC_DRAW);
+
   const uModelViewMatrix = gl.getUniformLocation(program, "uModelViewMatrix");
   const uColourMap = gl.getUniformLocation(program, "uColourMap");
   const uJuliaConstant = gl.getUniformLocation(program, "uJuliaConstant");
@@ -216,6 +220,7 @@ const initShadersHelper = (name, vertexShaderSource, fragmentShaderSource) => {
     uColourMap,
     uJuliaConstant,
     vertexPositionBuffer,
+    plotPositionBuffer,
   };
 };
 
@@ -284,6 +289,9 @@ const setCurrentFractalSet = (fractalSetId, juliaConstant, colourMapId) => {
 };
 
 const render = () => {
+  const { plotPositionBuffer, aPlotPosition, uMaxIterations } =
+    currentFractalSet;
+
   const corners = [
     region.topRight.x,
     region.topRight.y,
@@ -294,22 +302,16 @@ const render = () => {
     region.bottomLeft.x,
     region.bottomLeft.y,
   ];
-  const plotPositionBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, plotPositionBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(corners), gl.STATIC_DRAW);
-  gl.vertexAttribPointer(
-    currentFractalSet.aPlotPosition,
-    2,
-    gl.FLOAT,
-    false,
-    0,
-    0
-  );
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(corners), gl.DYNAMIC_DRAW);
+  gl.vertexAttribPointer(aPlotPosition, 2, gl.FLOAT, false, 0, 0);
+  gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
   if (isWebGL2()) {
-    gl.uniform1i(currentFractalSet.uMaxIterations, currentMaxIterations);
+    gl.uniform1i(uMaxIterations, currentMaxIterations);
   }
+
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-  gl.deleteBuffer(plotPositionBuffer);
 };
 
 const displayConfiguration = async (configuration) => {
