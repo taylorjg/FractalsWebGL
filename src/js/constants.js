@@ -1,6 +1,7 @@
 export const INITIAL_ITERATIONS = 128;
 export const MIN_ITERATIONS = 16;
-export const MAX_ITERATIONS = 4096;
+export const MAX_ITERATIONS_MANUAL = 4096;
+export const MAX_ITERATIONS_AUTO = 256;
 export const DELTA_ITERATIONS = 16;
 export const FRACTAL_SET_ID_MANDELBROT = 0;
 export const FRACTAL_SET_ID_JULIA = 1;

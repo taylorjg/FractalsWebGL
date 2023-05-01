@@ -64,7 +64,7 @@ const createRandomConfiguration = (fractalSetIds, colourMapIds) => {
     colourMapId,
     regionBottomLeft: { x: cx - sz, y: cy - sz },
     regionTopRight: { x: cx + sz, y: cy + sz },
-    maxIterations: randomInt(C.MIN_ITERATIONS, C.MAX_ITERATIONS),
+    maxIterations: randomInt(C.MIN_ITERATIONS, C.MAX_ITERATIONS_AUTO),
   };
 };
 

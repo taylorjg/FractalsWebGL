@@ -316,6 +316,9 @@ const render = () => {
 
 const displayConfiguration = async (configuration) => {
   switchToBookmark(configuration);
+  panSpeedX = randomFloat(-0.1, 0.1);
+  panSpeedY = randomFloat(-0.1, 0.1);
+  zoomSpeed = randomFloat(0.01, 0.1);
   const message = {
     type: "chooseConfiguration",
     fractalSetIds: [C.FRACTAL_SET_ID_MANDELBROT, C.FRACTAL_SET_ID_JULIA],
@@ -324,6 +327,14 @@ const displayConfiguration = async (configuration) => {
   const newConfiguration = await promiseWorker.postMessage(message);
   setTimeout(displayConfiguration, 10000, newConfiguration);
 };
+
+const randomFloat = (min, max) => {
+  return Math.random() * (max - min) + min;
+};
+
+let panSpeedX = 0;
+let panSpeedY = 0;
+let zoomSpeed = 0;
 
 const start = async (manualMode) => {
   // Turning off the service worker for the moment. Not quite happy with it yet.
@@ -356,8 +367,9 @@ const start = async (manualMode) => {
   } else {
     displayConfiguration(C.INITIAL_BOOKMARK);
     const animate = () => {
-      panRegion(0.01);
-      zoomRegion(0.01);
+      panRegionX(panSpeedX);
+      panRegionY(panSpeedY);
+      zoomRegion(zoomSpeed);
       render();
       requestAnimationFrame(animate);
     };
@@ -386,14 +398,17 @@ const adjustRegionAspectRatio = (canvasWidth, canvasHeight) => {
   }
 };
 
-const panRegion = (percent) => {
+const panRegionX = (percent) => {
   const regionWidth = regionTopRight.x - regionBottomLeft.x;
-  const regionHeight = regionTopRight.y - regionBottomLeft.y;
   const widthDelta = (regionWidth / 100) * percent;
-  const heightDelta = (regionHeight / 100) * percent;
   regionBottomLeft.x -= widthDelta;
-  regionBottomLeft.y -= heightDelta;
   regionTopRight.x -= widthDelta;
+};
+
+const panRegionY = (percent) => {
+  const regionHeight = regionTopRight.y - regionBottomLeft.y;
+  const heightDelta = (regionHeight / 100) * percent;
+  regionBottomLeft.y -= heightDelta;
   regionTopRight.y -= heightDelta;
 };
 
@@ -540,7 +555,7 @@ const onDocumentKeyDownHandler = (e) => {
     if (e.key === "i" || e.key === "I") {
       const delta = C.DELTA_ITERATIONS * (e.shiftKey ? -1 : +1);
       currentMaxIterations = currentMaxIterations + delta;
-      currentMaxIterations = Math.min(currentMaxIterations, C.MAX_ITERATIONS);
+      currentMaxIterations = Math.min(currentMaxIterations, C.MAX_ITERATIONS_MANUAL);
       currentMaxIterations = Math.max(currentMaxIterations, C.MIN_ITERATIONS);
       return render();
     }
