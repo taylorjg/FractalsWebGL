@@ -1,6 +1,6 @@
-import PromiseWorker from "promise-worker";
-import * as glm from "gl-matrix";
 import colormap from "colormap";
+import * as glm from "gl-matrix";
+import PromiseWorker from "promise-worker";
 import vertexShaderSourceWebGL1 from "../shaders/webgl1/shader.vert.glsl";
 import mandelbrotShaderSourceWebGL1 from "../shaders/webgl1/mandelbrot.frag.glsl";
 import juliaShaderSourceWebGL1 from "../shaders/webgl1/julia.frag.glsl";
@@ -8,7 +8,9 @@ import vertexShaderSourceWebGL2 from "../shaders/webgl2/shader.vert.glsl";
 import mandelbrotShaderSourceWebGL2 from "../shaders/webgl2/mandelbrot.frag.glsl";
 import juliaShaderSourceWebGL2 from "../shaders/webgl2/julia.frag.glsl";
 import { configureUI } from "./ui";
+import { Region } from "./region";
 import * as C from "./constants";
+import * as U from "./utils";
 
 const worker = new Worker(new URL("./web-worker.js", import.meta.url));
 const promiseWorker = new PromiseWorker(worker);
@@ -69,8 +71,7 @@ let currentFractalSet = undefined;
 let currentJuliaConstant = undefined;
 let currentColourMapId = undefined;
 let currentColourMap = undefined;
-let regionBottomLeft = {};
-let regionTopRight = {};
+const region = new Region();
 let panning = false;
 let lastMousePt;
 let bookmarkMode = false;
@@ -118,16 +119,13 @@ const createBookmark = (name) => ({
   fractalSetId: currentFractalSetId,
   juliaConstant: { ...currentJuliaConstant },
   colourMapId: currentColourMapId,
-  regionBottomLeft: { ...regionBottomLeft },
-  regionTopRight: { ...regionTopRight },
+  regionBottomLeft: { ...region.bottomLeft },
+  regionTopRight: { ...region.topRight },
   maxIterations: currentMaxIterations,
 });
 
 const switchToBookmark = (bookmark) => {
-  regionBottomLeft.x = bookmark.regionBottomLeft.x;
-  regionBottomLeft.y = bookmark.regionBottomLeft.y;
-  regionTopRight.x = bookmark.regionTopRight.x;
-  regionTopRight.y = bookmark.regionTopRight.y;
+  region.set(bookmark.regionBottomLeft, bookmark.regionTopRight);
   currentMaxIterations = bookmark.maxIterations;
   setCurrentFractalSet(
     bookmark.fractalSetId,
@@ -287,14 +285,14 @@ const setCurrentFractalSet = (fractalSetId, juliaConstant, colourMapId) => {
 
 const render = () => {
   const corners = [
-    regionTopRight.x,
-    regionTopRight.y,
-    regionBottomLeft.x,
-    regionTopRight.y,
-    regionTopRight.x,
-    regionBottomLeft.y,
-    regionBottomLeft.x,
-    regionBottomLeft.y,
+    region.topRight.x,
+    region.topRight.y,
+    region.topLeft.x,
+    region.topLeft.y,
+    region.bottomRight.x,
+    region.bottomRight.y,
+    region.bottomLeft.x,
+    region.bottomLeft.y,
   ];
   const plotPositionBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, plotPositionBuffer);
@@ -367,9 +365,9 @@ const start = async (manualMode) => {
   } else {
     displayConfiguration(C.INITIAL_BOOKMARK);
     const animate = () => {
-      panRegionX(panSpeedX);
-      panRegionY(panSpeedY);
-      zoomRegion(zoomSpeed);
+      region.panX(panSpeedX);
+      region.panY(panSpeedY);
+      region.zoom(zoomSpeed);
       render();
       requestAnimationFrame(animate);
     };
@@ -377,59 +375,11 @@ const start = async (manualMode) => {
   }
 };
 
-const adjustRegionAspectRatio = (canvasWidth, canvasHeight) => {
-  const regionWidth = regionTopRight.x - regionBottomLeft.x;
-  const regionHeight = regionTopRight.y - regionBottomLeft.y;
-
-  if (canvasWidth > canvasHeight) {
-    const widthDelta =
-      (canvasWidth / canvasHeight) * regionHeight - regionWidth;
-    const widthDeltaHalf = widthDelta / 2;
-    regionBottomLeft.x -= widthDeltaHalf;
-    regionTopRight.x += widthDeltaHalf;
-  }
-
-  if (canvasWidth < canvasHeight) {
-    const heightDelta =
-      (canvasHeight / canvasWidth) * regionWidth - regionHeight;
-    const heightDeltaHalf = heightDelta / 2;
-    regionBottomLeft.y -= heightDeltaHalf;
-    regionTopRight.y += heightDeltaHalf;
-  }
-};
-
-const panRegionX = (percent) => {
-  const regionWidth = regionTopRight.x - regionBottomLeft.x;
-  const widthDelta = (regionWidth / 100) * percent;
-  regionBottomLeft.x -= widthDelta;
-  regionTopRight.x -= widthDelta;
-};
-
-const panRegionY = (percent) => {
-  const regionHeight = regionTopRight.y - regionBottomLeft.y;
-  const heightDelta = (regionHeight / 100) * percent;
-  regionBottomLeft.y -= heightDelta;
-  regionTopRight.y -= heightDelta;
-};
-
-const zoomRegion = (percent) => {
-  const regionWidth = regionTopRight.x - regionBottomLeft.x;
-  const regionHeight = regionTopRight.y - regionBottomLeft.y;
-  const widthDelta = (regionWidth / 100) * percent;
-  const widthDeltaHalf = widthDelta / 2;
-  const heightDelta = (regionHeight / 100) * percent;
-  const heightDeltaHalf = heightDelta / 2;
-  regionBottomLeft.x += widthDeltaHalf;
-  regionBottomLeft.y += heightDeltaHalf;
-  regionTopRight.x -= widthDeltaHalf;
-  regionTopRight.y -= heightDeltaHalf;
-};
-
 const setCanvasAndViewportSize = () => {
   canvas.width = canvas.clientWidth;
   canvas.height = canvas.clientHeight;
   gl.viewport(0, 0, canvas.width, canvas.height);
-  adjustRegionAspectRatio(canvas.width, canvas.height);
+  region.adjustAspectRatio(canvas);
 };
 
 const onWindowResize = () => {
@@ -437,31 +387,17 @@ const onWindowResize = () => {
   render();
 };
 
-const mouseToRegion = (mouseX, mouseY) => {
-  const regionWidth = regionTopRight.x - regionBottomLeft.x;
-  const regionHeight = regionTopRight.y - regionBottomLeft.y;
-  return {
-    regionMouseX: regionBottomLeft.x + (mouseX * regionWidth) / canvas.width,
-    regionMouseY: regionBottomLeft.y + (mouseY * regionHeight) / canvas.height,
-  };
-};
-
 const onCanvasMouseDownHandler = (e) => {
   const mouseX = e.offsetX;
   const mouseY = e.offsetY;
-  const { regionMouseX, regionMouseY } = mouseToRegion(mouseX, mouseY);
+  const { regionMouseX, regionMouseY } = region.mouseToRegion(
+    canvas,
+    mouseX,
+    mouseY
+  );
 
   if (e.shiftKey) {
-    const regionWidth = regionTopRight.x - regionBottomLeft.x;
-    const regionHeight = regionTopRight.y - regionBottomLeft.y;
-    const regionCentreX = regionBottomLeft.x + regionWidth / 2;
-    const regionCentreY = regionBottomLeft.y + regionHeight / 2;
-    const translationX = regionMouseX - regionCentreX;
-    const translationY = regionMouseY - regionCentreY;
-    regionBottomLeft.x += translationX;
-    regionBottomLeft.y += translationY;
-    regionTopRight.x += translationX;
-    regionTopRight.y += translationY;
+    region.recentre(regionMouseX, regionMouseY);
     return render();
   }
 
@@ -486,22 +422,13 @@ const onCanvasMouseDownHandler = (e) => {
 };
 
 const onCanvasMouseMoveHandler = (e) => {
-  if (!panning) {
-    return;
-  }
+  if (!panning) return;
 
   const mouseX = e.offsetX;
   const mouseY = e.offsetY;
   const mouseDeltaX = mouseX - lastMousePt.mouseX;
   const mouseDeltaY = mouseY - lastMousePt.mouseY;
-  const regionWidth = regionTopRight.x - regionBottomLeft.x;
-  const regionHeight = regionTopRight.y - regionBottomLeft.y;
-  const regionDeltaX = (mouseDeltaX * regionWidth) / canvas.width;
-  const regionDeltaY = (mouseDeltaY * regionHeight) / canvas.height;
-  regionBottomLeft.x -= regionDeltaX;
-  regionBottomLeft.y -= regionDeltaY;
-  regionTopRight.x -= regionDeltaX;
-  regionTopRight.y -= regionDeltaY;
+  region.move(canvas, mouseDeltaX, mouseDeltaY);
 
   render();
 
@@ -529,12 +456,12 @@ const onDocumentKeyDownHandler = (e) => {
   }
 
   if (e.key === "+") {
-    zoomRegion(50);
+    region.zoom(50);
     return render();
   }
 
   if (e.key === "-") {
-    zoomRegion(-100);
+    region.zoom(-100);
     return render();
   }
 
@@ -554,9 +481,11 @@ const onDocumentKeyDownHandler = (e) => {
   if (isWebGL2()) {
     if (e.key === "i" || e.key === "I") {
       const delta = C.DELTA_ITERATIONS * (e.shiftKey ? -1 : +1);
-      currentMaxIterations = currentMaxIterations + delta;
-      currentMaxIterations = Math.min(currentMaxIterations, C.MAX_ITERATIONS_MANUAL);
-      currentMaxIterations = Math.max(currentMaxIterations, C.MIN_ITERATIONS);
+      currentMaxIterations = U.clamp(
+        C.MIN_ITERATIONS,
+        C.MAX_ITERATIONS_MANUAL,
+        currentMaxIterations + delta
+      );
       return render();
     }
   }
