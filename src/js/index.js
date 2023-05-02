@@ -134,7 +134,78 @@ const switchToBookmark = (bookmark) => {
   );
 };
 
+// https://webglfundamentals.org/webgl/lessons/webgl-render-to-texture.html
+// https://stackoverflow.com/a/13640310
+const createThumbnailDataUrl = (size) => {
+  // Future enhancements: allow the caller to pass in:
+  // - a different colour map name/index
+  // - a different value for max iterations
+
+  const texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+
+  gl.texImage2D(
+    gl.TEXTURE_2D, // target
+    0, // level
+    gl.RGBA, // internalFormat
+    size, // width
+    size, // height
+    0, // border
+    gl.RGBA, // format
+    gl.UNSIGNED_BYTE, // type
+    null // pixels
+  );
+
+  const fb = gl.createFramebuffer();
+  gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+
+  gl.framebufferTexture2D(
+    gl.FRAMEBUFFER, // target
+    gl.COLOR_ATTACHMENT0, // attachment
+    gl.TEXTURE_2D, // texture target
+    texture, // texture
+    0 // level
+  );
+
+  const savedBottomLeft = region.bottomLeft;
+  const savedTopRight = region.topRight;
+  const minCanvasDimension = Math.min(canvas.width, canvas.height);
+  region.adjustAspectRatio(minCanvasDimension, minCanvasDimension);
+  gl.viewport(0, 0, size, size);
+
+  // This is where we could override colour map, max iterations, etc.
+  render();
+
+  gl.viewport(0, 0, canvas.width, canvas.height);
+  region.set(savedBottomLeft, savedTopRight);
+
+  const pixels = new Uint8ClampedArray(size * size * 4);
+  gl.readPixels(0, 0, size, size, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  gl.deleteFramebuffer(fb);
+
+  gl.bindTexture(gl.TEXTURE_2D, null);
+  gl.deleteTexture(texture);
+
+  const tempCanvas = document.createElement("canvas");
+  const tempCanvasCtx2d = tempCanvas.getContext("2d");
+  tempCanvas.width = size;
+  tempCanvas.height = size;
+  const imageData = new ImageData(pixels, size, size);
+  tempCanvasCtx2d.putImageData(imageData, 0, 0);
+
+  // Seems we need to flip the image vertically.
+  // https://stackoverflow.com/a/41970080
+  tempCanvasCtx2d.scale(1, -1);
+  tempCanvasCtx2d.translate(0, -size);
+  tempCanvasCtx2d.drawImage(tempCanvas, 0, 0);
+
+  return tempCanvas.toDataURL("image/jpeg", 1.0);
+};
+
 const ui = configureUI({
+  createThumbnailDataUrl,
   addBookmark,
   updateBookmark,
   deleteBookmark,
@@ -146,10 +217,7 @@ const ui = configureUI({
 });
 
 const initGL = (canvas) => {
-  const contextAttributes = { preserveDrawingBuffer: true };
-  gl =
-    canvas.getContext("webgl2", contextAttributes) ||
-    canvas.getContext("webgl", contextAttributes);
+  gl = canvas.getContext("webgl2") || canvas.getContext("webgl");
   if (!gl) {
     console.error("Failed to initialise WebGL");
   }
@@ -381,7 +449,7 @@ const setCanvasAndViewportSize = () => {
   canvas.width = canvas.clientWidth;
   canvas.height = canvas.clientHeight;
   gl.viewport(0, 0, canvas.width, canvas.height);
-  region.adjustAspectRatio(canvas);
+  region.adjustAspectRatio(canvas.width, canvas.height);
 };
 
 const onWindowResize = () => {

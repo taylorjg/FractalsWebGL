@@ -1,6 +1,9 @@
 import * as C from "./constants";
 
+const THUMBNAIL_SIZE = 64;
+
 export const configureUI = ({
+  createThumbnailDataUrl,
   addBookmark,
   updateBookmark,
   deleteBookmark,
@@ -10,35 +13,6 @@ export const configureUI = ({
   onModalOpen,
   onModalClose,
 }) => {
-  const createThumbnail = () => {
-    const canvas = document.getElementById("canvas");
-    const swidth = Math.min(canvas.width, canvas.height);
-    const sheight = Math.min(canvas.width, canvas.height);
-    const sx = (canvas.width - swidth) / 2;
-    const sy = (canvas.height - sheight) / 2;
-
-    const tempCanvas = document.createElement("canvas");
-    const tempCanvasCtx = tempCanvas.getContext("2d");
-    const dwidth = 64;
-    const dheight = 64;
-    tempCanvas.width = dwidth;
-    tempCanvas.height = dheight;
-
-    tempCanvasCtx.drawImage(
-      canvas,
-      sx,
-      sy,
-      swidth,
-      sheight,
-      0,
-      0,
-      dwidth,
-      dheight
-    );
-
-    return tempCanvas.toDataURL("image/jpeg", 1.0);
-  };
-
   const presentBookmarkModal = (bookmark) => {
     console.log("[presentBookmarkModal]", "bookmark:", bookmark);
     const bookmarkModal = $("#bookmarkModal")
@@ -56,7 +30,7 @@ export const configureUI = ({
         bookmarkModal.modal("hide");
       });
     if (!hasId) {
-      bookmark.thumbnail = createThumbnail();
+      bookmark.thumbnail = createThumbnailDataUrl(THUMBNAIL_SIZE);
     }
     const thumbnailImg = $("img.thumbnail", bookmarkModal);
     thumbnailImg[0].src = bookmark.thumbnail;

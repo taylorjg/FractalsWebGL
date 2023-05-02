@@ -57,11 +57,8 @@ export class Region {
     this._topRight.y = topRight.y;
   }
 
-  adjustAspectRatio(canvas) {
-    const canvasWidth = canvas.width;
-    const canvasHeight = canvas.height;
-
-    if (canvasWidth > canvasHeight) {
+  adjustAspectRatio(canvasWidth, canvasHeight) {
+    if (canvasWidth >= canvasHeight) {
       const widthDelta =
         (canvasWidth / canvasHeight) * this.height - this.width;
       const widthDeltaHalf = widthDelta / 2;
