@@ -167,17 +167,15 @@ const createThumbnailDataUrl = (size) => {
     0 // level
   );
 
-  const savedBottomLeft = region.bottomLeft;
-  const savedTopRight = region.topRight;
-  const minCanvasDimension = Math.min(canvas.width, canvas.height);
-  region.adjustAspectRatio(minCanvasDimension, minCanvasDimension);
+  region.save();
+  region.adjustToMakeLargestSquare();
   gl.viewport(0, 0, size, size);
 
   // This is where we could override colour map, max iterations, etc.
   render();
 
   gl.viewport(0, 0, canvas.width, canvas.height);
-  region.set(savedBottomLeft, savedTopRight);
+  region.restore();
 
   const pixels = new Uint8ClampedArray(size * size * 4);
   gl.readPixels(0, 0, size, size, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
