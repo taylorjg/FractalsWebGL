@@ -136,10 +136,11 @@ const switchToBookmark = (bookmark) => {
 
 // https://webglfundamentals.org/webgl/lessons/webgl-render-to-texture.html
 // https://stackoverflow.com/a/13640310
-const createThumbnailDataUrl = (size) => {
+const createThumbnailDataUrl = (size, overrides = {}) => {
   // Future enhancements: allow the caller to pass in:
   // - a different colour map name/index
   // - a different value for max iterations
+  const { colourMapId, maxIterations } = overrides;
 
   const texture = gl.createTexture();
   gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -170,12 +171,25 @@ const createThumbnailDataUrl = (size) => {
   region.save();
   region.adjustToMakeLargestSquare();
   gl.viewport(0, 0, size, size);
+  const savedColourMap = currentColourMap;
+  const savedMaxIterations = currentMaxIterations;
+  if (colourMapId !== undefined) {
+    const overrideColourMap = colourMaps.get(colourMapId);
+    if (overrideColourMap) {
+      gl.uniform1i(currentFractalSet.uColourMap, overrideColourMap.textureUnit);
+    }
+  }
+  if (maxIterations !== undefined) {
+    currentMaxIterations = maxIterations;
+  }
 
   // This is where we could override colour map, max iterations, etc.
   render();
 
   gl.viewport(0, 0, canvas.width, canvas.height);
   region.restore();
+  gl.uniform1i(currentFractalSet.uColourMap, savedColourMap.textureUnit);
+  currentMaxIterations = savedMaxIterations;
 
   const pixels = new Uint8ClampedArray(size * size * 4);
   gl.readPixels(0, 0, size, size, gl.RGBA, gl.UNSIGNED_BYTE, pixels);

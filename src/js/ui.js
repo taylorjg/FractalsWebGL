@@ -30,6 +30,11 @@ export const configureUI = ({
         bookmarkModal.modal("hide");
       });
     if (!hasId) {
+      // const overrides = {
+      //   colourMapId: 24,
+      //   maxIterations: 256,
+      // };
+      // bookmark.thumbnail = createThumbnailDataUrl(THUMBNAIL_SIZE, overrides);
       bookmark.thumbnail = createThumbnailDataUrl(THUMBNAIL_SIZE);
     }
     const thumbnailImg = $("img.thumbnail", bookmarkModal);
