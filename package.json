@@ -1,6 +1,6 @@
 {
   "name": "fractalswebgl",
-  "version": "0.0.38",
+  "version": "0.0.39",
   "description": "Fractals in WebGL",
   "dependencies": {
     "colormap": "^2.3.2",
