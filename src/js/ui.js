@@ -44,16 +44,25 @@ export const configureUI = ({
         hasId ? updateBookmark(bookmark) : addBookmark(bookmark);
         bookmarkModal.modal("hide");
       });
-    const pixels = renderThumbnail(THUMBNAIL_SIZE, bookmark);
     const thumbnailCanvas = $("canvas.thumbnail", bookmarkModal)[0];
+    const pixels = renderThumbnail(THUMBNAIL_SIZE, bookmark);
     drawThumbnail(pixels, thumbnailCanvas, THUMBNAIL_SIZE);
     $("#name", bookmarkModal).val(bookmark.name).focus();
     $(".fractal-set", bookmarkModal).text(
       fractalSets.get(bookmark.fractalSetId).name
     );
-    $(".colour-map", bookmarkModal).text(
-      colourMaps.get(bookmark.colourMapId).name
-    );
+    const colourMapSelect = $("#colour-map-select").empty();
+    for (const [colourMapId, colourMap] of colourMaps) {
+      const selected = colourMapId === bookmark.colourMapId ? "selected" : "";
+      colourMapSelect.append(
+        `<option value="${colourMapId}" ${selected}>${colourMap.name}</option>`
+      );
+    }
+    colourMapSelect.on("change", (e) => {
+      bookmark.colourMapId = Number(e.target.value);
+      const pixels = renderThumbnail(THUMBNAIL_SIZE, bookmark);
+      drawThumbnail(pixels, thumbnailCanvas, THUMBNAIL_SIZE);
+    });
     $(".max-iterations", bookmarkModal).text(bookmark.maxIterations);
     $(".region-bottom-left", bookmarkModal).text(
       `(${bookmark.regionBottomLeft.x}, ${bookmark.regionBottomLeft.y})`
@@ -94,10 +103,10 @@ export const configureUI = ({
     );
     bookmarks.forEach((bookmark) => {
       const tr = document.importNode(bookmarkRowTemplate.content, true);
-      const thumbnailCanvas = tr.querySelector(":nth-child(1) canvas");
       const name = tr.querySelector(":nth-child(2)");
       const editButton = tr.querySelector(":nth-child(3) i");
       const deleteButton = tr.querySelector(":nth-child(4) i");
+      const thumbnailCanvas = tr.querySelector(":nth-child(1) canvas");
       const pixels = renderThumbnail(THUMBNAIL_SIZE, bookmark);
       drawThumbnail(pixels, thumbnailCanvas, THUMBNAIL_SIZE);
       name.innerText = bookmark.name;
