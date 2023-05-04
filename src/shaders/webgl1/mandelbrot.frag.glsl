@@ -25,10 +25,10 @@ vec4 loop(sampler2D colourMap, vec2 z, vec2 c) {
 }
 
 uniform sampler2D uColourMap;
-varying vec2 vPosition;
+varying vec2 vRegionPosition;
 
 void main(void) {
   vec2 z;
-  vec2 c = vPosition;
+  vec2 c = vRegionPosition;
   gl_FragColor = loop(uColourMap, z, c);
 }

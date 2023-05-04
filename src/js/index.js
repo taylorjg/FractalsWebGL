@@ -275,11 +275,11 @@ const initShadersHelper = (name, vertexShaderSource, fragmentShaderSource) => {
   const aVertexPosition = gl.getAttribLocation(program, "aVertexPosition");
   gl.enableVertexAttribArray(aVertexPosition);
 
-  const aPlotPosition = gl.getAttribLocation(program, "aPlotPosition");
-  gl.enableVertexAttribArray(aPlotPosition);
+  const aRegionPosition = gl.getAttribLocation(program, "aRegionPosition");
+  gl.enableVertexAttribArray(aRegionPosition);
 
-  const plotPositionBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, plotPositionBuffer);
+  const regionPositionBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, regionPositionBuffer);
   gl.bufferData(gl.ARRAY_BUFFER, 4 * 2 * 4, gl.DYNAMIC_DRAW);
 
   const uModelViewMatrix = gl.getUniformLocation(program, "uModelViewMatrix");
@@ -306,13 +306,13 @@ const initShadersHelper = (name, vertexShaderSource, fragmentShaderSource) => {
     name,
     program,
     aVertexPosition,
-    aPlotPosition,
+    aRegionPosition,
     uModelViewMatrix,
     ...maybeMaxIterationsUniform,
     uColourMap,
     uJuliaConstant,
     vertexPositionBuffer,
-    plotPositionBuffer,
+    regionPositionBuffer,
   };
 };
 
@@ -392,20 +392,18 @@ const setCurrentFractalSet = (
 };
 
 const updateRegionPositionBuffer = () => {
-  // We could rename "plotPositionBuffer" and "aPlotPosition" to
-  // something like "regionPositionBuffer" and "aRegionPosition".
-  const { plotPositionBuffer, aPlotPosition } = currentFractalSet;
+  const { regionPositionBuffer, aRegionPosition } = currentFractalSet;
 
   // prettier-ignore
-  const plotPositionBufferData = new Float32Array([
+  const regionPositionBufferData = new Float32Array([
     region.topRight.x, region.topRight.y,
     region.topLeft.x, region.topLeft.y,
     region.bottomRight.x, region.bottomRight.y,
     region.bottomLeft.x, region.bottomLeft.y,
   ]);
-  gl.bindBuffer(gl.ARRAY_BUFFER, plotPositionBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, plotPositionBufferData, gl.DYNAMIC_DRAW);
-  gl.vertexAttribPointer(aPlotPosition, 2, gl.FLOAT, false, 0, 0);
+  gl.bindBuffer(gl.ARRAY_BUFFER, regionPositionBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, regionPositionBufferData, gl.DYNAMIC_DRAW);
+  gl.vertexAttribPointer(aRegionPosition, 2, gl.FLOAT, false, 0, 0);
   gl.bindBuffer(gl.ARRAY_BUFFER, null);
 };
 

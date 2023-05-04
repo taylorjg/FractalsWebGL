@@ -26,10 +26,10 @@ vec4 loop(sampler2D colourMap, vec2 z, vec2 c) {
 
 uniform sampler2D uColourMap;
 uniform vec2 uJuliaConstant;
-varying vec2 vPosition;
+varying vec2 vRegionPosition;
 
 void main(void) {
-  vec2 z = vPosition;
+  vec2 z = vRegionPosition;
   vec2 c = uJuliaConstant;
   gl_FragColor = loop(uColourMap, z, c);
 }

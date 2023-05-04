@@ -23,11 +23,11 @@ vec4 loop(int maxIterations, sampler2D colourMap, vec2 z, vec2 c) {
 
 uniform int uMaxIterations;
 uniform sampler2D uColourMap;
-in vec2 vPosition;
+in vec2 vRegionPosition;
 out vec4 fragColor;
 
 void main(void) {
   vec2 z;
-  vec2 c = vPosition;
+  vec2 c = vRegionPosition;
   fragColor = loop(uMaxIterations, uColourMap, z, c);
 }
