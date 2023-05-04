@@ -91,9 +91,10 @@ const onModalClose = () => {
 };
 
 const loadBookmarks = (bookmarks) => {
-  const mapEntries = JSON.parse(localStorage.bookmarks || "[]");
-  for (const [id, bookmark] of mapEntries) {
-    bookmarks.set(id, bookmark);
+  const entries = JSON.parse(localStorage.bookmarks || "[]");
+  for (const [id, bookmark] of entries) {
+    const { thumbnail: _thumbnail, ...bookmarkWithoutThumbnail } = bookmark;
+    bookmarks.set(id, bookmarkWithoutThumbnail);
   }
 };
 
@@ -139,12 +140,7 @@ const switchToBookmark = (bookmark) => {
 
 // https://webglfundamentals.org/webgl/lessons/webgl-render-to-texture.html
 // https://stackoverflow.com/a/13640310
-const createThumbnailDataUrl = (size, overrides = {}) => {
-  // Future enhancements: allow the caller to pass in:
-  // - a different colour map name/index
-  // - a different value for max iterations
-  const { colourMapId, maxIterations } = overrides;
-
+const renderThumbnail = (size, configuration) => {
   const texture = gl.createTexture();
   gl.bindTexture(gl.TEXTURE_2D, texture);
 
@@ -171,34 +167,38 @@ const createThumbnailDataUrl = (size, overrides = {}) => {
     0 // level
   );
 
-  region.save();
-  region.adjustToMakeLargestSquare();
-  gl.viewport(0, 0, size, size);
-
-  const savedColourMap = currentColourMap;
+  const savedFractalSetId = currentFractalSetId;
+  const savedJuliaConstant = currentJuliaConstant;
+  const savedColourMapId = currentColourMapId;
   const savedMaxIterations = currentMaxIterations;
+  region.save();
 
-  if (colourMapId !== undefined) {
-    const overrideColourMap = colourMaps.get(colourMapId);
-    if (overrideColourMap) {
-      gl.uniform1i(currentFractalSet.uColourMap, overrideColourMap.textureUnit);
-    }
-  }
+  setCurrentFractalSet(
+    configuration.fractalSetId,
+    configuration.juliaConstant,
+    configuration.colourMapId,
+    configuration.maxIterations
+  );
 
-  if (maxIterations !== undefined) {
-    currentMaxIterations = maxIterations;
-  }
+  region.set(configuration.regionBottomLeft, configuration.regionTopRight);
+  region.adjustToMakeLargestSquare();
+
+  gl.viewport(0, 0, size, size);
 
   render();
 
   gl.viewport(0, 0, canvas.width, canvas.height);
-  region.restore();
-
-  gl.uniform1i(currentFractalSet.uColourMap, savedColourMap.textureUnit);
-  currentMaxIterations = savedMaxIterations;
 
   const pixels = new Uint8ClampedArray(size * size * 4);
   gl.readPixels(0, 0, size, size, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+
+  setCurrentFractalSet(
+    savedFractalSetId,
+    savedJuliaConstant,
+    savedColourMapId,
+    savedMaxIterations
+  );
+  region.restore();
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   gl.deleteFramebuffer(fb);
@@ -206,24 +206,11 @@ const createThumbnailDataUrl = (size, overrides = {}) => {
   gl.bindTexture(gl.TEXTURE_2D, null);
   gl.deleteTexture(texture);
 
-  const tempCanvas = document.createElement("canvas");
-  const tempCanvasCtx2d = tempCanvas.getContext("2d");
-  tempCanvas.width = size;
-  tempCanvas.height = size;
-  const imageData = new ImageData(pixels, size, size);
-  tempCanvasCtx2d.putImageData(imageData, 0, 0);
-
-  // Seems we need to flip the image vertically.
-  // https://stackoverflow.com/a/41970080
-  tempCanvasCtx2d.scale(1, -1);
-  tempCanvasCtx2d.translate(0, -size);
-  tempCanvasCtx2d.drawImage(tempCanvas, 0, 0);
-
-  return tempCanvas.toDataURL("image/jpeg", 1.0);
+  return pixels;
 };
 
 const ui = configureUI({
-  createThumbnailDataUrl,
+  renderThumbnail,
   addBookmark,
   updateBookmark,
   deleteBookmark,
@@ -376,6 +363,7 @@ const setCurrentFractalSet = (
   );
 
   gl.uniform1i(currentFractalSet.uColourMap, currentColourMap.textureUnit);
+
   gl.uniform2f(
     currentFractalSet.uJuliaConstant,
     currentJuliaConstant.x,

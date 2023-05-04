@@ -10,6 +10,7 @@ module.exports = {
     sourceType: "module",
   },
   rules: {
+    "no-unused-vars": ["error", { varsIgnorePattern: "^_" }],
     "no-console": "off",
   },
 };

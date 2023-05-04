@@ -3,7 +3,7 @@ import * as C from "./constants";
 const THUMBNAIL_SIZE = 64;
 
 export const configureUI = ({
-  createThumbnailDataUrl,
+  renderThumbnail,
   addBookmark,
   updateBookmark,
   deleteBookmark,
@@ -13,6 +13,21 @@ export const configureUI = ({
   onModalOpen,
   onModalClose,
 }) => {
+  const drawThumbnail = (pixels, canvas, size) => {
+    canvas.width = size;
+    canvas.height = size;
+    const canvasCtx2d = canvas.getContext("2d");
+
+    const imageData = new ImageData(pixels, size, size);
+    canvasCtx2d.putImageData(imageData, 0, 0);
+
+    // Seems we need to flip the image vertically.
+    // https://stackoverflow.com/a/41970080
+    canvasCtx2d.scale(1, -1);
+    canvasCtx2d.translate(0, -size);
+    canvasCtx2d.drawImage(canvas, 0, 0);
+  };
+
   const presentBookmarkModal = (bookmark) => {
     console.log("[presentBookmarkModal]", "bookmark:", bookmark);
     const bookmarkModal = $("#bookmarkModal")
@@ -29,16 +44,9 @@ export const configureUI = ({
         hasId ? updateBookmark(bookmark) : addBookmark(bookmark);
         bookmarkModal.modal("hide");
       });
-    if (!hasId) {
-      // const overrides = {
-      //   colourMapId: 24,
-      //   maxIterations: 256,
-      // };
-      // bookmark.thumbnail = createThumbnailDataUrl(THUMBNAIL_SIZE, overrides);
-      bookmark.thumbnail = createThumbnailDataUrl(THUMBNAIL_SIZE);
-    }
-    const thumbnailImg = $("img.thumbnail", bookmarkModal);
-    thumbnailImg[0].src = bookmark.thumbnail;
+    const pixels = renderThumbnail(THUMBNAIL_SIZE, bookmark);
+    const thumbnailCanvas = $("canvas.thumbnail", bookmarkModal)[0];
+    drawThumbnail(pixels, thumbnailCanvas, THUMBNAIL_SIZE);
     $("#name", bookmarkModal).val(bookmark.name).focus();
     $(".fractal-set", bookmarkModal).text(
       fractalSets.get(bookmark.fractalSetId).name
@@ -86,13 +94,17 @@ export const configureUI = ({
     );
     bookmarks.forEach((bookmark) => {
       const tr = document.importNode(bookmarkRowTemplate.content, true);
-      const img = tr.querySelector(":nth-child(1) img");
+      const thumbnailCanvas = tr.querySelector(":nth-child(1) canvas");
       const name = tr.querySelector(":nth-child(2)");
       const editButton = tr.querySelector(":nth-child(3) i");
       const deleteButton = tr.querySelector(":nth-child(4) i");
-      img.src = bookmark.thumbnail;
+      const pixels = renderThumbnail(THUMBNAIL_SIZE, bookmark);
+      drawThumbnail(pixels, thumbnailCanvas, THUMBNAIL_SIZE);
       name.innerText = bookmark.name;
-      img.addEventListener("click", invokeHandler(onSwitchTo, bookmark));
+      thumbnailCanvas.addEventListener(
+        "click",
+        invokeHandler(onSwitchTo, bookmark)
+      );
       editButton.addEventListener("click", invokeHandler(onEdit, bookmark));
       deleteButton.addEventListener("click", invokeHandler(onDelete, bookmark));
       tbody.append(tr);
