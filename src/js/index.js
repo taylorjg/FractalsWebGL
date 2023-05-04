@@ -72,6 +72,9 @@ let currentJuliaConstant = undefined;
 let currentColourMapId = undefined;
 let currentColourMap = undefined;
 const region = new Region();
+let panSpeedX = 0;
+let panSpeedY = 0;
+let zoomSpeed = 0;
 let panning = false;
 let lastMousePt;
 let bookmarkMode = false;
@@ -126,11 +129,11 @@ const createBookmark = (name) => ({
 
 const switchToBookmark = (bookmark) => {
   region.set(bookmark.regionBottomLeft, bookmark.regionTopRight);
-  currentMaxIterations = bookmark.maxIterations;
   setCurrentFractalSet(
     bookmark.fractalSetId,
     bookmark.juliaConstant,
-    bookmark.colourMapId
+    bookmark.colourMapId,
+    bookmark.maxIterations
   );
 };
 
@@ -171,23 +174,26 @@ const createThumbnailDataUrl = (size, overrides = {}) => {
   region.save();
   region.adjustToMakeLargestSquare();
   gl.viewport(0, 0, size, size);
+
   const savedColourMap = currentColourMap;
   const savedMaxIterations = currentMaxIterations;
+
   if (colourMapId !== undefined) {
     const overrideColourMap = colourMaps.get(colourMapId);
     if (overrideColourMap) {
       gl.uniform1i(currentFractalSet.uColourMap, overrideColourMap.textureUnit);
     }
   }
+
   if (maxIterations !== undefined) {
     currentMaxIterations = maxIterations;
   }
 
-  // This is where we could override colour map, max iterations, etc.
   render();
 
   gl.viewport(0, 0, canvas.width, canvas.height);
   region.restore();
+
   gl.uniform1i(currentFractalSet.uColourMap, savedColourMap.textureUnit);
   currentMaxIterations = savedMaxIterations;
 
@@ -284,10 +290,16 @@ const initShadersHelper = (name, vertexShaderSource, fragmentShaderSource) => {
     ? { uMaxIterations: gl.getUniformLocation(program, "uMaxIterations") }
     : undefined;
 
-  const vertices = [1.0, 1.0, -1.0, 1.0, 1.0, -1.0, -1.0, -1.0];
+  // prettier-ignore
+  const vertexPositionBufferData = new Float32Array([
+    1.0, 1.0, // top right
+    -1.0, 1.0, // top left
+    1.0, -1.0, // bottom right
+    -1.0, -1.0 // bottom left
+  ]);
   const vertexPositionBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, vertexPositionBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+  gl.bufferData(gl.ARRAY_BUFFER, vertexPositionBufferData, gl.STATIC_DRAW);
   gl.vertexAttribPointer(aVertexPosition, 2, gl.FLOAT, false, 0, 0);
 
   return {
@@ -328,7 +340,12 @@ const initShaders = () => {
   fractalSets.set(C.FRACTAL_SET_ID_JULIA, juliaSet);
 };
 
-const setCurrentFractalSet = (fractalSetId, juliaConstant, colourMapId) => {
+const setCurrentFractalSet = (
+  fractalSetId,
+  juliaConstant,
+  colourMapId,
+  maxIterations
+) => {
   if (Number.isInteger(fractalSetId)) {
     currentFractalSetId = fractalSetId;
     currentFractalSet = fractalSets.get(fractalSetId);
@@ -337,19 +354,21 @@ const setCurrentFractalSet = (fractalSetId, juliaConstant, colourMapId) => {
   if (juliaConstant) {
     currentJuliaConstant = juliaConstant;
   }
-  if (!currentJuliaConstant) {
-    currentJuliaConstant = { x: 0, y: 0 };
-  }
 
   if (Number.isInteger(colourMapId)) {
     currentColourMapId = colourMapId;
     currentColourMap = colourMaps.get(colourMapId);
   }
 
+  if (isWebGL2()) {
+    if (Number.isInteger(maxIterations)) {
+      currentMaxIterations = maxIterations;
+    }
+  }
+
   gl.useProgram(currentFractalSet.program);
 
-  const modelViewMatrix = glm.mat4.create();
-  glm.mat4.fromScaling(modelViewMatrix, [1, -1, 1]);
+  const modelViewMatrix = glm.mat4.fromScaling(glm.mat4.create(), [1, -1, 1]);
   gl.uniformMatrix4fv(
     currentFractalSet.uModelViewMatrix,
     false,
@@ -363,58 +382,52 @@ const setCurrentFractalSet = (fractalSetId, juliaConstant, colourMapId) => {
     currentJuliaConstant.y
   );
 
+  if (isWebGL2()) {
+    gl.uniform1i(currentFractalSet.uMaxIterations, currentMaxIterations);
+  }
+
   setCanvasAndViewportSize();
 
   render();
 };
 
-const render = () => {
-  const { plotPositionBuffer, aPlotPosition, uMaxIterations } =
-    currentFractalSet;
+const updateRegionPositionBuffer = () => {
+  // We could rename "plotPositionBuffer" and "aPlotPosition" to
+  // something like "regionPositionBuffer" and "aRegionPosition".
+  const { plotPositionBuffer, aPlotPosition } = currentFractalSet;
 
-  const corners = [
-    region.topRight.x,
-    region.topRight.y,
-    region.topLeft.x,
-    region.topLeft.y,
-    region.bottomRight.x,
-    region.bottomRight.y,
-    region.bottomLeft.x,
-    region.bottomLeft.y,
-  ];
+  // prettier-ignore
+  const plotPositionBufferData = new Float32Array([
+    region.topRight.x, region.topRight.y,
+    region.topLeft.x, region.topLeft.y,
+    region.bottomRight.x, region.bottomRight.y,
+    region.bottomLeft.x, region.bottomLeft.y,
+  ]);
   gl.bindBuffer(gl.ARRAY_BUFFER, plotPositionBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(corners), gl.DYNAMIC_DRAW);
+  gl.bufferData(gl.ARRAY_BUFFER, plotPositionBufferData, gl.DYNAMIC_DRAW);
   gl.vertexAttribPointer(aPlotPosition, 2, gl.FLOAT, false, 0, 0);
   gl.bindBuffer(gl.ARRAY_BUFFER, null);
+};
 
-  if (isWebGL2()) {
-    gl.uniform1i(uMaxIterations, currentMaxIterations);
-  }
-
+const render = () => {
+  updateRegionPositionBuffer();
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 };
 
 const displayConfiguration = async (configuration) => {
   switchToBookmark(configuration);
-  panSpeedX = randomFloat(-0.1, 0.1);
-  panSpeedY = randomFloat(-0.1, 0.1);
-  zoomSpeed = randomFloat(0.01, 0.1);
+  panSpeedX = configuration.panSpeedX ?? U.randomPanSpeed();
+  panSpeedY = configuration.panSpeedY ?? U.randomPanSpeed();
+  zoomSpeed = configuration.zoomSpeed ?? U.randomZoomSpeed();
+
   const message = {
     type: "chooseConfiguration",
-    fractalSetIds: [C.FRACTAL_SET_ID_MANDELBROT, C.FRACTAL_SET_ID_JULIA],
+    fractalSetIds: Array.from(fractalSets.keys()),
     colourMapIds: Array.from(colourMaps.keys()),
   };
   const newConfiguration = await promiseWorker.postMessage(message);
   setTimeout(displayConfiguration, 10000, newConfiguration);
 };
-
-const randomFloat = (min, max) => {
-  return Math.random() * (max - min) + min;
-};
-
-let panSpeedX = 0;
-let panSpeedY = 0;
-let zoomSpeed = 0;
 
 const start = async (manualMode) => {
   // Turning off the service worker for the moment. Not quite happy with it yet.
@@ -485,11 +498,13 @@ const onCanvasMouseDownHandler = (e) => {
 
   if (e.altKey) {
     switch (currentFractalSetId) {
-      case C.FRACTAL_SET_ID_MANDELBROT:
-        return setCurrentFractalSet(C.FRACTAL_SET_ID_JULIA, {
+      case C.FRACTAL_SET_ID_MANDELBROT: {
+        const juliaConstant = {
           x: regionMouseX,
           y: regionMouseY,
-        });
+        };
+        return setCurrentFractalSet(C.FRACTAL_SET_ID_JULIA, juliaConstant);
+      }
 
       case C.FRACTAL_SET_ID_JULIA:
         return setCurrentFractalSet(C.FRACTAL_SET_ID_MANDELBROT);
@@ -510,7 +525,7 @@ const onCanvasMouseMoveHandler = (e) => {
   const mouseY = e.offsetY;
   const mouseDeltaX = mouseX - lastMousePt.mouseX;
   const mouseDeltaY = mouseY - lastMousePt.mouseY;
-  region.move(canvas, mouseDeltaX, mouseDeltaY);
+  region.drag(canvas, mouseDeltaX, mouseDeltaY);
 
   render();
 
@@ -568,6 +583,7 @@ const onDocumentKeyDownHandler = (e) => {
         C.MAX_ITERATIONS_MANUAL,
         currentMaxIterations + delta
       );
+      gl.uniform1i(currentFractalSet.uMaxIterations, currentMaxIterations);
       return render();
     }
   }

@@ -1,5 +1,6 @@
 import registerPromiseWorker from "promise-worker/register";
 import * as C from "./constants";
+import * as U from "./utils";
 
 const evaluatePoint = (configuration, point) => {
   let z = { x: 0, y: 0 };
@@ -35,36 +36,31 @@ const evaluatePoints = (configuration, gridSize) => {
 const isInteresting = (configuration) => {
   const gridSize = 12;
   const values = evaluatePoints(configuration, gridSize);
-  const factor = randomFloat(0.4, 0.7);
+  const factor = U.randomFloat(0.4, 0.7);
   return new Set(values).size >= values.length * factor;
 };
 
-const randomFloat = (min, max) => {
-  return Math.random() * (max - min) + min;
-};
-
-const randomInt = (min, max) => {
-  return Math.trunc(randomFloat(min, max));
-};
-
-const randomElement = (elements) => {
-  const randomIndex = Math.trunc(Math.random() * elements.length);
-  return elements[randomIndex];
-};
-
 const createRandomConfiguration = (fractalSetIds, colourMapIds) => {
-  const fractalSetId = randomElement(fractalSetIds);
-  const colourMapId = randomElement(colourMapIds);
-  const cx = randomFloat(-2, 0.75);
-  const cy = randomFloat(-1.5, 1.5);
-  const sz = randomFloat(0.01, 0.5);
+  const fractalSetId = U.randomElement(fractalSetIds);
+  const colourMapId = U.randomElement(colourMapIds);
+  const cx = U.randomFloat(-2, 0.75);
+  const cy = U.randomFloat(-1.5, 1.5);
+  const sz = U.randomFloat(0.01, 0.5);
+  const maxIterations = U.randomInt(C.MIN_ITERATIONS, C.MAX_ITERATIONS_AUTO);
+  const panSpeedX = U.randomPanSpeed();
+  const panSpeedY = U.randomPanSpeed();
+  const zoomSpeed = U.randomZoomSpeed();
+
   return {
     fractalSetId,
     juliaConstant: { x: cx, y: cy },
     colourMapId,
     regionBottomLeft: { x: cx - sz, y: cy - sz },
     regionTopRight: { x: cx + sz, y: cy + sz },
-    maxIterations: randomInt(C.MIN_ITERATIONS, C.MAX_ITERATIONS_AUTO),
+    maxIterations,
+    panSpeedX,
+    panSpeedY,
+    zoomSpeed,
   };
 };
 

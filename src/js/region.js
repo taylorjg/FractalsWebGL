@@ -74,16 +74,16 @@ export class Region {
 
   adjustAspectRatio(canvasWidth, canvasHeight) {
     if (canvasWidth >= canvasHeight) {
-      const widthDelta =
-        (canvasWidth / canvasHeight) * this.height - this.width;
+      const aspectRatio = canvasWidth / canvasHeight;
+      const widthDelta = aspectRatio * this.height - this.width;
       const widthDeltaHalf = widthDelta / 2;
       this._bottomLeft.x -= widthDeltaHalf;
       this._topRight.x += widthDeltaHalf;
     }
 
     if (canvasWidth < canvasHeight) {
-      const heightDelta =
-        (canvasHeight / canvasWidth) * this.width - this.height;
+      const aspectRatio = canvasHeight / canvasWidth;
+      const heightDelta = aspectRatio * this.width - this.height;
       const heightDeltaHalf = heightDelta / 2;
       this._bottomLeft.y -= heightDeltaHalf;
       this._topRight.y += heightDeltaHalf;
@@ -106,17 +106,21 @@ export class Region {
   }
 
   mouseToRegion(canvas, mouseX, mouseY) {
-    const offsetRatioX = (mouseX * this.width) / canvas.width;
-    const offsetRatioY = (mouseY * this.height) / canvas.height;
+    const widthRatio = this.width / canvas.width;
+    const heightRatio = this.height / canvas.height;
+    const offsetRatioX = mouseX * widthRatio;
+    const offsetRatioY = mouseY * heightRatio;
     return {
       regionMouseX: this.left + offsetRatioX,
       regionMouseY: this.bottom + offsetRatioY,
     };
   }
 
-  move(canvas, mouseDeltaX, mouseDeltaY) {
-    const regionDeltaX = (mouseDeltaX * this.width) / canvas.width;
-    const regionDeltaY = (mouseDeltaY * this.height) / canvas.height;
+  drag(canvas, mouseDeltaX, mouseDeltaY) {
+    const widthRatio = this.width / canvas.width;
+    const heightRatio = this.height / canvas.height;
+    const regionDeltaX = mouseDeltaX * widthRatio;
+    const regionDeltaY = mouseDeltaY * heightRatio;
     this._bottomLeft.x -= regionDeltaX;
     this._bottomLeft.y -= regionDeltaY;
     this._topRight.x -= regionDeltaX;
