@@ -129,7 +129,9 @@ const createBookmark = (name) => ({
 });
 
 const switchToBookmark = (bookmark) => {
-  region.set(bookmark.regionBottomLeft, bookmark.regionTopRight);
+  performRegionUpdate(() => {
+    region.set(bookmark.regionBottomLeft, bookmark.regionTopRight);
+  });
   setCurrentFractalSet(
     bookmark.fractalSetId,
     bookmark.juliaConstant,
@@ -167,38 +169,20 @@ const renderThumbnail = (size, configuration) => {
     0 // level
   );
 
-  const savedFractalSetId = currentFractalSetId;
-  const savedJuliaConstant = currentJuliaConstant;
-  const savedColourMapId = currentColourMapId;
-  const savedMaxIterations = currentMaxIterations;
-  region.save();
-
-  setCurrentFractalSet(
-    configuration.fractalSetId,
-    configuration.juliaConstant,
-    configuration.colourMapId,
-    configuration.maxIterations
-  );
-
-  region.set(configuration.regionBottomLeft, configuration.regionTopRight);
-  region.adjustToMakeLargestSquare();
-
+  const savedConfiguration = createBookmark("saved-configuration");
+  switchToBookmark(configuration);
+  performRegionUpdate(() => {
+    region.adjustToMakeLargestSquare();
+  });
   gl.viewport(0, 0, size, size);
 
   render();
 
-  gl.viewport(0, 0, canvas.width, canvas.height);
-
   const pixels = new Uint8ClampedArray(size * size * 4);
   gl.readPixels(0, 0, size, size, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
 
-  setCurrentFractalSet(
-    savedFractalSetId,
-    savedJuliaConstant,
-    savedColourMapId,
-    savedMaxIterations
-  );
-  region.restore();
+  switchToBookmark(savedConfiguration);
+  setCanvasAndViewportSize();
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   gl.deleteFramebuffer(fb);
@@ -224,7 +208,11 @@ const ui = configureUI({
   addBookmark,
   updateBookmark,
   deleteBookmark,
-  switchToBookmark,
+  switchToBookmark: (bookmark) => {
+    switchToBookmark(bookmark);
+    setCanvasAndViewportSize();
+    render();
+  },
   fractalSets,
   colourMaps,
   onModalOpen,
@@ -374,13 +362,11 @@ const setCurrentFractalSet = (
   if (isWebGL2()) {
     gl.uniform1i(currentFractalSet.uMaxIterations, currentMaxIterations);
   }
-
-  setCanvasAndViewportSize();
-
-  render();
 };
 
 const updateRegionPositionBuffer = () => {
+  if (!currentFractalSet) return;
+
   const { regionPositionBuffer, aRegionPosition } = currentFractalSet;
 
   // prettier-ignore
@@ -396,8 +382,12 @@ const updateRegionPositionBuffer = () => {
   gl.bindBuffer(gl.ARRAY_BUFFER, null);
 };
 
-const render = () => {
+const performRegionUpdate = (thunk) => {
+  thunk();
   updateRegionPositionBuffer();
+};
+
+const render = () => {
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 };
 
@@ -444,12 +434,17 @@ export const startGraphics = async (manualMode) => {
     loadBookmarks(bookmarks);
     nextBookmarkId = bookmarks.size ? Math.max(...bookmarks.keys()) + 1 : 0;
     switchToBookmark(C.INITIAL_BOOKMARK);
+    updateRegionPositionBuffer();
+    setCanvasAndViewportSize();
+    render();
   } else {
     displayConfiguration(C.INITIAL_BOOKMARK);
     const animate = () => {
-      region.panX(panSpeedX);
-      region.panY(panSpeedY);
-      region.zoom(zoomSpeed);
+      performRegionUpdate(() => {
+        region.panX(panSpeedX);
+        region.panY(panSpeedY);
+        region.zoom(zoomSpeed);
+      });
       render();
       requestAnimationFrame(animate);
     };
@@ -461,7 +456,9 @@ const setCanvasAndViewportSize = () => {
   canvas.width = canvas.clientWidth;
   canvas.height = canvas.clientHeight;
   gl.viewport(0, 0, canvas.width, canvas.height);
-  region.adjustAspectRatio(canvas.width, canvas.height);
+  performRegionUpdate(() => {
+    region.adjustAspectRatio(canvas.width, canvas.height);
+  });
 };
 
 const onWindowResize = () => {
@@ -479,7 +476,9 @@ const onCanvasMouseDownHandler = (e) => {
   );
 
   if (e.shiftKey) {
-    region.recentre(regionMouseX, regionMouseY);
+    performRegionUpdate(() => {
+      region.recentre(regionMouseX, regionMouseY);
+    });
     return render();
   }
 
@@ -490,11 +489,15 @@ const onCanvasMouseDownHandler = (e) => {
           x: regionMouseX,
           y: regionMouseY,
         };
-        return setCurrentFractalSet(C.FRACTAL_SET_ID_JULIA, juliaConstant);
+        setCurrentFractalSet(C.FRACTAL_SET_ID_JULIA, juliaConstant);
+        render();
+        return;
       }
 
       case C.FRACTAL_SET_ID_JULIA:
-        return setCurrentFractalSet(C.FRACTAL_SET_ID_MANDELBROT);
+        setCurrentFractalSet(C.FRACTAL_SET_ID_MANDELBROT);
+        render();
+        return;
 
       default:
         return;
@@ -510,9 +513,12 @@ const onCanvasMouseMoveHandler = (e) => {
 
   const mouseX = e.offsetX;
   const mouseY = e.offsetY;
-  const mouseDeltaX = mouseX - lastMousePt.mouseX;
-  const mouseDeltaY = mouseY - lastMousePt.mouseY;
-  region.drag(canvas, mouseDeltaX, mouseDeltaY);
+
+  performRegionUpdate(() => {
+    const mouseDeltaX = mouseX - lastMousePt.mouseX;
+    const mouseDeltaY = mouseY - lastMousePt.mouseY;
+    region.drag(canvas, mouseDeltaX, mouseDeltaY);
+  });
 
   render();
 
@@ -540,17 +546,26 @@ const onDocumentKeyDownHandler = (e) => {
   }
 
   if (e.key === "+") {
-    region.zoom(50);
-    return render();
+    performRegionUpdate(() => {
+      region.zoom(50);
+    });
+    render();
+    return;
   }
 
   if (e.key === "-") {
-    region.zoom(-100);
-    return render();
+    performRegionUpdate(() => {
+      region.zoom(-100);
+    });
+    render();
+    return;
   }
 
   if (e.key === "h" && e.ctrlKey) {
-    return switchToBookmark(C.HOME_BOOKMARK);
+    switchToBookmark(C.HOME_BOOKMARK);
+    setCanvasAndViewportSize();
+    render();
+    return;
   }
 
   if ((e.key === "c" || e.key === "C") && e.ctrlKey) {
@@ -559,7 +574,9 @@ const onDocumentKeyDownHandler = (e) => {
     const oldIndex = keys.indexOf(currentColourMapId);
     const newIndex = (oldIndex + (e.shiftKey ? maxIndex - 1 : 1)) % maxIndex;
     const newColourMapId = keys[newIndex];
-    return setCurrentFractalSet(undefined, undefined, newColourMapId);
+    setCurrentFractalSet(undefined, undefined, newColourMapId);
+    render();
+    return;
   }
 
   if (isWebGL2()) {
@@ -570,8 +587,14 @@ const onDocumentKeyDownHandler = (e) => {
         C.MAX_ITERATIONS_MANUAL,
         currentMaxIterations + delta
       );
-      gl.uniform1i(currentFractalSet.uMaxIterations, currentMaxIterations);
-      return render();
+      setCurrentFractalSet(
+        undefined,
+        undefined,
+        undefined,
+        currentMaxIterations
+      );
+      render();
+      return;
     }
   }
 };
