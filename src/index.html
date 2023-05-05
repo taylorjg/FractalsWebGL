@@ -48,7 +48,7 @@
               <div class="list-group-item">
                 <div class="row">
                   <div class="col-sm-4">
-                    <canvas class="thumbnail img-rounded pull-left"></canvas>
+                    <canvas class="thumbnail img-rounded pull-left" id="thumbnail-canvas"></canvas>
                     <h4 class="list-group-item-heading">Fractal</h4>
                     <p class="fractal-set list-group-item-text"></p>
                   </div>
@@ -59,7 +59,8 @@
                   </div>
                   <div class="col-sm-4">
                     <h4 class="list-group-item-heading">Max Iterations</h4>
-                    <p class="max-iterations list-group-item-text"></p>
+                    <p class="max-iterations list-group-item-text" id="max-iterations"></p>
+                    <input type="range" id="max-iterations-range" />
                   </div>
                 </div>
               </div>

@@ -209,7 +209,17 @@ const renderThumbnail = (size, configuration) => {
   return pixels;
 };
 
+const initGL = (canvas) => {
+  gl = canvas.getContext("webgl2") || canvas.getContext("webgl");
+  if (!gl) {
+    console.error("Failed to initialise WebGL");
+  }
+};
+
+const isWebGL2 = () => gl instanceof WebGL2RenderingContext;
+
 const ui = configureUI({
+  isWebGL2,
   renderThumbnail,
   addBookmark,
   updateBookmark,
@@ -220,15 +230,6 @@ const ui = configureUI({
   onModalOpen,
   onModalClose,
 });
-
-const initGL = (canvas) => {
-  gl = canvas.getContext("webgl2") || canvas.getContext("webgl");
-  if (!gl) {
-    console.error("Failed to initialise WebGL");
-  }
-};
-
-const isWebGL2 = () => gl instanceof WebGL2RenderingContext;
 
 const getShader = (gl, source, shaderType) => {
   const shader = gl.createShader(shaderType);

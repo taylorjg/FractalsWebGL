@@ -3,6 +3,7 @@ import * as C from "./constants";
 const THUMBNAIL_SIZE = 64;
 
 export const configureUI = ({
+  isWebGL2,
   renderThumbnail,
   addBookmark,
   updateBookmark,
@@ -44,14 +45,14 @@ export const configureUI = ({
         hasId ? updateBookmark(bookmark) : addBookmark(bookmark);
         bookmarkModal.modal("hide");
       });
-    const thumbnailCanvas = $("canvas.thumbnail", bookmarkModal)[0];
+    const thumbnailCanvas = $("#thumbnail-canvas", bookmarkModal).get(0);
     const pixels = renderThumbnail(THUMBNAIL_SIZE, bookmark);
     drawThumbnail(pixels, thumbnailCanvas, THUMBNAIL_SIZE);
     $("#name", bookmarkModal).val(bookmark.name).focus();
     $(".fractal-set", bookmarkModal).text(
       fractalSets.get(bookmark.fractalSetId).name
     );
-    const colourMapSelect = $("#colour-map-select").empty();
+    const colourMapSelect = $("#colour-map-select", bookmarkModal).empty();
     for (const [colourMapId, colourMap] of colourMaps) {
       const selected = colourMapId === bookmark.colourMapId ? "selected" : "";
       colourMapSelect.append(
@@ -63,7 +64,24 @@ export const configureUI = ({
       const pixels = renderThumbnail(THUMBNAIL_SIZE, bookmark);
       drawThumbnail(pixels, thumbnailCanvas, THUMBNAIL_SIZE);
     });
-    $(".max-iterations", bookmarkModal).text(bookmark.maxIterations);
+    const maxIterations = $("#max-iterations", bookmarkModal);
+    maxIterations.text(bookmark.maxIterations);
+    const maxIterationsRange = $("#max-iterations-range", bookmarkModal);
+    if (isWebGL2()) {
+      maxIterationsRange
+        .attr("min", C.MIN_ITERATIONS)
+        .attr("max", C.MAX_ITERATIONS_MANUAL)
+        .attr("step", C.DELTA_ITERATIONS)
+        .val(bookmark.maxIterations);
+      maxIterationsRange.on("input", (e) => {
+        bookmark.maxIterations = Number(e.target.value);
+        maxIterations.text(bookmark.maxIterations);
+        const pixels = renderThumbnail(THUMBNAIL_SIZE, bookmark);
+        drawThumbnail(pixels, thumbnailCanvas, THUMBNAIL_SIZE);
+      });
+    } else {
+      maxIterationsRange.hide();
+    }
     $(".region-bottom-left", bookmarkModal).text(
       `(${bookmark.regionBottomLeft.x}, ${bookmark.regionBottomLeft.y})`
     );
