@@ -1,8 +1,6 @@
 export class Region {
   _bottomLeft = { x: 0, y: 0 };
   _topRight = { x: 0, y: 0 };
-  _savedBottomLeft = undefined;
-  _savedTopRight = undefined;
 
   get top() {
     return this._topRight.y;
@@ -52,19 +50,6 @@ export class Region {
     return this.bottom + this.height / 2;
   }
 
-  save() {
-    this._savedBottomLeft = { ...this._bottomLeft };
-    this._savedTopRight = { ...this._topRight };
-  }
-
-  restore() {
-    if (this._savedBottomLeft && this._savedTopRight) {
-      this.set(this._savedBottomLeft, this._savedTopRight);
-      this._savedBottomLeft = undefined;
-      this._savedTopRight = undefined;
-    }
-  }
-
   set(bottomLeft, topRight) {
     this._bottomLeft.x = bottomLeft.x;
     this._bottomLeft.y = bottomLeft.y;
@@ -87,21 +72,6 @@ export class Region {
       const heightDeltaHalf = heightDelta / 2;
       this._bottomLeft.y -= heightDeltaHalf;
       this._topRight.y += heightDeltaHalf;
-    }
-  }
-
-  adjustToMakeLargestSquare() {
-    const width = this.width;
-    const height = this.height;
-    const minDimension = Math.min(width, height);
-    const maxDimension = Math.max(width, height);
-    const delta = (maxDimension - minDimension) / 2;
-    if (width >= height) {
-      this._bottomLeft.x += delta;
-      this._topRight.x -= delta;
-    } else {
-      this._bottomLeft.y += delta;
-      this._topRight.y -= delta;
     }
   }
 

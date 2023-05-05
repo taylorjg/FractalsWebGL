@@ -1,16 +1,18 @@
 import colormap from "colormap";
 import * as glm from "gl-matrix";
 import PromiseWorker from "promise-worker";
-import vertexShaderSourceWebGL1 from "../shaders/webgl1/shader.vert.glsl";
-import mandelbrotShaderSourceWebGL1 from "../shaders/webgl1/mandelbrot.frag.glsl";
-import juliaShaderSourceWebGL1 from "../shaders/webgl1/julia.frag.glsl";
-import vertexShaderSourceWebGL2 from "../shaders/webgl2/shader.vert.glsl";
-import mandelbrotShaderSourceWebGL2 from "../shaders/webgl2/mandelbrot.frag.glsl";
-import juliaShaderSourceWebGL2 from "../shaders/webgl2/julia.frag.glsl";
 import { configureUI } from "./ui";
 import { Region } from "./region";
 import * as C from "./constants";
 import * as U from "./utils";
+
+import vertexShaderSourceWebGL1 from "../shaders/webgl1/shader.vert.glsl";
+import mandelbrotShaderSourceWebGL1 from "../shaders/webgl1/mandelbrot.frag.glsl";
+import juliaShaderSourceWebGL1 from "../shaders/webgl1/julia.frag.glsl";
+
+import vertexShaderSourceWebGL2 from "../shaders/webgl2/shader.vert.glsl";
+import mandelbrotShaderSourceWebGL2 from "../shaders/webgl2/mandelbrot.frag.glsl";
+import juliaShaderSourceWebGL2 from "../shaders/webgl2/julia.frag.glsl";
 
 const worker = new Worker(new URL("./web-worker.js", import.meta.url));
 const promiseWorker = new PromiseWorker(worker);
@@ -128,16 +130,9 @@ const createBookmark = (name) => ({
   maxIterations: currentMaxIterations,
 });
 
+// Implies all configuration values are being changed.
 const switchToBookmark = (bookmark) => {
-  performRegionUpdate(() => {
-    region.set(bookmark.regionBottomLeft, bookmark.regionTopRight);
-  });
-  setCurrentFractalSet(
-    bookmark.fractalSetId,
-    bookmark.juliaConstant,
-    bookmark.colourMapId,
-    bookmark.maxIterations
-  );
+  makeConfigurationChanges(bookmark);
 };
 
 // https://webglfundamentals.org/webgl/lessons/webgl-render-to-texture.html
@@ -171,10 +166,7 @@ const renderThumbnail = (size, configuration) => {
 
   const savedConfiguration = createBookmark("saved-configuration");
   switchToBookmark(configuration);
-  performRegionUpdate(() => {
-    region.adjustToMakeLargestSquare();
-  });
-  gl.viewport(0, 0, size, size);
+  setCanvasAndViewportSize(size, size);
 
   render();
 
@@ -316,12 +308,21 @@ const initShaders = () => {
   fractalSets.set(C.FRACTAL_SET_ID_JULIA, juliaSet);
 };
 
-const setCurrentFractalSet = (
+// Some or all configuration values are being changed.
+const makeConfigurationChanges = ({
   fractalSetId,
   juliaConstant,
   colourMapId,
-  maxIterations
-) => {
+  maxIterations,
+  regionBottomLeft,
+  regionTopRight,
+}) => {
+  if (regionBottomLeft && regionTopRight) {
+    performRegionUpdate(() => {
+      region.set(regionBottomLeft, regionTopRight);
+    });
+  }
+
   if (Number.isInteger(fractalSetId)) {
     currentFractalSetId = fractalSetId;
     currentFractalSet = fractalSets.get(fractalSetId);
@@ -452,12 +453,19 @@ export const startGraphics = async (manualMode) => {
   }
 };
 
-const setCanvasAndViewportSize = () => {
-  canvas.width = canvas.clientWidth;
-  canvas.height = canvas.clientHeight;
-  gl.viewport(0, 0, canvas.width, canvas.height);
+const setCanvasAndViewportSize = (explicitWidth, explicitHeight) => {
+  const width = explicitWidth ?? canvas.clientWidth;
+  const height = explicitHeight ?? canvas.clientHeight;
+
+  if (!explicitWidth && !explicitHeight) {
+    canvas.width = width;
+    canvas.height = height;
+  }
+
+  gl.viewport(0, 0, width, height);
+
   performRegionUpdate(() => {
-    region.adjustAspectRatio(canvas.width, canvas.height);
+    region.adjustAspectRatio(width, height);
   });
 };
 
@@ -489,13 +497,16 @@ const onCanvasMouseDownHandler = (e) => {
           x: regionMouseX,
           y: regionMouseY,
         };
-        setCurrentFractalSet(C.FRACTAL_SET_ID_JULIA, juliaConstant);
+        makeConfigurationChanges({
+          fractalSetId: C.FRACTAL_SET_ID_JULIA,
+          juliaConstant,
+        });
         render();
         return;
       }
 
       case C.FRACTAL_SET_ID_JULIA:
-        setCurrentFractalSet(C.FRACTAL_SET_ID_MANDELBROT);
+        makeConfigurationChanges({ fractalSetId: C.FRACTAL_SET_ID_MANDELBROT });
         render();
         return;
 
@@ -574,7 +585,7 @@ const onDocumentKeyDownHandler = (e) => {
     const oldIndex = keys.indexOf(currentColourMapId);
     const newIndex = (oldIndex + (e.shiftKey ? maxIndex - 1 : 1)) % maxIndex;
     const newColourMapId = keys[newIndex];
-    setCurrentFractalSet(undefined, undefined, newColourMapId);
+    makeConfigurationChanges({ colourMapId: newColourMapId });
     render();
     return;
   }
@@ -587,12 +598,7 @@ const onDocumentKeyDownHandler = (e) => {
         C.MAX_ITERATIONS_MANUAL,
         currentMaxIterations + delta
       );
-      setCurrentFractalSet(
-        undefined,
-        undefined,
-        undefined,
-        currentMaxIterations
-      );
+      makeConfigurationChanges({ maxIterations: currentMaxIterations });
       render();
       return;
     }
