@@ -1,6 +1,8 @@
 export class Region {
-  _bottomLeft = { x: 0, y: 0 };
-  _topRight = { x: 0, y: 0 };
+  constructor() {
+    this._bottomLeft = { x: 0, y: 0 };
+    this._topRight = { x: 0, y: 0 };
+  }
 
   get top() {
     return this._topRight.y;
