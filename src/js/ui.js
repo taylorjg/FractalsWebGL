@@ -65,7 +65,7 @@ export const configureUI = ({
     const maxIterations = $("#max-iterations", bookmarkModal);
     maxIterations.text(bookmark.maxIterations);
     const maxIterationsRange = $("#max-iterations-range", bookmarkModal);
-    if (isWebGL2()) {
+    if (isWebGL2) {
       maxIterationsRange
         .attr("min", C.MIN_ITERATIONS)
         .attr("max", C.MAX_ITERATIONS_MANUAL)

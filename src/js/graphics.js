@@ -19,6 +19,8 @@ const promiseWorker = new PromiseWorker(worker);
 
 let canvas;
 let gl;
+let isWebGL2 = false;
+let ui;
 
 const createColourMapTexture = (colourMap, textureUnit) => {
   const texture = gl.createTexture();
@@ -190,7 +192,7 @@ const initialiseWebGL = (canvas) => {
     try {
       gl = canvas.getContext(contextType);
       if (!gl) {
-        alert(`Failed to initialise WebGL (contextType: ${contextType})`);
+        console.log(`Failed to initialise WebGL (contextType: ${contextType})`);
       }
     } catch (error) {
       alert(`Exception trying to initialise WebGL (contextType: ${contextType})\n${error.message}`);
@@ -199,29 +201,12 @@ const initialiseWebGL = (canvas) => {
     return Boolean(gl);
   };
 
-  if (!tryContextType("webgl2")) {
+  if (tryContextType("webgl2")) {
+    isWebGL2 = true;
+  } else {
     tryContextType("webgl");
   }
 };
-
-const isWebGL2 = () => gl instanceof WebGL2RenderingContext;
-
-const ui = configureUI({
-  isWebGL2,
-  renderThumbnail,
-  addBookmark,
-  updateBookmark,
-  deleteBookmark,
-  switchToBookmark: (bookmark) => {
-    switchToBookmark(bookmark);
-    setCanvasAndViewportSize();
-    render();
-  },
-  fractalSets,
-  colourMaps,
-  onModalOpen,
-  onModalClose,
-});
 
 const makeShader = (gl, source, shaderType) => {
   const shader = gl.createShader(shaderType);
@@ -262,7 +247,7 @@ const initialiseShadersHelper = (name, vertexShaderSource, fragmentShaderSource)
   const uColourMap = gl.getUniformLocation(program, "uColourMap");
   const uJuliaConstant = gl.getUniformLocation(program, "uJuliaConstant");
 
-  const maybeMaxIterationsUniform = isWebGL2()
+  const maybeMaxIterationsUniform = isWebGL2
     ? { uMaxIterations: gl.getUniformLocation(program, "uMaxIterations") }
     : undefined;
 
@@ -293,11 +278,11 @@ const initialiseShadersHelper = (name, vertexShaderSource, fragmentShaderSource)
 };
 
 const initialiseShaders = () => {
-  const vertexShaderSource = isWebGL2() ? vertexShaderSourceWebGL2 : vertexShaderSourceWebGL1;
-  const mandelbrotShaderSource = isWebGL2()
+  const vertexShaderSource = isWebGL2 ? vertexShaderSourceWebGL2 : vertexShaderSourceWebGL1;
+  const mandelbrotShaderSource = isWebGL2
     ? mandelbrotShaderSourceWebGL2
     : mandelbrotShaderSourceWebGL1;
-  const juliaShaderSource = isWebGL2() ? juliaShaderSourceWebGL2 : juliaShaderSourceWebGL1;
+  const juliaShaderSource = isWebGL2 ? juliaShaderSourceWebGL2 : juliaShaderSourceWebGL1;
   const mandelbrotSet = initialiseShadersHelper(
     "Mandelbrot",
     vertexShaderSource,
@@ -337,7 +322,7 @@ const makeConfigurationChanges = ({
     currentColourMap = colourMaps.get(colourMapId);
   }
 
-  if (isWebGL2()) {
+  if (isWebGL2) {
     if (Number.isInteger(maxIterations)) {
       currentMaxIterations = maxIterations;
     }
@@ -352,7 +337,7 @@ const makeConfigurationChanges = ({
 
   gl.uniform2f(currentFractalSet.uJuliaConstant, currentJuliaConstant.x, currentJuliaConstant.y);
 
-  if (isWebGL2()) {
+  if (isWebGL2) {
     gl.uniform1i(currentFractalSet.uMaxIterations, currentMaxIterations);
   }
 };
@@ -417,6 +402,23 @@ export const startGraphics = async (manualMode) => {
   initialiseWebGL(canvas);
   initialiseShaders();
   loadColourMaps();
+
+  ui = configureUI({
+    isWebGL2,
+    renderThumbnail,
+    addBookmark,
+    updateBookmark,
+    deleteBookmark,
+    switchToBookmark: (bookmark) => {
+      switchToBookmark(bookmark);
+      setCanvasAndViewportSize();
+      render();
+    },
+    fractalSets,
+    colourMaps,
+    onModalOpen,
+    onModalClose,
+  });
 
   window.addEventListener("resize", onWindowResize);
 
@@ -579,7 +581,7 @@ const onDocumentKeyDownHandler = (e) => {
     return;
   }
 
-  if (isWebGL2()) {
+  if (isWebGL2) {
     if (e.key === "i" || e.key === "I") {
       const delta = C.DELTA_ITERATIONS * (e.shiftKey ? -1 : +1);
       currentMaxIterations = U.clamp(
