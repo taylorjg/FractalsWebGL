@@ -6,10 +6,12 @@ import { Region } from "./region";
 import * as C from "./constants";
 import * as U from "./utils";
 
+import loopShaderSourceWebGL1 from "../shaders/webgl1/loop.glsl";
 import vertexShaderSourceWebGL1 from "../shaders/webgl1/shader.vert.glsl";
 import mandelbrotShaderSourceWebGL1 from "../shaders/webgl1/mandelbrot.frag.glsl";
 import juliaShaderSourceWebGL1 from "../shaders/webgl1/julia.frag.glsl";
 
+import loopShaderSourceWebGL2 from "../shaders/webgl2/loop.glsl";
 import vertexShaderSourceWebGL2 from "../shaders/webgl2/shader.vert.glsl";
 import mandelbrotShaderSourceWebGL2 from "../shaders/webgl2/mandelbrot.frag.glsl";
 import juliaShaderSourceWebGL2 from "../shaders/webgl2/julia.frag.glsl";
@@ -208,9 +210,26 @@ const initialiseWebGL = (canvas) => {
   }
 };
 
-const makeShader = (gl, source, shaderType) => {
+const MARKER = "// INSERT-COMMON-CODE-HERE\n";
+
+const insertCommonShaderSources = (source, commonShaderSources) => {
+  if (commonShaderSources?.length > 0) {
+    const markerPos = source.indexOf(MARKER);
+    if (markerPos >= 0) {
+      const insertPos = markerPos + MARKER.length;
+      const concatenatedCommonShaderSources = commonShaderSources.join("\n");
+      const before = source.substring(0, insertPos);
+      const after = source.substring(insertPos);
+      return before + concatenatedCommonShaderSources + after;
+    }
+  }
+  return source;
+};
+
+const makeShader = (gl, source, shaderType, commonShaderSources) => {
+  const updatedSource = insertCommonShaderSources(source, commonShaderSources);
   const shader = gl.createShader(shaderType);
-  gl.shaderSource(shader, source);
+  gl.shaderSource(shader, updatedSource);
   gl.compileShader(shader);
   if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
     const errorMessage = gl.getShaderInfoLog(shader);
@@ -221,8 +240,14 @@ const makeShader = (gl, source, shaderType) => {
 };
 
 const initialiseShadersHelper = (name, vertexShaderSource, fragmentShaderSource) => {
+  const commonShaderSources = isWebGL2 ? [loopShaderSourceWebGL2] : [loopShaderSourceWebGL1];
   const vertexShader = makeShader(gl, vertexShaderSource, gl.VERTEX_SHADER);
-  const fragmentShader = makeShader(gl, fragmentShaderSource, gl.FRAGMENT_SHADER);
+  const fragmentShader = makeShader(
+    gl,
+    fragmentShaderSource,
+    gl.FRAGMENT_SHADER,
+    commonShaderSources
+  );
   const program = gl.createProgram();
   gl.attachShader(program, vertexShader);
   gl.attachShader(program, fragmentShader);
