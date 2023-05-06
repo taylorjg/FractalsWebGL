@@ -6,6 +6,7 @@ import { Region } from "./region";
 import * as C from "./constants";
 import * as U from "./utils";
 
+import doubleSingleShaderSource from "../shaders/double-single.glsl";
 import interpolateRegionShaderSource from "../shaders/interpolate-region.glsl";
 
 import loopShaderSourceWebGL1 from "../shaders/webgl1/loop.glsl";
@@ -242,9 +243,12 @@ const makeShader = (gl, source, shaderType, commonShaderSources) => {
 };
 
 const initialiseShadersHelper = (name, vertexShaderSource, fragmentShaderSource) => {
-  const commonShaderSources = isWebGL2
-    ? [loopShaderSourceWebGL2, interpolateRegionShaderSource]
-    : [loopShaderSourceWebGL1, interpolateRegionShaderSource];
+  const loopShaderSource = isWebGL2 ? loopShaderSourceWebGL2 : loopShaderSourceWebGL1;
+  const commonShaderSources = [
+    doubleSingleShaderSource,
+    interpolateRegionShaderSource,
+    loopShaderSource,
+  ];
   const vertexShader = makeShader(gl, vertexShaderSource, gl.VERTEX_SHADER);
   const fragmentShader = makeShader(
     gl,
