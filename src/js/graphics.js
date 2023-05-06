@@ -386,6 +386,8 @@ const render = () => {
 
 const displayConfiguration = async (configuration) => {
   switchToBookmark(configuration);
+  setCanvasAndViewportSize();
+
   panSpeedX = configuration.panSpeedX ?? U.randomPanSpeed();
   panSpeedY = configuration.panSpeedY ?? U.randomPanSpeed();
   zoomSpeed = configuration.zoomSpeed ?? U.randomZoomSpeed();
@@ -431,7 +433,6 @@ export const startGraphics = async (manualMode) => {
     render();
   } else {
     displayConfiguration(C.INITIAL_BOOKMARK);
-    setCanvasAndViewportSize();
     const animate = () => {
       performRegionUpdate(() => {
         region.panX(panSpeedX);

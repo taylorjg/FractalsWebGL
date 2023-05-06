@@ -108,7 +108,10 @@ export const configureUI = ({
       handler(bookmark);
     };
     const onSwitchTo = (bookmark) => switchToBookmark(bookmark);
-    const onEdit = (bookmark) => presentBookmarkModal(bookmark);
+    const onEdit = (bookmark) => {
+      const bookmarkClone = { ...bookmark };
+      presentBookmarkModal(bookmarkClone);
+    };
     const onDelete = (bookmark) => {
       deleteBookmark(bookmark);
     };
