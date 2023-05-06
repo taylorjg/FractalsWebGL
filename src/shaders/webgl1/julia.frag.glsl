@@ -1,10 +1,5 @@
 precision highp float;
 
-// Can't use @import anymore - I think it was a feature of the following
-// package which I am no longer using:
-// https://www.npmjs.com/package/webpack-glsl-loader
-// @import ./common;
-
 // Same value as INITIAL_ITERATIONS in constants.js
 const int MAX_ITERATIONS = 128;
 
@@ -26,10 +21,18 @@ vec4 loop(sampler2D colourMap, vec2 z, vec2 c) {
 
 uniform sampler2D uColourMap;
 uniform vec2 uJuliaConstant;
-varying vec2 vRegionPosition;
+
+uniform vec2 uResolution;
+uniform vec2 uRegionBottomLeft;
+uniform vec2 uRegionTopRight;
 
 void main(void) {
-  vec2 z = vRegionPosition;
   vec2 c = uJuliaConstant;
+
+  vec2 dimensions = uRegionTopRight - uRegionBottomLeft;
+  vec2 offset = dimensions * gl_FragCoord.xy / uResolution;
+  offset.y = dimensions.y - offset.y;
+  vec2 z = uRegionBottomLeft + offset;
+
   gl_FragColor = loop(uColourMap, z, c);
 }

@@ -236,13 +236,6 @@ const initialiseShadersHelper = (name, vertexShaderSource, fragmentShaderSource)
   const aVertexPosition = gl.getAttribLocation(program, "aVertexPosition");
   gl.enableVertexAttribArray(aVertexPosition);
 
-  const aRegionPosition = gl.getAttribLocation(program, "aRegionPosition");
-  gl.enableVertexAttribArray(aRegionPosition);
-
-  const regionPositionBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, regionPositionBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, 4 * 2 * 4, gl.DYNAMIC_DRAW);
-
   const uModelViewMatrix = gl.getUniformLocation(program, "uModelViewMatrix");
   const uColourMap = gl.getUniformLocation(program, "uColourMap");
   const uJuliaConstant = gl.getUniformLocation(program, "uJuliaConstant");
@@ -263,17 +256,22 @@ const initialiseShadersHelper = (name, vertexShaderSource, fragmentShaderSource)
   gl.bufferData(gl.ARRAY_BUFFER, vertexPositionBufferData, gl.STATIC_DRAW);
   gl.vertexAttribPointer(aVertexPosition, 2, gl.FLOAT, false, 0, 0);
 
+  const uResolution = gl.getUniformLocation(program, "uResolution");
+  const uRegionBottomLeft = gl.getUniformLocation(program, "uRegionBottomLeft");
+  const uRegionTopRight = gl.getUniformLocation(program, "uRegionTopRight");
+
   return {
     name,
     program,
     aVertexPosition,
-    aRegionPosition,
+    vertexPositionBuffer,
     uModelViewMatrix,
-    ...maybeMaxIterationsUniform,
     uColourMap,
     uJuliaConstant,
-    vertexPositionBuffer,
-    regionPositionBuffer,
+    uResolution,
+    uRegionBottomLeft,
+    uRegionTopRight,
+    ...maybeMaxIterationsUniform,
   };
 };
 
@@ -330,7 +328,7 @@ const makeConfigurationChanges = ({
 
   gl.useProgram(currentFractalSet.program);
 
-  const modelViewMatrix = glm.mat4.fromScaling(glm.mat4.create(), [1, -1, 1]);
+  const modelViewMatrix = glm.mat4.create();
   gl.uniformMatrix4fv(currentFractalSet.uModelViewMatrix, false, modelViewMatrix);
 
   gl.uniform1i(currentFractalSet.uColourMap, currentColourMap.textureUnit);
@@ -342,27 +340,19 @@ const makeConfigurationChanges = ({
   }
 };
 
-const updateRegionPositionBuffer = () => {
+const updateRegionUniforms = () => {
   if (!currentFractalSet) return;
 
-  const { regionPositionBuffer, aRegionPosition } = currentFractalSet;
-
-  // prettier-ignore
-  const regionPositionBufferData = new Float32Array([
-    region.topRight.x, region.topRight.y,
-    region.topLeft.x, region.topLeft.y,
-    region.bottomRight.x, region.bottomRight.y,
-    region.bottomLeft.x, region.bottomLeft.y,
-  ]);
-  gl.bindBuffer(gl.ARRAY_BUFFER, regionPositionBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, regionPositionBufferData, gl.DYNAMIC_DRAW);
-  gl.vertexAttribPointer(aRegionPosition, 2, gl.FLOAT, false, 0, 0);
-  gl.bindBuffer(gl.ARRAY_BUFFER, null);
+  const viewport = gl.getParameter(gl.VIEWPORT);
+  const [, , resolutionWidth, resolutionHeight] = viewport;
+  gl.uniform2f(currentFractalSet.uResolution, resolutionWidth, resolutionHeight);
+  gl.uniform2f(currentFractalSet.uRegionBottomLeft, region.bottomLeft.x, region.bottomLeft.y);
+  gl.uniform2f(currentFractalSet.uRegionTopRight, region.topRight.x, region.topRight.y);
 };
 
 const performRegionUpdate = (thunk) => {
   thunk();
-  updateRegionPositionBuffer();
+  updateRegionUniforms();
 };
 
 const render = () => {
@@ -492,12 +482,14 @@ const onCanvasMouseDownHandler = (e) => {
           fractalSetId: C.FRACTAL_SET_ID_JULIA,
           juliaConstant,
         });
+        updateRegionUniforms();
         render();
         return;
       }
 
       case C.FRACTAL_SET_ID_JULIA:
         makeConfigurationChanges({ fractalSetId: C.FRACTAL_SET_ID_MANDELBROT });
+        updateRegionUniforms();
         render();
         return;
 
