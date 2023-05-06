@@ -4,8 +4,11 @@ Playing around with fractals in a web browser using WebGL.
 
 ## Try It Out
 
+Deployed to `gh-pages` here:
+
 * [Manual Mode](https://taylorjg.github.io/FractalsWebGL?mode=manual)
   * _Allows you to pan and zoom around manually_
+  * _See below for details of the keyboard controls_
 * [Auto Mode](https://taylorjg.github.io/FractalsWebGL)
   * _Shows a different random region every 10 seconds_
 
@@ -30,16 +33,13 @@ Playing around with fractals in a web browser using WebGL.
 
 ## TODO
 
-* ~~Implement panning~~
-* ~~Add more colour maps~~
-* Doesn't work on some browsers (e.g. iPad/Safari) - need to investigate and fix
-* Use `double`s in the shaders ? Would this allow us to zoom in further before we start to get bad pixellation ? Does WebGL support `double`s ?
-* Provide a way to change the number of iterations (currently hardcoded to 120).
-* Add a panel on the side (that slides in/out) to do various things e.g.:
-    * Switch colour maps
-    * Switch fractals
-    * Bookmark interesting fractal regions
-    * etc.
-* Implement the [Barnsley fern](https://en.wikipedia.org/wiki/Barnsley_fern) ?
-* Play around with [Iterated Function Systems](https://en.wikipedia.org/wiki/Iterated_function_system) ?
-* Play around with [Fractal Flames](https://en.wikipedia.org/wiki/Fractal_flame) ?
+These are the main areas of focus for future improvements/additions:
+
+* [ ] Error handling
+* [ ] Logging
+* [ ] Double emulation
+* [ ] UI (react/MUI)
+* [ ] Refactoring/splitting up the code into modules/classes
+* [ ] Gestures/touchscreen support/responsive UI
+* [ ] Finding random interesting regions (using WebGL/UI thread instead of CPU/web worker)
+* [ ] Support for other fractal sets
