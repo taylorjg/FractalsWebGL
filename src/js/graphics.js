@@ -185,10 +185,22 @@ const renderThumbnail = (size, configuration) => {
   return pixels;
 };
 
-const initGL = (canvas) => {
-  gl = canvas.getContext("webgl2") || canvas.getContext("webgl");
-  if (!gl) {
-    console.error("Failed to initialise WebGL");
+const initialiseWebGL = (canvas) => {
+  const tryContextType = (contextType) => {
+    try {
+      gl = canvas.getContext(contextType);
+      if (!gl) {
+        alert(`Failed to initialise WebGL (contextType: ${contextType})`);
+      }
+    } catch (error) {
+      alert(`Exception trying to initialise WebGL (contextType: ${contextType})\n${error.message}`);
+    }
+
+    return Boolean(gl);
+  };
+
+  if (!tryContextType("webgl2")) {
+    tryContextType("webgl");
   }
 };
 
@@ -211,7 +223,7 @@ const ui = configureUI({
   onModalClose,
 });
 
-const getShader = (gl, source, shaderType) => {
+const makeShader = (gl, source, shaderType) => {
   const shader = gl.createShader(shaderType);
   gl.shaderSource(shader, source);
   gl.compileShader(shader);
@@ -223,13 +235,9 @@ const getShader = (gl, source, shaderType) => {
   return shader;
 };
 
-const initShadersHelper = (name, vertexShaderSource, fragmentShaderSource) => {
-  const vertexShader = getShader(gl, vertexShaderSource, gl.VERTEX_SHADER);
-  const fragmentShader = getShader(
-    gl,
-    fragmentShaderSource,
-    gl.FRAGMENT_SHADER
-  );
+const initialiseShadersHelper = (name, vertexShaderSource, fragmentShaderSource) => {
+  const vertexShader = makeShader(gl, vertexShaderSource, gl.VERTEX_SHADER);
+  const fragmentShader = makeShader(gl, fragmentShaderSource, gl.FRAGMENT_SHADER);
   const program = gl.createProgram();
   gl.attachShader(program, vertexShader);
   gl.attachShader(program, fragmentShader);
@@ -284,26 +292,18 @@ const initShadersHelper = (name, vertexShaderSource, fragmentShaderSource) => {
   };
 };
 
-const initShaders = () => {
-  const vertexShaderSource = isWebGL2()
-    ? vertexShaderSourceWebGL2
-    : vertexShaderSourceWebGL1;
+const initialiseShaders = () => {
+  const vertexShaderSource = isWebGL2() ? vertexShaderSourceWebGL2 : vertexShaderSourceWebGL1;
   const mandelbrotShaderSource = isWebGL2()
     ? mandelbrotShaderSourceWebGL2
     : mandelbrotShaderSourceWebGL1;
-  const juliaShaderSource = isWebGL2()
-    ? juliaShaderSourceWebGL2
-    : juliaShaderSourceWebGL1;
-  const mandelbrotSet = initShadersHelper(
+  const juliaShaderSource = isWebGL2() ? juliaShaderSourceWebGL2 : juliaShaderSourceWebGL1;
+  const mandelbrotSet = initialiseShadersHelper(
     "Mandelbrot",
     vertexShaderSource,
     mandelbrotShaderSource
   );
-  const juliaSet = initShadersHelper(
-    "Julia",
-    vertexShaderSource,
-    juliaShaderSource
-  );
+  const juliaSet = initialiseShadersHelper("Julia", vertexShaderSource, juliaShaderSource);
   fractalSets.set(C.FRACTAL_SET_ID_MANDELBROT, mandelbrotSet);
   fractalSets.set(C.FRACTAL_SET_ID_JULIA, juliaSet);
 };
@@ -346,19 +346,11 @@ const makeConfigurationChanges = ({
   gl.useProgram(currentFractalSet.program);
 
   const modelViewMatrix = glm.mat4.fromScaling(glm.mat4.create(), [1, -1, 1]);
-  gl.uniformMatrix4fv(
-    currentFractalSet.uModelViewMatrix,
-    false,
-    modelViewMatrix
-  );
+  gl.uniformMatrix4fv(currentFractalSet.uModelViewMatrix, false, modelViewMatrix);
 
   gl.uniform1i(currentFractalSet.uColourMap, currentColourMap.textureUnit);
 
-  gl.uniform2f(
-    currentFractalSet.uJuliaConstant,
-    currentJuliaConstant.x,
-    currentJuliaConstant.y
-  );
+  gl.uniform2f(currentFractalSet.uJuliaConstant, currentJuliaConstant.x, currentJuliaConstant.y);
 
   if (isWebGL2()) {
     gl.uniform1i(currentFractalSet.uMaxIterations, currentMaxIterations);
@@ -420,8 +412,8 @@ export const startGraphics = async (manualMode) => {
 
   canvas = document.getElementById("canvas");
 
-  initGL(canvas);
-  initShaders();
+  initialiseWebGL(canvas);
+  initialiseShaders();
   loadColourMaps();
 
   window.addEventListener("resize", onWindowResize);
@@ -435,11 +427,11 @@ export const startGraphics = async (manualMode) => {
     loadBookmarks(bookmarks);
     nextBookmarkId = bookmarks.size ? Math.max(...bookmarks.keys()) + 1 : 0;
     switchToBookmark(C.INITIAL_BOOKMARK);
-    updateRegionPositionBuffer();
     setCanvasAndViewportSize();
     render();
   } else {
     displayConfiguration(C.INITIAL_BOOKMARK);
+    setCanvasAndViewportSize();
     const animate = () => {
       performRegionUpdate(() => {
         region.panX(panSpeedX);
@@ -477,11 +469,7 @@ const onWindowResize = () => {
 const onCanvasMouseDownHandler = (e) => {
   const mouseX = e.offsetX;
   const mouseY = e.offsetY;
-  const { regionMouseX, regionMouseY } = region.mouseToRegion(
-    canvas,
-    mouseX,
-    mouseY
-  );
+  const { regionMouseX, regionMouseY } = region.mouseToRegion(canvas, mouseX, mouseY);
 
   if (e.shiftKey) {
     performRegionUpdate(() => {

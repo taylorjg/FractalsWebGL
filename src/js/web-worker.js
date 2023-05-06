@@ -66,10 +66,7 @@ const createRandomConfiguration = (fractalSetIds, colourMapIds) => {
 
 const onChooseConfiguration = (fractalSetIds, colourMapIds) => {
   for (;;) {
-    const configuration = createRandomConfiguration(
-      fractalSetIds,
-      colourMapIds
-    );
+    const configuration = createRandomConfiguration(fractalSetIds, colourMapIds);
     if (isInteresting(configuration)) {
       // console.log("[onChooseConfiguration]", "configuration:", JSON.stringify(configuration, null, 2));
       return configuration;

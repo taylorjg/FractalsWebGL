@@ -1,10 +1,7 @@
 import packageJson from "../package.json";
 
 const webpackManifest = self.__WB_MANIFEST;
-console.log(
-  "[service worker]",
-  `webpackManifest:\n${JSON.stringify(webpackManifest, null, 2)}`
-);
+console.log("[service worker]", `webpackManifest:\n${JSON.stringify(webpackManifest, null, 2)}`);
 
 const webpackManifestUrls = webpackManifest.map(({ url }) => `/${url}`);
 console.log(
@@ -20,10 +17,7 @@ const cdnUrls = [
   "https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.js",
   "https://cdnjs.cloudflare.com/ajax/libs/bootcards/1.1.2/js/bootcards.js",
 ];
-console.log(
-  "[service worker]",
-  `cdnUrls:\n${JSON.stringify(cdnUrls, null, 2)}`
-);
+console.log("[service worker]", `cdnUrls:\n${JSON.stringify(cdnUrls, null, 2)}`);
 
 const CURRENT_CACHE_VERSION = packageJson.version;
 const CURRENT_CACHE_NAME = `cache-v${CURRENT_CACHE_VERSION}`;
@@ -50,8 +44,6 @@ self.addEventListener("activate", async () => {
 
 self.addEventListener("fetch", (event) =>
   event.respondWith(
-    caches
-      .match(event.request)
-      .then((response) => (response ? response : fetch(event.request)))
+    caches.match(event.request).then((response) => (response ? response : fetch(event.request)))
   )
 );

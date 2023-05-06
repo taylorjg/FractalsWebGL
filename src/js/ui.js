@@ -49,9 +49,7 @@ export const configureUI = ({
     const pixels = renderThumbnail(THUMBNAIL_SIZE, bookmark);
     drawThumbnail(pixels, thumbnailCanvas, THUMBNAIL_SIZE);
     $("#name", bookmarkModal).val(bookmark.name).focus();
-    $(".fractal-set", bookmarkModal).text(
-      fractalSets.get(bookmark.fractalSetId).name
-    );
+    $(".fractal-set", bookmarkModal).text(fractalSets.get(bookmark.fractalSetId).name);
     const colourMapSelect = $("#colour-map-select", bookmarkModal).empty();
     for (const [colourMapId, colourMap] of colourMaps) {
       const selected = colourMapId === bookmark.colourMapId ? "selected" : "";
@@ -91,9 +89,7 @@ export const configureUI = ({
     const juliaConstantP = $(".julia-constant", bookmarkModal);
     const juliaConstantDiv = juliaConstantP.closest("div");
     if (bookmark.fractalSetId === C.FRACTAL_SET_ID_JULIA) {
-      juliaConstantP.text(
-        `(${bookmark.juliaConstant.x}, ${bookmark.juliaConstant.y})`
-      );
+      juliaConstantP.text(`(${bookmark.juliaConstant.x}, ${bookmark.juliaConstant.y})`);
       juliaConstantDiv.show();
     } else {
       juliaConstantDiv.hide();
@@ -116,9 +112,7 @@ export const configureUI = ({
     const onDelete = (bookmark) => {
       deleteBookmark(bookmark);
     };
-    const bookmarkRowTemplate = document.getElementById(
-      "bookmark-row-template"
-    );
+    const bookmarkRowTemplate = document.getElementById("bookmark-row-template");
     bookmarks.forEach((bookmark) => {
       const tr = document.importNode(bookmarkRowTemplate.content, true);
       const name = tr.querySelector(":nth-child(2)");
@@ -128,10 +122,7 @@ export const configureUI = ({
       const pixels = renderThumbnail(THUMBNAIL_SIZE, bookmark);
       drawThumbnail(pixels, thumbnailCanvas, THUMBNAIL_SIZE);
       name.innerText = bookmark.name;
-      thumbnailCanvas.addEventListener(
-        "click",
-        invokeHandler(onSwitchTo, bookmark)
-      );
+      thumbnailCanvas.addEventListener("click", invokeHandler(onSwitchTo, bookmark));
       editButton.addEventListener("click", invokeHandler(onEdit, bookmark));
       deleteButton.addEventListener("click", invokeHandler(onDelete, bookmark));
       tbody.append(tr);
