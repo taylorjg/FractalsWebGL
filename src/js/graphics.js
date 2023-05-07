@@ -8,6 +8,7 @@ import * as U from "./utils";
 
 import doubleSingleShaderSource from "../shaders/double-single.glsl";
 import interpolateRegionShaderSource from "../shaders/interpolate-region.glsl";
+import interpolateRegionDsShaderSource from "../shaders/interpolate-region-ds.glsl";
 
 import loopShaderSourceWebGL1 from "../shaders/webgl1/loop.glsl";
 import vertexShaderSourceWebGL1 from "../shaders/webgl1/shader.vert.glsl";
@@ -15,6 +16,7 @@ import mandelbrotShaderSourceWebGL1 from "../shaders/webgl1/mandelbrot.frag.glsl
 import juliaShaderSourceWebGL1 from "../shaders/webgl1/julia.frag.glsl";
 
 import loopShaderSourceWebGL2 from "../shaders/webgl2/loop.glsl";
+import loopDsShaderSourceWebGL2 from "../shaders/webgl2/loop-ds.glsl";
 import vertexShaderSourceWebGL2 from "../shaders/webgl2/shader.vert.glsl";
 import mandelbrotShaderSourceWebGL2 from "../shaders/webgl2/mandelbrot.frag.glsl";
 import juliaShaderSourceWebGL2 from "../shaders/webgl2/julia.frag.glsl";
@@ -224,6 +226,9 @@ const insertCommonShaderSources = (source, commonShaderSources) => {
       const before = source.substring(0, insertPos);
       const after = source.substring(insertPos);
       return before + concatenatedCommonShaderSources + after;
+      // const result = before + concatenatedCommonShaderSources + after;
+      // console.log(result);
+      // return result;
     }
   }
   return source;
@@ -247,7 +252,9 @@ const initialiseShadersHelper = (name, vertexShaderSource, fragmentShaderSource)
   const commonShaderSources = [
     doubleSingleShaderSource,
     interpolateRegionShaderSource,
+    interpolateRegionDsShaderSource,
     loopShaderSource,
+    loopDsShaderSourceWebGL2,
   ];
   const vertexShader = makeShader(gl, vertexShaderSource, gl.VERTEX_SHADER);
   const fragmentShader = makeShader(
@@ -292,6 +299,8 @@ const initialiseShadersHelper = (name, vertexShaderSource, fragmentShaderSource)
   const uResolution = gl.getUniformLocation(program, "uResolution");
   const uRegionBottomLeft = gl.getUniformLocation(program, "uRegionBottomLeft");
   const uRegionTopRight = gl.getUniformLocation(program, "uRegionTopRight");
+  const uRegionBottomLeftDs = gl.getUniformLocation(program, "uRegionBottomLeftDs");
+  const uRegionTopRightDs = gl.getUniformLocation(program, "uRegionTopRightDs");
 
   return {
     name,
@@ -304,6 +313,8 @@ const initialiseShadersHelper = (name, vertexShaderSource, fragmentShaderSource)
     uResolution,
     uRegionBottomLeft,
     uRegionTopRight,
+    uRegionBottomLeftDs,
+    uRegionTopRightDs,
     ...maybeMaxIterationsUniform,
   };
 };
@@ -373,14 +384,39 @@ const makeConfigurationChanges = ({
   }
 };
 
+function doubleToFloat(dbl) {
+  return new Float32Array([dbl])[0];
+}
+
+function splitDouble(dbl) {
+  const high = doubleToFloat(dbl);
+  const low = doubleToFloat(dbl - high);
+  return new Float32Array([high, low]);
+}
+
 const updateRegionUniforms = () => {
   if (!currentFractalSet) return;
 
   const viewport = gl.getParameter(gl.VIEWPORT);
   const [, , resolutionWidth, resolutionHeight] = viewport;
   gl.uniform2f(currentFractalSet.uResolution, resolutionWidth, resolutionHeight);
-  gl.uniform2f(currentFractalSet.uRegionBottomLeft, region.bottomLeft.x, region.bottomLeft.y);
-  gl.uniform2f(currentFractalSet.uRegionTopRight, region.topRight.x, region.topRight.y);
+
+  const bottomLeft = region.bottomLeft;
+  const topRight = region.topRight;
+
+  gl.uniform2f(currentFractalSet.uRegionBottomLeft, bottomLeft.x, bottomLeft.y);
+  gl.uniform2f(currentFractalSet.uRegionTopRight, topRight.x, topRight.y);
+
+  gl.uniform4f(
+    currentFractalSet.uRegionBottomLeftDs,
+    ...splitDouble(bottomLeft.x),
+    ...splitDouble(bottomLeft.y)
+  );
+  gl.uniform4f(
+    currentFractalSet.uRegionTopRightDs,
+    ...splitDouble(topRight.x),
+    ...splitDouble(topRight.y)
+  );
 };
 
 const performRegionUpdate = (thunk) => {

@@ -1,10 +1,7 @@
 // https://blog.cyclemap.link/2011-06-09-glsl-part2-emu/
 
 vec2 ds_set(float a) {
-  vec2 z;
-  z.x = a;
-  z.y = 0.0;
-  return z;
+  return vec2(a, 0.0);
 }
 
 vec2 ds_add(vec2 dsa, vec2 dsb) {
@@ -45,4 +42,17 @@ vec2 ds_mul(vec2 dsa, vec2 dsb) {
   dsc.y = t2 - (dsc.x - t1);
 
   return dsc;
+}
+
+vec2 ds_sub(vec2 dsa, vec2 dsb) {
+  return ds_add(dsa, ds_mul(ds_set(-1.0), dsb));
+}
+
+int ds_compare(vec2 dsa, vec2 dsb) {
+  if (dsa.x < dsb.x) return -1;
+  if (dsa.x == dsb.x) {
+    if (dsa.y < dsb.y) return -1;
+    if (dsa.y == dsb.y) return 0;
+  }
+  return 1;
 }

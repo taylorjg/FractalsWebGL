@@ -8,7 +8,7 @@ uniform sampler2D uColourMap;
 out vec4 fragColor;
 
 void main(void) {
-  vec2 z;
-  vec2 c = interpolateRegion();
-  fragColor = loop(uMaxIterations, uColourMap, z, c);
+  vec4 zDs = vec4(ds_set(0.0), ds_set(0.0));
+  vec4 cDs = interpolateRegionDs();
+  fragColor = loopDs(uMaxIterations, uColourMap, zDs, cDs);
 }
