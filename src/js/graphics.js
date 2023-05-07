@@ -19,6 +19,7 @@ import juliaShaderSourceWebGL2 from "../shaders/webgl2/julia.frag.glsl";
 const worker = new Worker(new URL("./web-worker.js", import.meta.url));
 const promiseWorker = new PromiseWorker(worker);
 
+let queryParamOptions;
 let canvas;
 let gl;
 let isWebGL2 = false;
@@ -189,6 +190,16 @@ const renderThumbnail = (size, configuration) => {
   return pixels;
 };
 
+const CONTEXT_TYPE_EXPERIMENTAL_WEBGL = "experimental-webgl";
+const CONTEXT_TYPE_WEBGL = "webgl";
+const CONTEXT_TYPE_WEBGL_2 = "webgl2";
+
+const VALID_CONTEXT_TYPES = [
+  CONTEXT_TYPE_EXPERIMENTAL_WEBGL,
+  CONTEXT_TYPE_WEBGL,
+  CONTEXT_TYPE_WEBGL_2,
+];
+
 const initialiseWebGL = (canvas) => {
   const tryContextType = (contextType) => {
     try {
@@ -200,13 +211,25 @@ const initialiseWebGL = (canvas) => {
       alert(`Exception trying to initialise WebGL (contextType: ${contextType})\n${error.message}`);
     }
 
-    return Boolean(gl);
+    const result = Boolean(gl);
+
+    if (result) {
+      if (contextType === CONTEXT_TYPE_WEBGL_2) {
+        isWebGL2 = true;
+      }
+    }
+
+    return result;
   };
 
-  if (tryContextType("webgl2")) {
-    isWebGL2 = true;
-  } else {
-    tryContextType("webgl");
+  const contextTypeToTryFirst = VALID_CONTEXT_TYPES.includes(queryParamOptions.contextType)
+    ? queryParamOptions.contextType
+    : CONTEXT_TYPE_WEBGL_2;
+
+  if (!tryContextType(contextTypeToTryFirst)) {
+    if (contextTypeToTryFirst !== CONTEXT_TYPE_WEBGL) {
+      tryContextType(CONTEXT_TYPE_WEBGL);
+    }
   }
 };
 
@@ -411,7 +434,9 @@ const displayConfiguration = async (configuration) => {
   setTimeout(displayConfiguration, 10000, newConfiguration);
 };
 
-export const startGraphics = async (manualMode) => {
+export const startGraphics = async (queryParamOptionsArg) => {
+  queryParamOptions = queryParamOptionsArg;
+
   // Turning off the service worker for the moment. Not quite happy with it yet.
   // if ('serviceWorker' in navigator) {
   //   try {
@@ -447,7 +472,7 @@ export const startGraphics = async (manualMode) => {
 
   window.addEventListener("resize", onWindowResize);
 
-  if (manualMode) {
+  if (queryParamOptions.manualMode) {
     canvas.addEventListener("mousedown", onCanvasMouseDownHandler);
     canvas.addEventListener("mousemove", onCanvasMouseMoveHandler);
     canvas.addEventListener("mouseup", onCanvasMouseUpHandler);
