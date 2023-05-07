@@ -83,6 +83,9 @@ let panSpeedX = 0;
 let panSpeedY = 0;
 let zoomSpeed = 0;
 let panning = false;
+let selectingRegion = false;
+let selectingRegionInitialPt = undefined;
+let selectingRegionCurrentPt = undefined;
 let lastMousePt;
 let bookmarkMode = false;
 let bookmarks = new Map();
@@ -524,6 +527,13 @@ const onCanvasMouseDownHandler = (e) => {
   const mouseY = e.offsetY;
   const { regionMouseX, regionMouseY } = region.mouseToRegion(canvas, mouseX, mouseY);
 
+  if (e.metaKey) {
+    selectingRegion = true;
+    selectingRegionInitialPt = { mouseX, mouseY };
+    selectingRegionCurrentPt = { mouseX, mouseY };
+    return;
+  }
+
   if (e.shiftKey) {
     performRegionUpdate(() => {
       region.recentre(regionMouseX, regionMouseY);
@@ -561,28 +571,61 @@ const onCanvasMouseDownHandler = (e) => {
 };
 
 const onCanvasMouseMoveHandler = (e) => {
-  if (!panning) return;
-
   const mouseX = e.offsetX;
   const mouseY = e.offsetY;
 
-  performRegionUpdate(() => {
-    const mouseDeltaX = mouseX - lastMousePt.mouseX;
-    const mouseDeltaY = mouseY - lastMousePt.mouseY;
-    region.drag(canvas, mouseDeltaX, mouseDeltaY);
-  });
+  if (panning) {
+    performRegionUpdate(() => {
+      const mouseDeltaX = mouseX - lastMousePt.mouseX;
+      const mouseDeltaY = mouseY - lastMousePt.mouseY;
+      region.drag(canvas, mouseDeltaX, mouseDeltaY);
+    });
+    render();
+    lastMousePt = { mouseX, mouseY };
+    return;
+  }
 
-  render();
-
-  lastMousePt = { mouseX, mouseY };
+  if (selectingRegion) {
+    selectingRegionCurrentPt = { mouseX, mouseY };
+    // TODO: draw rubberband rectangle region
+    // add a separate canvas overlay and draw using the "2d" context of this canvas overlay
+    return;
+  }
 };
 
 const onCanvasMouseUpHandler = () => {
   panning = false;
+
+  if (selectingRegion) {
+    const initialPt = selectingRegionInitialPt;
+    const currentPt = selectingRegionCurrentPt;
+    const topMouseY = Math.max(initialPt.mouseY, currentPt.mouseY);
+    const bottomMouseY = Math.min(initialPt.mouseY, currentPt.mouseY);
+    const leftMouseX = Math.min(initialPt.mouseX, currentPt.mouseX);
+    const rightMouseX = Math.max(initialPt.mouseX, currentPt.mouseX);
+    const regionMouseBottomLeft = region.mouseToRegion(canvas, leftMouseX, bottomMouseY);
+    const regionMouseTopRight = region.mouseToRegion(canvas, rightMouseX, topMouseY);
+    const bottomLeft = {
+      x: regionMouseBottomLeft.regionMouseX,
+      y: regionMouseBottomLeft.regionMouseY,
+    };
+    const topRight = { x: regionMouseTopRight.regionMouseX, y: regionMouseTopRight.regionMouseY };
+    performRegionUpdate(() => {
+      region.set(bottomLeft, topRight);
+    });
+    setCanvasAndViewportSize();
+    render();
+    selectingRegion = false;
+  }
 };
 
 const onCanvasMouseLeaveHandler = () => {
   panning = false;
+  selectingRegion = false;
+  selectingRegionInitialPt = undefined;
+  selectingRegionCurrentPt = undefined;
+  // anything else to cleanup/cancel re selectingRegion ?
+  // there will be when we are drawing the rubberband rectangle region
 };
 
 const onDocumentKeyDownHandler = (e) => {
