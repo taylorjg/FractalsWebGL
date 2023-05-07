@@ -19,8 +19,12 @@ import juliaShaderSourceWebGL2 from "../shaders/webgl2/julia.frag.glsl";
 const worker = new Worker(new URL("./web-worker.js", import.meta.url));
 const promiseWorker = new PromiseWorker(worker);
 
+const RUBBER_BAND_RECT_THICKNESS = 2;
+const RUBBER_BAND_RECT_COLOUR = "#FFFFFF80";
+
 let queryParamOptions;
 let canvas;
+let overlay;
 let gl;
 let isWebGL2 = false;
 let ui;
@@ -451,6 +455,7 @@ export const startGraphics = async (queryParamOptionsArg) => {
   // }
 
   canvas = document.getElementById("canvas");
+  overlay = document.getElementById("overlay");
 
   initialiseWebGL(canvas);
   initialiseShaders();
@@ -508,6 +513,8 @@ const setCanvasAndViewportSize = (explicitWidth, explicitHeight) => {
   if (!explicitWidth && !explicitHeight) {
     canvas.width = width;
     canvas.height = height;
+    overlay.width = width;
+    overlay.height = height;
   }
 
   gl.viewport(0, 0, width, height);
@@ -587,13 +594,27 @@ const onCanvasMouseMoveHandler = (e) => {
 
   if (selectingRegion) {
     selectingRegionCurrentPt = { mouseX, mouseY };
-    // TODO: draw rubberband rectangle region
-    // add a separate canvas overlay and draw using the "2d" context of this canvas overlay
+    const initialPt = selectingRegionInitialPt;
+    const currentPt = selectingRegionCurrentPt;
+    const topMouseY = Math.max(initialPt.mouseY, currentPt.mouseY);
+    const bottomMouseY = Math.min(initialPt.mouseY, currentPt.mouseY);
+    const leftMouseX = Math.min(initialPt.mouseX, currentPt.mouseX);
+    const rightMouseX = Math.max(initialPt.mouseX, currentPt.mouseX);
+    const rubberBandRectWidth = rightMouseX - leftMouseX;
+    const rubberBandRectHeight = topMouseY - bottomMouseY;
+
+    const ctx2d = overlay.getContext("2d");
+    ctx2d.clearRect(0, 0, ctx2d.canvas.width, ctx2d.canvas.height);
+    ctx2d.lineWidth = RUBBER_BAND_RECT_THICKNESS;
+    ctx2d.strokeStyle = RUBBER_BAND_RECT_COLOUR;
+    ctx2d.strokeRect(leftMouseX, bottomMouseY, rubberBandRectWidth, rubberBandRectHeight);
+
     return;
   }
 };
 
 const onCanvasMouseUpHandler = () => {
+  console.log("onCanvasMouseUpHandler");
   panning = false;
 
   if (selectingRegion) {
@@ -615,17 +636,26 @@ const onCanvasMouseUpHandler = () => {
     });
     setCanvasAndViewportSize();
     render();
+
+    const ctx2d = overlay.getContext("2d");
+    ctx2d.clearRect(0, 0, ctx2d.canvas.width, ctx2d.canvas.height);
+
     selectingRegion = false;
   }
 };
 
 const onCanvasMouseLeaveHandler = () => {
-  panning = false;
-  selectingRegion = false;
-  selectingRegionInitialPt = undefined;
-  selectingRegionCurrentPt = undefined;
-  // anything else to cleanup/cancel re selectingRegion ?
-  // there will be when we are drawing the rubberband rectangle region
+  if (panning) {
+    panning = false;
+  }
+
+  if (selectingRegion) {
+    const ctx2d = overlay.getContext("2d");
+    ctx2d.clearRect(0, 0, ctx2d.canvas.width, ctx2d.canvas.height);
+    selectingRegionInitialPt = undefined;
+    selectingRegionCurrentPt = undefined;
+    selectingRegion = false;
+  }
 };
 
 const onDocumentKeyDownHandler = (e) => {

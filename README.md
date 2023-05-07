@@ -4,7 +4,7 @@ Playing around with fractals in a web browser using WebGL.
 
 ## Try It Out
 
-Deployed to `gh-pages` here:
+I have deployed this web app to `gh-pages`. Use one of these links to launch it:
 
 * [Manual Mode](https://taylorjg.github.io/FractalsWebGL?mode=manual)
   * _Allows you to pan and zoom around manually_
@@ -12,8 +12,10 @@ Deployed to `gh-pages` here:
 * [Auto Mode](https://taylorjg.github.io/FractalsWebGL)
   * _Shows a different random region every 10 seconds_
 
-## Controls (Manual Mode)
+## Keyboard Controls (Manual Mode)
 
+* Meta + Left Click
+    * _Select a region_
 * Shift + Left Click
     * _Re-centre on the clicked point (maintain current zoom level)._
 * Alt + Left Click
@@ -30,6 +32,10 @@ Deployed to `gh-pages` here:
     * _Cycle forwards through the colour maps._
 * SHIFT + CTRL + `c`
     * _Cycle backwards through the colour maps._
+
+## Touchscreen Controls (Manual Mode)
+
+I'm still thinking about how to do this.
 
 ## TODO
 
