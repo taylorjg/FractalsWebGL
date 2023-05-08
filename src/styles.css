@@ -36,13 +36,12 @@ html, body {
 
 #configurationSummary {
   font-size: x-small;
-  width: 100%;
-  display: flex;
-  justify-content: center;
+  text-align: center;
   position: fixed;
   bottom: 0;
-  left: 0;
-  padding: 0.5rem 1rem;
+  width: 100%;
+  margin: 0;
+  padding: 0.5rem 2rem;
   background-color: rgba(128, 128, 128, 0.5);
   color: white;
 }

@@ -3,12 +3,16 @@ import * as C from "./constants";
 const RUBBER_BAND_RECT_THICKNESS = 2;
 const RUBBER_BAND_RECT_COLOUR = "#FFFFFF80";
 
+const CONFIGURATION_SUMMARY_TIMEOUT = 5000;
+
 export const configureOverlay = ({ fractalSets, colourMaps }) => {
   const canvasOverlay = document.getElementById("canvasOverlay");
   const canvasOverlayCtx2d = canvasOverlay.getContext("2d");
 
   const divOverlay = document.getElementById("divOverlay");
   const configurationSummary = document.getElementById("configurationSummary");
+  let configurationSummaryForcedOn = false;
+  let configurationSummaryTimer = undefined;
 
   const setSize = (width, height) => {
     canvasOverlay.width = width;
@@ -38,7 +42,7 @@ export const configureOverlay = ({ fractalSets, colourMaps }) => {
     return `(${x}, ${y})`;
   };
 
-  const showConfigurationSummary = (configuration) => {
+  const setConfigurationSummaryText = (configuration) => {
     const juliaConstant =
       configuration.fractalSetId === C.FRACTAL_SET_ID_JULIA
         ? formatCoords(configuration.juliaConstant)
@@ -54,11 +58,56 @@ export const configureOverlay = ({ fractalSets, colourMaps }) => {
       configuration.maxIterations,
     ];
     configurationSummary.innerText = bits.filter(Boolean).join(" | ");
-    configurationSummary.style.display = "flex";
+  };
+
+  const makeConfigurationSummaryVisible = () => {
+    configurationSummary.style.display = "block";
+  };
+
+  const makeConfigurationSummaryInvisible = () => {
+    configurationSummary.style.display = "none";
+  };
+
+  const showConfigurationSummary = (configuration) => {
+    setConfigurationSummaryText(configuration);
+    makeConfigurationSummaryVisible();
+    setConfigurationSummaryForcedOn();
   };
 
   const hideConfigurationSummary = () => {
-    configurationSummary.style.display = "none";
+    makeConfigurationSummaryInvisible();
+    resetConfigurationSummaryForcedOn();
+  };
+
+  const updateConfigurationSummary = (configuration) => {
+    setConfigurationSummaryText(configuration);
+    if (!configurationSummaryForcedOn) {
+      startConfigurationSummaryTimer();
+    }
+  };
+
+  const setConfigurationSummaryForcedOn = () => {
+    killConfigurationSummaryTimer();
+    configurationSummaryForcedOn = true;
+  };
+
+  const resetConfigurationSummaryForcedOn = () => {
+    killConfigurationSummaryTimer();
+    configurationSummaryForcedOn = false;
+  };
+
+  const startConfigurationSummaryTimer = () => {
+    makeConfigurationSummaryVisible();
+    killConfigurationSummaryTimer();
+    configurationSummaryTimer = setTimeout(() => {
+      makeConfigurationSummaryInvisible();
+      configurationSummaryTimer = undefined;
+    }, CONFIGURATION_SUMMARY_TIMEOUT);
+  };
+
+  const killConfigurationSummaryTimer = () => {
+    clearTimeout(configurationSummaryTimer);
+    configurationSummaryTimer = undefined;
   };
 
   return {
@@ -67,5 +116,6 @@ export const configureOverlay = ({ fractalSets, colourMaps }) => {
     clearSelectionRegion,
     showConfigurationSummary,
     hideConfigurationSummary,
+    updateConfigurationSummary,
   };
 };

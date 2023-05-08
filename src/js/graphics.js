@@ -373,8 +373,9 @@ const performRegionUpdate = (thunk) => {
 
 const render = () => {
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
   if (queryParamOptions.manualMode) {
-    showConfigurationSummary();
+    updateConfigurationSummary();
   }
 };
 
@@ -689,6 +690,11 @@ const showConfigurationSummary = () => {
   const configuration = createBookmark();
   overlay.showConfigurationSummary(configuration);
   configurationSummaryOpen = true;
+};
+
+const updateConfigurationSummary = () => {
+  const configuration = createBookmark();
+  overlay.updateConfigurationSummary(configuration);
 };
 
 const handleBookmarkKeys = (e) => {
