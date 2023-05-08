@@ -2,6 +2,7 @@ import colormap from "colormap";
 import * as glm from "gl-matrix";
 import PromiseWorker from "promise-worker";
 import { configureUI } from "./ui";
+import { configureOverlay } from "./overlay";
 import { Region } from "./region";
 import * as C from "./constants";
 import * as U from "./utils";
@@ -455,7 +456,7 @@ export const startGraphics = async (queryParamOptionsArg) => {
   // }
 
   canvas = document.getElementById("canvas");
-  overlay = document.getElementById("overlay");
+  overlay = configureOverlay();
 
   initialiseWebGL(canvas);
   initialiseShaders();
@@ -513,8 +514,7 @@ const setCanvasAndViewportSize = (explicitWidth, explicitHeight) => {
   if (!explicitWidth && !explicitHeight) {
     canvas.width = width;
     canvas.height = height;
-    overlay.width = width;
-    overlay.height = height;
+    overlay.setSize(width, height);
   }
 
   gl.viewport(0, 0, width, height);
@@ -594,21 +594,12 @@ const onCanvasMouseMoveHandler = (e) => {
 
   if (selectingRegion) {
     selectingRegionCurrentPt = { mouseX, mouseY };
-    const initialPt = selectingRegionInitialPt;
-    const currentPt = selectingRegionCurrentPt;
-    const topMouseY = Math.max(initialPt.mouseY, currentPt.mouseY);
-    const bottomMouseY = Math.min(initialPt.mouseY, currentPt.mouseY);
-    const leftMouseX = Math.min(initialPt.mouseX, currentPt.mouseX);
-    const rightMouseX = Math.max(initialPt.mouseX, currentPt.mouseX);
-    const rubberBandRectWidth = rightMouseX - leftMouseX;
-    const rubberBandRectHeight = topMouseY - bottomMouseY;
-
-    const ctx2d = overlay.getContext("2d");
-    ctx2d.clearRect(0, 0, ctx2d.canvas.width, ctx2d.canvas.height);
-    ctx2d.lineWidth = RUBBER_BAND_RECT_THICKNESS;
-    ctx2d.strokeStyle = RUBBER_BAND_RECT_COLOUR;
-    ctx2d.strokeRect(leftMouseX, bottomMouseY, rubberBandRectWidth, rubberBandRectHeight);
-
+    overlay.drawSelectionRegion(
+      selectingRegionInitialPt.mouseX,
+      selectingRegionInitialPt.mouseY,
+      selectingRegionCurrentPt.mouseX,
+      selectingRegionCurrentPt.mouseY
+    );
     return;
   }
 };
@@ -637,8 +628,7 @@ const onCanvasMouseUpHandler = () => {
     setCanvasAndViewportSize();
     render();
 
-    const ctx2d = overlay.getContext("2d");
-    ctx2d.clearRect(0, 0, ctx2d.canvas.width, ctx2d.canvas.height);
+    overlay.clearSelectionRegion();
 
     selectingRegion = false;
   }
@@ -650,8 +640,7 @@ const onCanvasMouseLeaveHandler = () => {
   }
 
   if (selectingRegion) {
-    const ctx2d = overlay.getContext("2d");
-    ctx2d.clearRect(0, 0, ctx2d.canvas.width, ctx2d.canvas.height);
+    overlay.clearSelectionRegion();
     selectingRegionInitialPt = undefined;
     selectingRegionCurrentPt = undefined;
     selectingRegion = false;
