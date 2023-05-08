@@ -382,6 +382,7 @@ const render = () => {
 const displayConfiguration = async (configuration) => {
   switchToBookmark(configuration);
   setCanvasAndViewportSize();
+  updateConfigurationSummary(configuration);
 
   panSpeedX = configuration.panSpeedX ?? U.randomPanSpeed();
   panSpeedY = configuration.panSpeedY ?? U.randomPanSpeed();
