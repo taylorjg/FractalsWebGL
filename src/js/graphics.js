@@ -3,6 +3,7 @@ import * as glm from "gl-matrix";
 import PromiseWorker from "promise-worker";
 import { configureUI } from "./ui";
 import { configureOverlay } from "./overlay";
+import { configureThumbnail } from "./thumbnail";
 import { Region } from "./region";
 import * as C from "./constants";
 import * as U from "./utils";
@@ -20,12 +21,10 @@ import juliaShaderSourceWebGL2 from "../shaders/webgl2/julia.frag.glsl";
 const worker = new Worker(new URL("./web-worker.js", import.meta.url));
 const promiseWorker = new PromiseWorker(worker);
 
-const RUBBER_BAND_RECT_THICKNESS = 2;
-const RUBBER_BAND_RECT_COLOUR = "#FFFFFF80";
-
 let queryParamOptions;
 let canvas;
 let overlay;
+let thumbnail;
 let gl;
 let isWebGL2 = false;
 let ui;
@@ -146,56 +145,6 @@ const createBookmark = (name) => ({
 // Implies all configuration values are being changed.
 const switchToBookmark = (bookmark) => {
   makeConfigurationChanges(bookmark);
-};
-
-// https://webglfundamentals.org/webgl/lessons/webgl-render-to-texture.html
-// https://stackoverflow.com/a/13640310
-const renderThumbnail = (size, configuration) => {
-  const texture = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, texture);
-
-  gl.texImage2D(
-    gl.TEXTURE_2D, // target
-    0, // level
-    gl.RGBA, // internalFormat
-    size, // width
-    size, // height
-    0, // border
-    gl.RGBA, // format
-    gl.UNSIGNED_BYTE, // type
-    null // pixels
-  );
-
-  const fb = gl.createFramebuffer();
-  gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
-
-  gl.framebufferTexture2D(
-    gl.FRAMEBUFFER, // target
-    gl.COLOR_ATTACHMENT0, // attachment
-    gl.TEXTURE_2D, // texture target
-    texture, // texture
-    0 // level
-  );
-
-  const savedConfiguration = createBookmark("saved-configuration");
-  switchToBookmark(configuration);
-  setCanvasAndViewportSize(size, size);
-
-  render();
-
-  const pixels = new Uint8ClampedArray(size * size * 4);
-  gl.readPixels(0, 0, size, size, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
-
-  switchToBookmark(savedConfiguration);
-  setCanvasAndViewportSize();
-
-  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-  gl.deleteFramebuffer(fb);
-
-  gl.bindTexture(gl.TEXTURE_2D, null);
-  gl.deleteTexture(texture);
-
-  return pixels;
 };
 
 const CONTEXT_TYPE_EXPERIMENTAL_WEBGL = "experimental-webgl";
@@ -462,9 +411,17 @@ export const startGraphics = async (queryParamOptionsArg) => {
   initialiseShaders();
   loadColourMaps();
 
+  thumbnail = configureThumbnail({
+    gl,
+    createBookmark,
+    switchToBookmark,
+    setCanvasAndViewportSize,
+    render,
+  });
+
   ui = configureUI({
     isWebGL2,
-    renderThumbnail,
+    renderThumbnail: thumbnail.renderThumbnail,
     addBookmark,
     updateBookmark,
     deleteBookmark,
@@ -605,7 +562,6 @@ const onCanvasMouseMoveHandler = (e) => {
 };
 
 const onCanvasMouseUpHandler = () => {
-  console.log("onCanvasMouseUpHandler");
   panning = false;
 
   if (selectingRegion) {
