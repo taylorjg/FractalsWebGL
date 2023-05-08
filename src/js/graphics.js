@@ -95,6 +95,7 @@ let bookmarkMode = false;
 let bookmarks = new Map();
 let nextBookmarkId = 0;
 let modalOpen = false;
+let configurationSummaryOpen = false;
 
 const onModalOpen = () => {
   modalOpen = true;
@@ -372,6 +373,9 @@ const performRegionUpdate = (thunk) => {
 
 const render = () => {
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  if (queryParamOptions.manualMode) {
+    showConfigurationSummary();
+  }
 };
 
 const displayConfiguration = async (configuration) => {
@@ -405,11 +409,15 @@ export const startGraphics = async (queryParamOptionsArg) => {
   // }
 
   canvas = document.getElementById("canvas");
-  overlay = configureOverlay();
 
   initialiseWebGL(canvas);
   initialiseShaders();
   loadColourMaps();
+
+  overlay = configureOverlay({
+    fractalSets,
+    colourMaps,
+  });
 
   thumbnail = configureThumbnail({
     gl,
@@ -662,6 +670,25 @@ const onDocumentKeyDownHandler = (e) => {
       return;
     }
   }
+
+  if (e.key === "v" || e.key === "V") {
+    if (configurationSummaryOpen) {
+      hideConfigurationSummary();
+    } else {
+      showConfigurationSummary();
+    }
+  }
+};
+
+const hideConfigurationSummary = () => {
+  overlay.hideConfigurationSummary();
+  configurationSummaryOpen = false;
+};
+
+const showConfigurationSummary = () => {
+  const configuration = createBookmark();
+  overlay.showConfigurationSummary(configuration);
+  configurationSummaryOpen = true;
 };
 
 const handleBookmarkKeys = (e) => {
