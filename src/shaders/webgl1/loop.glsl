@@ -14,10 +14,10 @@ vec4 loop(sampler2D colourMap, vec2 z, vec2 c) {
     z = zSquared + c;
   }
 
-  int colourMapIndex = (COLOUR_MAP_SIZE - 1) * iteration / MAX_ITERATIONS;
-  float colourMapEntryMidPoint = 1.0 / float(COLOUR_MAP_SIZE) / 2.0;
-  float n = float(colourMapIndex);
-  float s = (2.0 * n + 1.0) * colourMapEntryMidPoint;
+  // http://linas.org/art-gallery/escape/escape.html
+  float smoothedIteration = float(iteration) - log(log(length(z))) / log(2.0);
+
+  float s = smoothedIteration / float(MAX_ITERATIONS);
   float t = 0.5;
   vec2 textureCoords = vec2(s, t);
   return texture2D(colourMap, textureCoords);
