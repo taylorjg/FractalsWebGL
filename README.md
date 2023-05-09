@@ -32,6 +32,9 @@ I have deployed this web app to `gh-pages`. Use one of these links to launch it:
   * _Cycle forwards through the colour maps._
 * SHIFT + `c`
   * _Cycle backwards through the colour maps._
+* `s`
+  * _Toggle on/off the use of smooth colouring_
+  * _See [Renormalizing the Mandelbrot Escape](http://linas.org/art-gallery/escape/escape.html)_
 * `v`
   * _Toggle on/off a summary of the current configuration at the bottom of the screen_
   * _Even when toggled off, the summary will be shown for 5 seconds each time an action is taken_

@@ -98,6 +98,7 @@ let bookmarks = new Map();
 let nextBookmarkId = 0;
 let modalOpen = false;
 let configurationSummaryOpen = false;
+let smoothColouring = true;
 
 const onModalOpen = () => {
   modalOpen = true;
@@ -255,6 +256,8 @@ const initialiseShadersHelper = (name, vertexShaderSource, fragmentShaderSource)
   const uColourMap = gl.getUniformLocation(program, "uColourMap");
   const uJuliaConstant = gl.getUniformLocation(program, "uJuliaConstant");
 
+  const uSmoothColouring = gl.getUniformLocation(program, "uSmoothColouring");
+
   const maybeMaxIterationsUniform = isWebGL2
     ? { uMaxIterations: gl.getUniformLocation(program, "uMaxIterations") }
     : undefined;
@@ -280,6 +283,7 @@ const initialiseShadersHelper = (name, vertexShaderSource, fragmentShaderSource)
     ...maybeMaxIterationsUniform,
     uColourMap,
     uJuliaConstant,
+    uSmoothColouring,
     vertexPositionBuffer,
     regionPositionBuffer,
   };
@@ -344,6 +348,8 @@ const makeConfigurationChanges = ({
   gl.uniform1i(currentFractalSet.uColourMap, currentColourMap.textureUnit);
 
   gl.uniform2f(currentFractalSet.uJuliaConstant, currentJuliaConstant.x, currentJuliaConstant.y);
+
+  gl.uniform1i(currentFractalSet.uSmoothColouring, smoothColouring);
 
   if (isWebGL2) {
     gl.uniform1i(currentFractalSet.uMaxIterations, currentMaxIterations);
@@ -673,6 +679,12 @@ const onDocumentKeyDownHandler = (e) => {
       render();
       return;
     }
+  }
+
+  if (e.key === "s") {
+    smoothColouring = !smoothColouring;
+    makeConfigurationChanges({});
+    render();
   }
 
   if (e.key === "v") {

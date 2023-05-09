@@ -3,6 +3,8 @@ const int MAX_ITERATIONS = 128;
 
 const int COLOUR_MAP_SIZE = 256;
 
+uniform int uSmoothColouring;
+
 vec4 loop(sampler2D colourMap, vec2 z, vec2 c) {
   int iteration = MAX_ITERATIONS;
   for (int i = 0; i < MAX_ITERATIONS; i++) {
@@ -21,9 +23,11 @@ vec4 loop(sampler2D colourMap, vec2 z, vec2 c) {
   }
 
   // http://linas.org/art-gallery/escape/escape.html
-  float smoothedIteration = float(iteration) - log(log(length(z))) / log(2.0);
+  float possiblySmoothedIteration = uSmoothColouring > 0
+    ? float(iteration) - log(log(length(z))) / log(2.0)
+    : float(iteration);
 
-  float s = smoothedIteration / float(MAX_ITERATIONS);
+  float s = possiblySmoothedIteration / float(MAX_ITERATIONS);
   float t = 0.5;
   vec2 textureCoords = vec2(s, t);
   return texture2D(colourMap, textureCoords);
