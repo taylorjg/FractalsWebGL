@@ -643,14 +643,14 @@ const onDocumentKeyDownHandler = (e) => {
     return;
   }
 
-  if (e.key === "h" && e.ctrlKey) {
+  if (e.key === "h") {
     switchToBookmark(C.HOME_BOOKMARK);
     setCanvasAndViewportSize();
     render();
     return;
   }
 
-  if ((e.key === "c" || e.key === "C") && e.ctrlKey) {
+  if (e.key === "c" || e.key === "C") {
     const keys = Array.from(colourMaps.keys());
     const maxIndex = keys.length;
     const oldIndex = keys.indexOf(currentColourMapId);
@@ -675,7 +675,7 @@ const onDocumentKeyDownHandler = (e) => {
     }
   }
 
-  if (e.key === "v" || e.key === "V") {
+  if (e.key === "v") {
     if (configurationSummaryOpen) {
       hideConfigurationSummary();
     } else {

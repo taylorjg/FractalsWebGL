@@ -15,23 +15,26 @@ I have deployed this web app to `gh-pages`. Use one of these links to launch it:
 ## Keyboard Controls (Manual Mode)
 
 * Meta + Left Click
-    * _Select a region_
+  * _Select a region_
 * Shift + Left Click
-    * _Re-centre on the clicked point (maintain current zoom level)._
+  * _Re-centre on the clicked point (maintain current zoom level)._
 * Alt + Left Click
-    * _Toggle between the Mandelbrot Set and the Julia Set (initally, Mandelbrot Set). When switching to the Julia Set, the clicked point provides the value for `c`._
+  * _Toggle between the Mandelbrot Set and the Julia Set (initally, Mandelbrot Set). When switching to the Julia Set, the clicked point provides the value for `c`._
 * Left Click and drag around
-    * _Pan around the region._
+  * _Pan around the region._
 * `+`
-    * _Increase the zoom level._
+  * _Increase the zoom level._
 * `-`
-    * _Decrease the zoom level._
-* CTRL + `h`
-    * _Home - switch to the Mandelbrot Set, reset the region (bottom left: `(-2.25, -1.5)`, top right: `(0.75, 1.5)`) and restore the default colour map ('jet')._
-* CTRL + `c`
-    * _Cycle forwards through the colour maps._
-* SHIFT + CTRL + `c`
-    * _Cycle backwards through the colour maps._
+  * _Decrease the zoom level._
+* `h`
+  * _Home - switch to the Mandelbrot Set, reset the region (bottom left: `(-2.25, -1.5)`, top right: `(0.75, 1.5)`) and restore the default colour map ('jet')._
+* `c`
+  * _Cycle forwards through the colour maps._
+* SHIFT + `c`
+  * _Cycle backwards through the colour maps._
+* `v`
+  * _Toggle on/off a summary of the current configuration at the bottom of the screen_
+  * _Even when toggled off, the summary will be shown for 5 seconds each time an action is taken_
 
 ## Touchscreen Controls (Manual Mode)
 
