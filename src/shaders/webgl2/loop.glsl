@@ -12,7 +12,7 @@ vec4 loop(int maxIterations, sampler2D colourMap, vec2 z, vec2 c) {
   }
 
   float possiblySmoothedIteration = uSmoothColouring > 0
-    ? float(iteration) - log(log(length(z))) / log(2.0)
+    ? float(iteration) - clamp(log(log(length(z))) / log(2.0), -1.0, 1.0)
     : float(iteration);
 
   float s = possiblySmoothedIteration / float(maxIterations);

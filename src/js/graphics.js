@@ -238,7 +238,13 @@ const initialiseShadersHelper = (name, vertexShaderSource, fragmentShaderSource)
   gl.linkProgram(program);
   if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
     const errorMessage = gl.getProgramInfoLog(program);
-    console.error(`Could not initialise shaders: ${errorMessage}`);
+    console.error(`Failed to link program: ${errorMessage}`);
+    return;
+  }
+  gl.validateProgram(program);
+  if (!gl.getProgramParameter(program, gl.VALIDATE_STATUS)) {
+    const errorMessage = gl.getProgramInfoLog(program);
+    console.error(`Failed to validate program: ${errorMessage}`);
     return;
   }
 

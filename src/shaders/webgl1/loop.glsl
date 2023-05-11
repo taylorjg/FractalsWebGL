@@ -16,15 +16,9 @@ vec4 loop(sampler2D colourMap, vec2 z, vec2 c) {
     z = zSquared + c;
   }
 
-  for (int i = 0; i < 2; i++) {
-    vec2 zSquared = vec2(z.x * z.x - z.y * z.y, 2.0 * z.x * z.y);
-    z = zSquared + c;
-    iteration++;
-  }
-
   // http://linas.org/art-gallery/escape/escape.html
   float possiblySmoothedIteration = uSmoothColouring > 0
-    ? float(iteration) - log(log(length(z))) / log(2.0)
+    ? float(iteration) - clamp(log(log(length(z))) / log(2.0), -1.0, 1.0)
     : float(iteration);
 
   float s = possiblySmoothedIteration / float(MAX_ITERATIONS);
