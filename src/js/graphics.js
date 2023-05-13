@@ -1,6 +1,7 @@
 import colormap from "colormap";
 import * as glm from "gl-matrix";
 import PromiseWorker from "promise-worker";
+import { DragGesture } from "@use-gesture/vanilla";
 import { configureUI } from "./ui";
 import { configureOverlay } from "./overlay";
 import { configureThumbnail } from "./thumbnail";
@@ -468,6 +469,28 @@ export const startGraphics = async (queryParamOptionsArg) => {
     canvas.addEventListener("mouseup", onCanvasMouseUpHandler);
     canvas.addEventListener("mouseleave", onCanvasMouseLeaveHandler);
     document.addEventListener("keydown", onDocumentKeyDownHandler);
+
+    new DragGesture(canvas, (e) => {
+      if (e.active) {
+        if (!panning) {
+          panning = true;
+          const [mouseX, mouseY] = e.initial;
+          lastMousePt = { mouseX, mouseY };
+        } else {
+          performRegionUpdate(() => {
+            const [mouseX, mouseY] = e.values;
+            const mouseDeltaX = mouseX - lastMousePt.mouseX;
+            const mouseDeltaY = mouseY - lastMousePt.mouseY;
+            region.drag(canvas, mouseDeltaX, mouseDeltaY);
+            lastMousePt = { mouseX, mouseY };
+          });
+          render();
+        }
+      } else {
+        panning = false;
+      }
+    });
+
     loadBookmarks(bookmarks);
     nextBookmarkId = bookmarks.size ? Math.max(...bookmarks.keys()) + 1 : 0;
     switchToBookmark(C.INITIAL_BOOKMARK);
