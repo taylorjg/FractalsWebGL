@@ -471,6 +471,7 @@ export const startGraphics = async (queryParamOptionsArg) => {
     document.addEventListener("keydown", onDocumentKeyDownHandler);
 
     new DragGesture(canvas, (e) => {
+      if (e.metaKey) return;
       if (e.active) {
         if (!panning) {
           panning = true;
