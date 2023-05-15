@@ -1,10 +1,10 @@
 import colormap from "colormap";
 import * as glm from "gl-matrix";
-import PromiseWorker from "promise-worker";
 import { DragGesture } from "@use-gesture/vanilla";
-import { configureUI } from "./ui";
+import { configureConfigurationChooser } from "./configuration-chooser";
 import { configureOverlay } from "./overlay";
 import { configureThumbnail } from "./thumbnail";
+import { configureUI } from "./ui";
 import { Region } from "./region";
 import * as C from "./constants";
 import * as U from "./utils";
@@ -19,13 +19,11 @@ import vertexShaderSourceWebGL2 from "../shaders/webgl2/shader.vert.glsl";
 import mandelbrotShaderSourceWebGL2 from "../shaders/webgl2/mandelbrot.frag.glsl";
 import juliaShaderSourceWebGL2 from "../shaders/webgl2/julia.frag.glsl";
 
-const worker = new Worker(new URL("./web-worker.js", import.meta.url));
-const promiseWorker = new PromiseWorker(worker);
-
 let queryParamOptions;
 let canvas;
 let overlay;
 let thumbnail;
+let configurationChooser;
 let gl;
 let isWebGL2 = false;
 let ui;
@@ -403,12 +401,7 @@ const displayConfiguration = async (configuration) => {
   panSpeedY = configuration.panSpeedY ?? U.randomPanSpeed();
   zoomSpeed = configuration.zoomSpeed ?? U.randomZoomSpeed();
 
-  const message = {
-    type: "chooseConfiguration",
-    fractalSetIds: Array.from(fractalSets.keys()),
-    colourMapIds: Array.from(colourMaps.keys()),
-  };
-  const newConfiguration = await promiseWorker.postMessage(message);
+  const newConfiguration = configurationChooser.chooseConfiguration();
   setTimeout(displayConfiguration, 10000, newConfiguration);
 };
 
@@ -442,6 +435,15 @@ export const startGraphics = async (queryParamOptionsArg) => {
     switchToBookmark,
     setCanvasAndViewportSize,
     render,
+  });
+
+  const fractalSetIds = Array.from(fractalSets.keys());
+  const colourMapIds = Array.from(colourMaps.keys());
+
+  configurationChooser = configureConfigurationChooser({
+    renderThumbnail: thumbnail.renderThumbnail,
+    fractalSetIds,
+    colourMapIds,
   });
 
   ui = configureUI({
