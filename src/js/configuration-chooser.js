@@ -1,3 +1,4 @@
+import { Region } from "./region";
 import * as C from "./constants";
 import * as U from "./utils";
 
@@ -16,6 +17,23 @@ export const configureConfigurationChooser = ({ renderThumbnail, fractalSetIds, 
     }
     const numUniqueValues = values.size;
     return numUniqueValues >= (SIZE * SIZE * MIN_REQUIRED_PERCENT_UNIQUE_VALUES) / 100;
+  };
+
+  const calculateFinalConfiguration = (configuration, seconds) => {
+    const MAX_FPS = 60;
+    const FRAME_COUNT = seconds * MAX_FPS;
+    const region = new Region();
+    region.set(configuration.regionBottomLeft, configuration.regionTopRight);
+    for (let i = 0; i < FRAME_COUNT; i++) {
+      region.panX(configuration.panSpeedX);
+      region.panY(configuration.panSpeedY);
+      region.zoom(configuration.zoomSpeed);
+    }
+    return {
+      ...configuration,
+      regionBottomLeft: region.bottomLeft,
+      regionTopRight: region.topRight,
+    };
   };
 
   const createRandomConfiguration = () => {
@@ -42,11 +60,14 @@ export const configureConfigurationChooser = ({ renderThumbnail, fractalSetIds, 
     };
   };
 
-  const chooseConfiguration = () => {
+  const chooseConfiguration = (seconds) => {
     for (;;) {
       const configuration = createRandomConfiguration(fractalSetIds, colourMapIds);
       if (isInteresting(configuration)) {
-        return configuration;
+        const finalConfiguration = calculateFinalConfiguration(configuration, seconds);
+        if (isInteresting(finalConfiguration)) {
+          return configuration;
+        }
       }
     }
   };

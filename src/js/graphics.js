@@ -401,8 +401,10 @@ const displayConfiguration = async (configuration) => {
   panSpeedY = configuration.panSpeedY ?? U.randomPanSpeed();
   zoomSpeed = configuration.zoomSpeed ?? U.randomZoomSpeed();
 
-  const newConfiguration = configurationChooser.chooseConfiguration();
-  setTimeout(displayConfiguration, 10000, newConfiguration);
+  const CHANGE_REGION_INTERVAL_SECONDS = 10;
+
+  const newConfiguration = configurationChooser.chooseConfiguration(CHANGE_REGION_INTERVAL_SECONDS);
+  setTimeout(displayConfiguration, CHANGE_REGION_INTERVAL_SECONDS * 1000, newConfiguration);
 };
 
 export const startGraphics = async (queryParamOptionsArg) => {
