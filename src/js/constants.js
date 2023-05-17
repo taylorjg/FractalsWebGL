@@ -37,8 +37,6 @@ export const COLOUR_MAP_NAMES = [
   "cdom",
   "chlorophyll",
   "density",
-  "freesurface-blue",
-  "freesurface-red",
 ];
 
 export const INITIAL_BOOKMARK = {

@@ -262,6 +262,7 @@ const initialiseShadersHelper = (name, vertexShaderSource, fragmentShaderSource)
   const uJuliaConstant = gl.getUniformLocation(program, "uJuliaConstant");
 
   const uSmoothColouring = gl.getUniformLocation(program, "uSmoothColouring");
+  const uReturnIteration = gl.getUniformLocation(program, "uReturnIteration");
 
   const maybeMaxIterationsUniform = isWebGL2
     ? { uMaxIterations: gl.getUniformLocation(program, "uMaxIterations") }
@@ -289,6 +290,7 @@ const initialiseShadersHelper = (name, vertexShaderSource, fragmentShaderSource)
     uColourMap,
     uJuliaConstant,
     uSmoothColouring,
+    uReturnIteration,
     vertexPositionBuffer,
     regionPositionBuffer,
   };
@@ -355,6 +357,7 @@ const makeConfigurationChanges = ({
   gl.uniform2f(currentFractalSet.uJuliaConstant, currentJuliaConstant.x, currentJuliaConstant.y);
 
   gl.uniform1i(currentFractalSet.uSmoothColouring, smoothColouring);
+  gl.uniform1i(currentFractalSet.uReturnIteration, false);
 
   if (isWebGL2) {
     gl.uniform1i(currentFractalSet.uMaxIterations, currentMaxIterations);
@@ -384,8 +387,16 @@ const performRegionUpdate = (thunk) => {
   updateRegionPositionBuffer();
 };
 
-const render = () => {
+const render = (returnIteration = false) => {
+  if (returnIteration) {
+    gl.uniform1i(currentFractalSet.uReturnIteration, true);
+  }
+
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+  if (returnIteration) {
+    gl.uniform1i(currentFractalSet.uReturnIteration, false);
+  }
 
   if (queryParamOptions.manualMode) {
     updateConfigurationSummary();

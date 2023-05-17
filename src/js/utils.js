@@ -15,4 +15,4 @@ export const randomElement = (elements) => {
 
 export const randomPanSpeed = () => randomFloat(-0.1, 0.1);
 
-export const randomZoomSpeed = () => randomFloat(0.01, 0.1);
+export const randomZoomSpeed = () => randomFloat(0.01, 1.0);

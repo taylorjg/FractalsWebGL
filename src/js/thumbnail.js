@@ -7,7 +7,7 @@ export const configureThumbnail = ({
 }) => {
   // https://webglfundamentals.org/webgl/lessons/webgl-render-to-texture.html
   // https://stackoverflow.com/a/13640310
-  const renderThumbnail = (size, configuration) => {
+  const renderThumbnail = (size, configuration, returnIteration) => {
     const texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
 
@@ -38,7 +38,7 @@ export const configureThumbnail = ({
     switchToBookmark(configuration);
     setCanvasAndViewportSize(size, size);
 
-    render();
+    render(returnIteration);
 
     const pixels = new Uint8ClampedArray(size * size * 4);
     gl.readPixels(0, 0, size, size, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
