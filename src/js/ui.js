@@ -1,4 +1,5 @@
 import * as C from "./constants";
+import * as U from "./utils";
 
 const THUMBNAIL_SIZE = 64;
 
@@ -14,21 +15,6 @@ export const configureUI = ({
   onModalOpen,
   onModalClose,
 }) => {
-  const drawThumbnail = (pixels, canvas, size) => {
-    canvas.width = size;
-    canvas.height = size;
-    const canvasCtx2d = canvas.getContext("2d");
-
-    const imageData = new ImageData(pixels, size, size);
-    canvasCtx2d.putImageData(imageData, 0, 0);
-
-    // Seems we need to flip the image vertically.
-    // https://stackoverflow.com/a/41970080
-    canvasCtx2d.scale(1, -1);
-    canvasCtx2d.translate(0, -size);
-    canvasCtx2d.drawImage(canvas, 0, 0);
-  };
-
   const presentBookmarkModal = (bookmark) => {
     console.log("[presentBookmarkModal]", "bookmark:", bookmark);
     const bookmarkModal = $("#bookmarkModal")
@@ -47,7 +33,7 @@ export const configureUI = ({
       });
     const thumbnailCanvas = $("#thumbnail-canvas", bookmarkModal).get(0);
     const pixels = renderThumbnail(THUMBNAIL_SIZE, bookmark);
-    drawThumbnail(pixels, thumbnailCanvas, THUMBNAIL_SIZE);
+    U.drawThumbnail(pixels, thumbnailCanvas, THUMBNAIL_SIZE);
     $("#name", bookmarkModal).val(bookmark.name).focus();
     $(".fractal-set", bookmarkModal).text(fractalSets.get(bookmark.fractalSetId).name);
     const colourMapSelect = $("#colour-map-select", bookmarkModal).empty();
@@ -60,7 +46,7 @@ export const configureUI = ({
     colourMapSelect.on("change", (e) => {
       bookmark.colourMapId = Number(e.target.value);
       const pixels = renderThumbnail(THUMBNAIL_SIZE, bookmark);
-      drawThumbnail(pixels, thumbnailCanvas, THUMBNAIL_SIZE);
+      U.drawThumbnail(pixels, thumbnailCanvas, THUMBNAIL_SIZE);
     });
     const maxIterations = $("#max-iterations", bookmarkModal);
     maxIterations.text(bookmark.maxIterations);
@@ -75,7 +61,7 @@ export const configureUI = ({
         bookmark.maxIterations = Number(e.target.value);
         maxIterations.text(bookmark.maxIterations);
         const pixels = renderThumbnail(THUMBNAIL_SIZE, bookmark);
-        drawThumbnail(pixels, thumbnailCanvas, THUMBNAIL_SIZE);
+        U.drawThumbnail(pixels, thumbnailCanvas, THUMBNAIL_SIZE);
       });
     } else {
       maxIterationsRange.hide();
@@ -123,7 +109,7 @@ export const configureUI = ({
       const deleteButton = tr.querySelector(":nth-child(4) i");
       const thumbnailCanvas = tr.querySelector(":nth-child(1) canvas");
       const pixels = renderThumbnail(THUMBNAIL_SIZE, bookmark);
-      drawThumbnail(pixels, thumbnailCanvas, THUMBNAIL_SIZE);
+      U.drawThumbnail(pixels, thumbnailCanvas, THUMBNAIL_SIZE);
       name.innerText = bookmark.name;
       thumbnailCanvas.addEventListener("click", invokeHandler(onSwitchTo, bookmark));
       editButton.addEventListener("click", invokeHandler(onEdit, bookmark));

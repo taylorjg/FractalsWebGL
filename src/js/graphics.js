@@ -465,6 +465,7 @@ export const startGraphics = async (queryParamOptionsArg) => {
     renderThumbnail: thumbnail.renderThumbnail,
     fractalSetIds,
     colourMapIds,
+    preview: queryParamOptions.preview,
   });
 
   ui = configureUI({

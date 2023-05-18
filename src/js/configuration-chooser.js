@@ -5,7 +5,15 @@ const SAMPLE_SIZE = 64;
 const MIN_REQUIRED_PERCENT = 60;
 const MAX_FPS = 60;
 
-export const configureConfigurationChooser = ({ renderThumbnail, fractalSetIds, colourMapIds }) => {
+export const configureConfigurationChooser = ({
+  renderThumbnail,
+  fractalSetIds,
+  colourMapIds,
+  preview,
+}) => {
+  const previewInitialCanvas = document.getElementById("preview-initial");
+  const previewFinalCanvas = document.getElementById("preview-final");
+
   const isInterestingConfiguration = (configuration, type) => {
     const pixels = renderThumbnail(SAMPLE_SIZE, configuration, true /* returnIteration */);
     const iterationValues = new Set();
@@ -73,11 +81,17 @@ export const configureConfigurationChooser = ({ renderThumbnail, fractalSetIds, 
   };
 
   const chooseConfiguration = (seconds) => {
-    const configuration = createRandomConfiguration(fractalSetIds, colourMapIds);
-    if (isInterestingConfiguration(configuration, "initial")) {
-      const finalConfiguration = computeFinalConfiguration(configuration, seconds);
+    const initialConfiguration = createRandomConfiguration(fractalSetIds, colourMapIds);
+    if (isInterestingConfiguration(initialConfiguration, "initial")) {
+      const finalConfiguration = computeFinalConfiguration(initialConfiguration, seconds);
       if (isInterestingConfiguration(finalConfiguration, "final")) {
-        return configuration;
+        if (preview) {
+          const previewInitialPixels = renderThumbnail(SAMPLE_SIZE, initialConfiguration);
+          const previewFinalPixels = renderThumbnail(SAMPLE_SIZE, finalConfiguration);
+          U.drawThumbnail(previewInitialPixels, previewInitialCanvas, SAMPLE_SIZE);
+          U.drawThumbnail(previewFinalPixels, previewFinalCanvas, SAMPLE_SIZE);
+        }
+        return initialConfiguration;
       }
     }
   };

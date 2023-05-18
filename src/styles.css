@@ -47,6 +47,24 @@ html, body {
   color: white;
 }
 
+#preview-initial {
+  width: 64px;
+  height: 64px;
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  background-color: transparent;
+}
+
+#preview-final {
+  width: 64px;
+  height: 64px;
+  position: fixed;
+  top: 16px;
+  left: 96px;
+  background-color: transparent;
+}
+
 .thumbnail {
   padding: 0;
   margin-left: 4px;
