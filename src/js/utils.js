@@ -5,7 +5,7 @@ export const randomFloat = (min, max) => {
 };
 
 export const randomInt = (min, max) => {
-  return Math.trunc(randomFloat(min, max));
+  return Math.floor(randomFloat(min, max));
 };
 
 export const randomElement = (elements) => {

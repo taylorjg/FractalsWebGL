@@ -36,6 +36,8 @@ export const COLOUR_MAP_NAMES = [
   "bathymetry",
   "cdom",
   "chlorophyll",
+  "density",
+  "freesurface-blue",
 ];
 
 export const INITIAL_BOOKMARK = {

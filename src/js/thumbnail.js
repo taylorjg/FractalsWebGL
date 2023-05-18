@@ -1,3 +1,5 @@
+import * as C from "./constants";
+
 export const configureThumbnail = ({
   gl,
   createBookmark,
@@ -9,6 +11,7 @@ export const configureThumbnail = ({
   // https://stackoverflow.com/a/13640310
   const renderThumbnail = (size, configuration, returnIteration) => {
     const texture = gl.createTexture();
+    gl.activeTexture(gl.TEXTURE0 + C.COLOUR_MAP_NAMES.length);
     gl.bindTexture(gl.TEXTURE_2D, texture);
 
     gl.texImage2D(
