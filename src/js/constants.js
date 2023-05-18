@@ -36,7 +36,6 @@ export const COLOUR_MAP_NAMES = [
   "bathymetry",
   "cdom",
   "chlorophyll",
-  "density",
 ];
 
 export const INITIAL_BOOKMARK = {

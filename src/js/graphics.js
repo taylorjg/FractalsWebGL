@@ -77,6 +77,8 @@ const loadColourMaps = () => {
 const fractalSets = new Map();
 const colourMaps = new Map();
 
+const CHANGE_REGION_INTERVAL_SECONDS = 10;
+
 let currentMaxIterations = C.INITIAL_ITERATIONS;
 let currentFractalSetId = undefined;
 let currentFractalSet = undefined;
@@ -98,6 +100,8 @@ let nextBookmarkId = 0;
 let modalOpen = false;
 let configurationSummaryOpen = false;
 let smoothColouring = true;
+let nextConfiguration = undefined;
+let nextConfigurationCount = 0;
 
 const onModalOpen = () => {
   modalOpen = true;
@@ -403,19 +407,23 @@ const render = (returnIteration = false) => {
   }
 };
 
-const displayConfiguration = async (configuration) => {
-  switchToBookmark(configuration);
-  setCanvasAndViewportSize();
-  updateConfigurationSummary(configuration);
+const displayConfiguration = async (explicitConfiguration) => {
+  const configuration = explicitConfiguration ?? nextConfiguration;
+  if (configuration) {
+    if (!explicitConfiguration) {
+      console.log("[displayConfiguration]", "nextConfigurationCount:", nextConfigurationCount);
+      nextConfiguration = undefined;
+      nextConfigurationCount = 0;
+    }
+    switchToBookmark(configuration);
+    setCanvasAndViewportSize();
+    updateConfigurationSummary(configuration);
+    panSpeedX = configuration.panSpeedX ?? U.randomPanSpeed();
+    panSpeedY = configuration.panSpeedY ?? U.randomPanSpeed();
+    zoomSpeed = configuration.zoomSpeed ?? U.randomZoomSpeed();
+  }
 
-  panSpeedX = configuration.panSpeedX ?? U.randomPanSpeed();
-  panSpeedY = configuration.panSpeedY ?? U.randomPanSpeed();
-  zoomSpeed = configuration.zoomSpeed ?? U.randomZoomSpeed();
-
-  const CHANGE_REGION_INTERVAL_SECONDS = 10;
-
-  const newConfiguration = configurationChooser.chooseConfiguration(CHANGE_REGION_INTERVAL_SECONDS);
-  setTimeout(displayConfiguration, CHANGE_REGION_INTERVAL_SECONDS * 1000, newConfiguration);
+  setTimeout(displayConfiguration, CHANGE_REGION_INTERVAL_SECONDS * 1000);
 };
 
 export const startGraphics = async (queryParamOptionsArg) => {
@@ -522,8 +530,16 @@ export const startGraphics = async (queryParamOptionsArg) => {
       });
       render();
       requestAnimationFrame(animate);
+      doIdleTasks();
     };
     animate();
+  }
+};
+
+const doIdleTasks = () => {
+  if (!nextConfiguration) {
+    nextConfiguration = configurationChooser.chooseConfiguration(CHANGE_REGION_INTERVAL_SECONDS);
+    nextConfigurationCount++;
   }
 };
 

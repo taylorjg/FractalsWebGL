@@ -1,11 +1,11 @@
 import { Region } from "./region";
-import * as C from "./constants";
+// import * as C from "./constants";
 import * as U from "./utils";
 
 export const configureConfigurationChooser = ({ renderThumbnail, fractalSetIds, colourMapIds }) => {
   const isInteresting = (configuration) => {
-    const SIZE = 16;
-    const MIN_REQUIRED_PERCENT_UNIQUE_VALUES = 40;
+    const SIZE = 8;
+    const MIN_REQUIRED_PERCENT = 40;
     const pixels = renderThumbnail(SIZE, configuration, true /* returnIteration */);
     const iterationValues = new Set();
     for (let i = 0; i < pixels.length; i += 4) {
@@ -14,11 +14,35 @@ export const configureConfigurationChooser = ({ renderThumbnail, fractalSetIds, 
       const iteration = lo + (hi << 8);
       iterationValues.add(iteration);
     }
-    const numUniqueIterationValues = iterationValues.size;
-    return numUniqueIterationValues >= (SIZE * SIZE * MIN_REQUIRED_PERCENT_UNIQUE_VALUES) / 100;
+    const uniqueIterationValues = Array.from(iterationValues);
+    const numUniqueIterationValues = uniqueIterationValues.length;
+    const minIterationValue = Math.min(...uniqueIterationValues);
+    const maxIterationValue = Math.max(...uniqueIterationValues);
+    const diff = maxIterationValue - minIterationValue;
+    const threshold1 = SIZE * SIZE * (MIN_REQUIRED_PERCENT / 100);
+    const threshold2 = configuration.maxIterations * (MIN_REQUIRED_PERCENT / 100);
+    const result = numUniqueIterationValues >= threshold1 && diff >= threshold2;
+    if (result) {
+      console.log(
+        "[configureConfigurationChooser]",
+        "numUniqueIterationValues",
+        numUniqueIterationValues,
+        "SIZE * SIZE:",
+        SIZE * SIZE,
+        "threshold1:",
+        threshold1,
+        "diff:",
+        diff,
+        "maxIterations:",
+        configuration.maxIterations,
+        "threshold2:",
+        threshold2
+      );
+    }
+    return result;
   };
 
-  const calculateFinalConfiguration = (configuration, seconds) => {
+  const computeFinalConfiguration = (configuration, seconds) => {
     const MAX_FPS = 60;
     const FRAME_COUNT = seconds * MAX_FPS;
     const region = new Region();
@@ -60,13 +84,11 @@ export const configureConfigurationChooser = ({ renderThumbnail, fractalSetIds, 
   };
 
   const chooseConfiguration = (seconds) => {
-    for (;;) {
-      const configuration = createRandomConfiguration(fractalSetIds, colourMapIds);
-      if (isInteresting(configuration)) {
-        const finalConfiguration = calculateFinalConfiguration(configuration, seconds);
-        if (isInteresting(finalConfiguration)) {
-          return configuration;
-        }
+    const configuration = createRandomConfiguration(fractalSetIds, colourMapIds);
+    if (isInteresting(configuration)) {
+      const finalConfiguration = computeFinalConfiguration(configuration, seconds);
+      if (isInteresting(finalConfiguration)) {
+        return configuration;
       }
     }
   };
