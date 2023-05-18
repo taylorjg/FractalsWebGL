@@ -5,11 +5,9 @@
   "dependencies": {
     "@use-gesture/vanilla": "^10.2.26",
     "colormap": "^2.3.2",
-    "gl-matrix": "^3.3.0",
-    "promise-worker": "^2.0.1"
+    "gl-matrix": "^3.3.0"
   },
   "devDependencies": {
-    "@babel/eslint-parser": "^7.21.3",
     "copy-webpack-plugin": "^11.0.0",
     "eslint": "^8.39.0",
     "eslint-config-prettier": "^8.8.0",

@@ -1,12 +1,13 @@
 import { Region } from "./region";
-// import * as C from "./constants";
 import * as U from "./utils";
 
+const SAMPLE_SIZE = 64;
+const MIN_REQUIRED_PERCENT = 60;
+const MAX_FPS = 60;
+
 export const configureConfigurationChooser = ({ renderThumbnail, fractalSetIds, colourMapIds }) => {
-  const isInteresting = (configuration, type) => {
-    const SIZE = 8;
-    const MIN_REQUIRED_PERCENT = 40;
-    const pixels = renderThumbnail(SIZE, configuration, true /* returnIteration */);
+  const isInterestingConfiguration = (configuration, type) => {
+    const pixels = renderThumbnail(SAMPLE_SIZE, configuration, true /* returnIteration */);
     const iterationValues = new Set();
     for (let i = 0; i < pixels.length; i += 4) {
       const lo = pixels[i];
@@ -16,21 +17,15 @@ export const configureConfigurationChooser = ({ renderThumbnail, fractalSetIds, 
     }
     const uniqueIterationValues = Array.from(iterationValues);
     const numUniqueIterationValues = uniqueIterationValues.length;
-    const minIterationValue = Math.min(...uniqueIterationValues);
-    const maxIterationValue = Math.max(...uniqueIterationValues);
-    const diff = maxIterationValue - minIterationValue;
-    const threshold1 = SIZE * SIZE * (MIN_REQUIRED_PERCENT / 100);
-    const threshold2 = configuration.maxIterations * (MIN_REQUIRED_PERCENT / 100);
-    const result = numUniqueIterationValues >= threshold1 && diff >= threshold2;
+    const maxIterations = configuration.maxIterations;
+    const threshold = maxIterations * (MIN_REQUIRED_PERCENT / 100);
+    const result = numUniqueIterationValues >= threshold;
     if (result) {
       const dataToLog = {
         type,
         numUniqueIterationValues,
-        totalIterationValues: SIZE * SIZE,
-        threshold1,
-        diff,
-        maxIterations: configuration.maxIterations,
-        threshold2,
+        threshold,
+        maxIterations,
       };
       console.log("[configureConfigurationChooser]", JSON.stringify(dataToLog, null, 2));
     }
@@ -38,11 +33,10 @@ export const configureConfigurationChooser = ({ renderThumbnail, fractalSetIds, 
   };
 
   const computeFinalConfiguration = (configuration, seconds) => {
-    const MAX_FPS = 60;
-    const FRAME_COUNT = seconds * MAX_FPS;
+    const frameCount = seconds * MAX_FPS;
     const region = new Region();
     region.set(configuration.regionBottomLeft, configuration.regionTopRight);
-    for (let i = 0; i < FRAME_COUNT; i++) {
+    for (let i = 0; i < frameCount; i++) {
       region.panX(configuration.panSpeedX);
       region.panY(configuration.panSpeedY);
       region.zoom(configuration.zoomSpeed);
@@ -60,7 +54,7 @@ export const configureConfigurationChooser = ({ renderThumbnail, fractalSetIds, 
     const cx = U.randomFloat(-2, 0.75);
     const cy = U.randomFloat(-1.5, 1.5);
     const sz = U.randomFloat(0.01, 0.5);
-    const maxIterations = U.randomInt(32, 512);
+    const maxIterations = U.randomInt(32, 1024);
     const panSpeedX = U.randomPanSpeed();
     const panSpeedY = U.randomPanSpeed();
     const zoomSpeed = U.randomZoomSpeed();
@@ -80,9 +74,9 @@ export const configureConfigurationChooser = ({ renderThumbnail, fractalSetIds, 
 
   const chooseConfiguration = (seconds) => {
     const configuration = createRandomConfiguration(fractalSetIds, colourMapIds);
-    if (isInteresting(configuration, "initial")) {
+    if (isInterestingConfiguration(configuration, "initial")) {
       const finalConfiguration = computeFinalConfiguration(configuration, seconds);
-      if (isInteresting(finalConfiguration, "final")) {
+      if (isInterestingConfiguration(finalConfiguration, "final")) {
         return configuration;
       }
     }
