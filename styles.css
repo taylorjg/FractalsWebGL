@@ -47,22 +47,23 @@ html, body {
   color: white;
 }
 
-#preview-initial {
-  width: 64px;
-  height: 64px;
+#preview-panel {
   position: fixed;
   top: 16px;
   left: 16px;
+  display: flex;
+  gap: 16px;
+  visibility: hidden;
+}
+
+#preview-initial {
   background-color: transparent;
+  box-shadow: 1px 1px 10px #000;
 }
 
 #preview-final {
-  width: 64px;
-  height: 64px;
-  position: fixed;
-  top: 16px;
-  left: 96px;
   background-color: transparent;
+  box-shadow: 1px 1px 10px #000;
 }
 
 .thumbnail {
