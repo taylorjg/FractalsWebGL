@@ -37,20 +37,17 @@ const createColourMapTexture = (colourMap, textureUnit) => {
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
   const pixels = new Uint8Array(colourMap.map((value) => value * 255));
-  const level = 0;
   const width = colourMap.length / 4;
-  const height = 1;
-  const border = 0;
   gl.texImage2D(
-    gl.TEXTURE_2D,
-    level,
-    gl.RGBA,
-    width,
-    height,
-    border,
-    gl.RGBA,
-    gl.UNSIGNED_BYTE,
-    pixels
+    gl.TEXTURE_2D, // target
+    0, // level
+    gl.RGBA, // internalFormat
+    width, // width
+    1, // height
+    0, // border
+    gl.RGBA, // format
+    gl.UNSIGNED_BYTE, // type
+    pixels // pixels
   );
 };
 
@@ -69,8 +66,12 @@ const loadColourMap = (name, textureUnit) => {
 };
 
 const loadColourMaps = () => {
-  C.COLOUR_MAP_NAMES.forEach((colourMapName, index) => {
-    colourMaps.set(index, loadColourMap(colourMapName, index));
+  const maxTextureUnits = gl.getParameter(gl.MAX_COMBINED_TEXTURE_IMAGE_UNITS);
+  const maxColourMaps = maxTextureUnits - 1;
+  C.COLOUR_MAP_NAMES.slice(0, maxColourMaps).forEach((colourMapName, index) => {
+    // We want to reserve gl.TEXTURE0 for rendering thumbnails
+    const textureUnit = index + 1;
+    colourMaps.set(index, loadColourMap(colourMapName, textureUnit));
   });
 };
 
@@ -690,7 +691,7 @@ const onDocumentKeyDownHandler = (e) => {
     return handleBookmarkKeys(e);
   }
 
-  if (!bookmarkMode && e.key === "b" && e.ctrlKey) {
+  if (!bookmarkMode && e.key === "b") {
     bookmarkMode = true;
     return;
   }

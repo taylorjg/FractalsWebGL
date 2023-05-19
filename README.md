@@ -38,6 +38,10 @@ I have deployed this web app to `gh-pages`. Use one of these links to launch it:
 * `v`
   * _Toggle on/off a summary of the current configuration at the bottom of the screen_
   * _Even when toggled off, the summary will be shown for 5 seconds each time an action is taken_
+* `b` followed by `n`
+  * _Display a modal dialog to create a new bookmark_
+* `b` followed by `l`
+  * _Display a modal dialog to manage bookmarks_
 
 ## Touchscreen Controls (Manual Mode)
 
@@ -47,11 +51,10 @@ I'm still thinking about how to do this.
 
 These are the main areas of focus for future improvements/additions:
 
-* [ ] Error handling
 * [ ] Logging
 * [ ] Double emulation
 * [ ] UI (react/MUI)
 * [ ] Refactoring/splitting up the code into modules/classes
 * [ ] Gestures/touchscreen support/responsive UI
-* [ ] Finding random interesting regions (using WebGL/UI thread instead of CPU/web worker)
+* [x] Find random interesting regions using WebGL/UI thread instead of CPU/web worker
 * [ ] Support for other fractal sets
