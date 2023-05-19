@@ -51,6 +51,18 @@ module.exports = {
         test: /\.glsl$/,
         type: "asset/source",
       },
+      // https://webpack.js.org/loaders/babel-loader/#options
+      {
+        test: /\.js$/,
+        exclude: /node_modules/,
+        use: {
+          loader: "babel-loader",
+          options: {
+            presets: [["@babel/preset-env", { targets: "defaults" }]],
+            plugins: ["@babel/plugin-proposal-optional-chaining"],
+          },
+        },
+      },
     ],
   },
   devtool: "source-map",
