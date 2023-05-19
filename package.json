@@ -1,6 +1,6 @@
 {
   "name": "fractalswebgl",
-  "version": "0.0.61",
+  "version": "0.0.62",
   "description": "Fractals in WebGL",
   "dependencies": {
     "@use-gesture/vanilla": "^10.2.26",
