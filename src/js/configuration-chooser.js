@@ -11,6 +11,7 @@ export const configureConfigurationChooser = ({
   colourMapIds,
   preview,
 }) => {
+  const previewPanel = document.getElementById("preview-panel");
   const previewInitialCanvas = document.getElementById("preview-initial");
   const previewFinalCanvas = document.getElementById("preview-final");
 
@@ -86,6 +87,7 @@ export const configureConfigurationChooser = ({
       const finalConfiguration = computeFinalConfiguration(initialConfiguration, seconds);
       if (isInterestingConfiguration(finalConfiguration, "final")) {
         if (preview) {
+          previewPanel.style.visibility = "visible";
           const previewInitialPixels = renderThumbnail(SAMPLE_SIZE, initialConfiguration);
           const previewFinalPixels = renderThumbnail(SAMPLE_SIZE, finalConfiguration);
           U.drawThumbnail(previewInitialPixels, previewInitialCanvas, SAMPLE_SIZE);
