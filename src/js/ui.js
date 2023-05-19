@@ -32,8 +32,8 @@ export const configureUI = ({
         bookmarkModal.modal("hide");
       });
     const thumbnailCanvas = $("#thumbnail-canvas", bookmarkModal).get(0);
-    const pixels = renderThumbnail(THUMBNAIL_SIZE, bookmark);
-    U.drawThumbnail(pixels, thumbnailCanvas, THUMBNAIL_SIZE);
+    const pixels = renderThumbnail(THUMBNAIL_SIZE, THUMBNAIL_SIZE, bookmark);
+    U.drawThumbnail(pixels, thumbnailCanvas, THUMBNAIL_SIZE, THUMBNAIL_SIZE);
     $("#name", bookmarkModal).val(bookmark.name).focus();
     $(".fractal-set", bookmarkModal).text(fractalSets.get(bookmark.fractalSetId).name);
     const colourMapSelect = $("#colour-map-select", bookmarkModal).empty();
@@ -45,8 +45,8 @@ export const configureUI = ({
     }
     colourMapSelect.on("change", (e) => {
       bookmark.colourMapId = Number(e.target.value);
-      const pixels = renderThumbnail(THUMBNAIL_SIZE, bookmark);
-      U.drawThumbnail(pixels, thumbnailCanvas, THUMBNAIL_SIZE);
+      const pixels = renderThumbnail(THUMBNAIL_SIZE, THUMBNAIL_SIZE, bookmark);
+      U.drawThumbnail(pixels, thumbnailCanvas, THUMBNAIL_SIZE, THUMBNAIL_SIZE);
     });
     const maxIterations = $("#max-iterations", bookmarkModal);
     maxIterations.text(bookmark.maxIterations);
@@ -60,8 +60,8 @@ export const configureUI = ({
       maxIterationsRange.on("input", (e) => {
         bookmark.maxIterations = Number(e.target.value);
         maxIterations.text(bookmark.maxIterations);
-        const pixels = renderThumbnail(THUMBNAIL_SIZE, bookmark);
-        U.drawThumbnail(pixels, thumbnailCanvas, THUMBNAIL_SIZE);
+        const pixels = renderThumbnail(THUMBNAIL_SIZE, THUMBNAIL_SIZE, bookmark);
+        U.drawThumbnail(pixels, thumbnailCanvas, THUMBNAIL_SIZE, THUMBNAIL_SIZE);
       });
     } else {
       maxIterationsRange.hide();
@@ -108,8 +108,8 @@ export const configureUI = ({
       const editButton = tr.querySelector(":nth-child(3) i");
       const deleteButton = tr.querySelector(":nth-child(4) i");
       const thumbnailCanvas = tr.querySelector(":nth-child(1) canvas");
-      const pixels = renderThumbnail(THUMBNAIL_SIZE, bookmark);
-      U.drawThumbnail(pixels, thumbnailCanvas, THUMBNAIL_SIZE);
+      const pixels = renderThumbnail(THUMBNAIL_SIZE, THUMBNAIL_SIZE, bookmark);
+      U.drawThumbnail(pixels, thumbnailCanvas, THUMBNAIL_SIZE, THUMBNAIL_SIZE);
       name.innerText = bookmark.name;
       thumbnailCanvas.addEventListener("click", invokeHandler(onSwitchTo, bookmark));
       editButton.addEventListener("click", invokeHandler(onEdit, bookmark));

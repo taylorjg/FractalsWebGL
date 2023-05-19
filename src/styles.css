@@ -57,18 +57,12 @@ html, body {
 }
 
 #preview-initial {
-  width: 64px;
-  height: 64px;
   background-color: transparent;
-  border: 1px solid magenta;
   box-shadow: 1px 1px 10px #000;
 }
 
 #preview-final {
-  width: 64px;
-  height: 64px;
   background-color: transparent;
-  border: 1px solid magenta;
   box-shadow: 1px 1px 10px #000;
 }
 

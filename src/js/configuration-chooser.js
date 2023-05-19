@@ -11,12 +11,14 @@ export const configureConfigurationChooser = ({
   colourMapIds,
   preview,
 }) => {
+  const canvas = document.getElementById("canvas");
   const previewPanel = document.getElementById("preview-panel");
   const previewInitialCanvas = document.getElementById("preview-initial");
   const previewFinalCanvas = document.getElementById("preview-final");
 
-  const isInterestingConfiguration = (configuration, type) => {
-    const pixels = renderThumbnail(SAMPLE_SIZE, configuration, true /* returnIteration */);
+  const isInterestingConfiguration = (configuration, sampleWidth, sampleHeight, type) => {
+    const returnIterationFlag = true;
+    const pixels = renderThumbnail(sampleWidth, sampleHeight, configuration, returnIterationFlag);
     const iterationValues = new Set();
     for (let i = 0; i < pixels.length; i += 4) {
       const lo = pixels[i];
@@ -83,15 +85,29 @@ export const configureConfigurationChooser = ({
 
   const chooseConfiguration = (seconds) => {
     const initialConfiguration = createRandomConfiguration(fractalSetIds, colourMapIds);
-    if (isInterestingConfiguration(initialConfiguration, "initial")) {
+    const canvasWidth = canvas.clientWidth;
+    const canvasHeight = canvas.clientHeight;
+    const aspectRatio = canvasWidth / canvasHeight;
+    const region = new Region();
+    region.set(initialConfiguration.regionBottomLeft, initialConfiguration.regionTopRight);
+    region.adjustAspectRatio(canvas.clientWidth, canvas.clientHeight);
+    initialConfiguration.regionBottomLeft = region.bottomLeft;
+    initialConfiguration.regionTopRight = region.topRight;
+    const sampleWidth = SAMPLE_SIZE;
+    const sampleHeight = Math.round(SAMPLE_SIZE / aspectRatio);
+    if (isInterestingConfiguration(initialConfiguration, sampleWidth, sampleHeight, "initial")) {
       const finalConfiguration = computeFinalConfiguration(initialConfiguration, seconds);
-      if (isInterestingConfiguration(finalConfiguration, "final")) {
+      if (isInterestingConfiguration(finalConfiguration, sampleWidth, sampleHeight, "final")) {
         if (preview) {
           previewPanel.style.visibility = "visible";
-          const previewInitialPixels = renderThumbnail(SAMPLE_SIZE, initialConfiguration);
-          const previewFinalPixels = renderThumbnail(SAMPLE_SIZE, finalConfiguration);
-          U.drawThumbnail(previewInitialPixels, previewInitialCanvas, SAMPLE_SIZE);
-          U.drawThumbnail(previewFinalPixels, previewFinalCanvas, SAMPLE_SIZE);
+          const previewInitialPixels = renderThumbnail(
+            sampleWidth,
+            sampleHeight,
+            initialConfiguration
+          );
+          const previewFinalPixels = renderThumbnail(sampleWidth, sampleHeight, finalConfiguration);
+          U.drawThumbnail(previewInitialPixels, previewInitialCanvas, sampleWidth, sampleHeight);
+          U.drawThumbnail(previewFinalPixels, previewFinalCanvas, sampleWidth, sampleHeight);
         }
         return initialConfiguration;
       }
