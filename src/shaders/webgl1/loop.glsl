@@ -18,8 +18,11 @@ vec4 loop(sampler2D colourMap, vec2 z, vec2 c) {
   }
 
   if (uReturnIteration > 0) {
-    int hi = (iteration & 0xff00) >> 8;
-    int lo = iteration & 0xff;
+
+    // https://stackoverflow.com/questions/36575457/opengl-es-glsl-bitwise-operations-equivalents
+    int hi = int(floor(float(iteration) / 256.0));
+    int lo = iteration - (hi * 256);
+
     float hif = float(hi) / 255.0;
     float lof = float(lo) / 255.0;
     return vec4(lof, hif, 0.0, 1.0);
