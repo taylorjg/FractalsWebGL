@@ -52,13 +52,13 @@ html, body {
   top: 16px;
   left: 16px;
   display: flex;
-  gap: 16px;
   visibility: hidden;
 }
 
 #preview-initial {
   background-color: transparent;
   box-shadow: 1px 1px 10px #000;
+  margin-right: 16px;
 }
 
 #preview-final {
