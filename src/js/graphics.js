@@ -654,8 +654,7 @@ const onCanvasMouseUpHandler = () => {
     const rightMouseX = Math.max(initialPt.mouseX, currentPt.mouseX);
     const diffX = rightMouseX - leftMouseX;
     const diffY = topMouseY - bottomMouseY;
-    const minChange = 5;
-    if (diffX >= minChange && diffY >= minChange) {
+    if (Math.hypot(diffX, diffY) >= 5) {
       const regionMouseBottomLeft = region.mouseToRegion(canvas, leftMouseX, bottomMouseY);
       const regionMouseTopRight = region.mouseToRegion(canvas, rightMouseX, topMouseY);
       const bottomLeft = {
