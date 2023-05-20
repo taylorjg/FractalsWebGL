@@ -652,18 +652,23 @@ const onCanvasMouseUpHandler = () => {
     const bottomMouseY = Math.min(initialPt.mouseY, currentPt.mouseY);
     const leftMouseX = Math.min(initialPt.mouseX, currentPt.mouseX);
     const rightMouseX = Math.max(initialPt.mouseX, currentPt.mouseX);
-    const regionMouseBottomLeft = region.mouseToRegion(canvas, leftMouseX, bottomMouseY);
-    const regionMouseTopRight = region.mouseToRegion(canvas, rightMouseX, topMouseY);
-    const bottomLeft = {
-      x: regionMouseBottomLeft.regionMouseX,
-      y: regionMouseBottomLeft.regionMouseY,
-    };
-    const topRight = { x: regionMouseTopRight.regionMouseX, y: regionMouseTopRight.regionMouseY };
-    performRegionUpdate(() => {
-      region.set(bottomLeft, topRight);
-    });
-    setCanvasAndViewportSize();
-    render();
+    const diffX = rightMouseX - leftMouseX;
+    const diffY = topMouseY - bottomMouseY;
+    const minChange = 5;
+    if (diffX >= minChange && diffY >= minChange) {
+      const regionMouseBottomLeft = region.mouseToRegion(canvas, leftMouseX, bottomMouseY);
+      const regionMouseTopRight = region.mouseToRegion(canvas, rightMouseX, topMouseY);
+      const bottomLeft = {
+        x: regionMouseBottomLeft.regionMouseX,
+        y: regionMouseBottomLeft.regionMouseY,
+      };
+      const topRight = { x: regionMouseTopRight.regionMouseX, y: regionMouseTopRight.regionMouseY };
+      performRegionUpdate(() => {
+        region.set(bottomLeft, topRight);
+      });
+      setCanvasAndViewportSize();
+      render();
+    }
 
     overlay.clearSelectionRegion();
 
