@@ -22,7 +22,8 @@ export const drawThumbnail = (pixels, canvas, width, height) => {
   canvas.height = height;
   const canvasCtx2d = canvas.getContext("2d");
 
-  const imageData = new ImageData(pixels, width, height);
+  const pixelsClampedArray = new Uint8ClampedArray(pixels);
+  const imageData = new ImageData(pixelsClampedArray, width, height);
   canvasCtx2d.putImageData(imageData, 0, 0);
 
   // Seems we need to flip the image vertically.
