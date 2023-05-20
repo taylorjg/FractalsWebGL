@@ -1,6 +1,6 @@
 import colormap from "colormap";
 import * as glm from "gl-matrix";
-import { DragGesture } from "@use-gesture/vanilla";
+import { Gesture } from "@use-gesture/vanilla";
 import { configureConfigurationChooser } from "./configuration-chooser";
 import { configureOverlay } from "./overlay";
 import { configureThumbnail } from "./thumbnail";
@@ -90,7 +90,6 @@ const region = new Region();
 let panSpeedX = 0;
 let panSpeedY = 0;
 let zoomSpeed = 0;
-let panning = false;
 let selectingRegion = false;
 let selectingRegionInitialPt = undefined;
 let selectingRegionCurrentPt = undefined;
@@ -495,26 +494,10 @@ export const startGraphics = async (queryParamOptionsArg) => {
     canvas.addEventListener("mouseleave", onCanvasMouseLeaveHandler);
     document.addEventListener("keydown", onDocumentKeyDownHandler);
 
-    new DragGesture(canvas, (e) => {
-      if (e.metaKey) return;
-      if (e.active) {
-        if (!panning) {
-          panning = true;
-          const [mouseX, mouseY] = e.initial;
-          lastMousePt = { mouseX, mouseY };
-        } else {
-          performRegionUpdate(() => {
-            const [mouseX, mouseY] = e.values;
-            const mouseDeltaX = mouseX - lastMousePt.mouseX;
-            const mouseDeltaY = mouseY - lastMousePt.mouseY;
-            region.drag(canvas, mouseDeltaX, mouseDeltaY);
-            lastMousePt = { mouseX, mouseY };
-          });
-          render();
-        }
-      } else {
-        panning = false;
-      }
+    new Gesture(canvas, {
+      onDrag,
+      onDragStart,
+      onDragEnd,
     });
 
     loadBookmarks(bookmarks);
@@ -567,7 +550,33 @@ const onWindowResize = () => {
   render();
 };
 
+const onDragStart = (e) => {
+  if (e.metaKey) return;
+  console.log("[onDragStart]");
+  const [mouseX, mouseY] = e.initial;
+  lastMousePt = { mouseX, mouseY };
+};
+
+const onDrag = (e) => {
+  if (e.metaKey) return;
+  console.log("[onDrag]");
+  performRegionUpdate(() => {
+    const [mouseX, mouseY] = e.values;
+    const mouseDeltaX = mouseX - lastMousePt.mouseX;
+    const mouseDeltaY = mouseY - lastMousePt.mouseY;
+    region.drag(canvas, mouseDeltaX, mouseDeltaY);
+    lastMousePt = { mouseX, mouseY };
+  });
+  render();
+};
+
+const onDragEnd = (e) => {
+  if (e.metaKey) return;
+  console.log("[onDragEnd]");
+};
+
 const onCanvasMouseDownHandler = (e) => {
+  console.log("[onCanvasMouseDownHandler]");
   const mouseX = e.offsetX;
   const mouseY = e.offsetY;
   const { regionMouseX, regionMouseY } = region.mouseToRegion(canvas, mouseX, mouseY);
@@ -610,25 +619,12 @@ const onCanvasMouseDownHandler = (e) => {
         return;
     }
   }
-
-  panning = true;
-  lastMousePt = { mouseX, mouseY };
 };
 
 const onCanvasMouseMoveHandler = (e) => {
+  console.log("[onCanvasMouseMoveHandler]");
   const mouseX = e.offsetX;
   const mouseY = e.offsetY;
-
-  if (panning) {
-    performRegionUpdate(() => {
-      const mouseDeltaX = mouseX - lastMousePt.mouseX;
-      const mouseDeltaY = mouseY - lastMousePt.mouseY;
-      region.drag(canvas, mouseDeltaX, mouseDeltaY);
-    });
-    render();
-    lastMousePt = { mouseX, mouseY };
-    return;
-  }
 
   if (selectingRegion) {
     selectingRegionCurrentPt = { mouseX, mouseY };
@@ -643,7 +639,7 @@ const onCanvasMouseMoveHandler = (e) => {
 };
 
 const onCanvasMouseUpHandler = () => {
-  panning = false;
+  console.log("[onCanvasMouseUpHandler]");
 
   if (selectingRegion) {
     const initialPt = selectingRegionInitialPt;
@@ -676,10 +672,6 @@ const onCanvasMouseUpHandler = () => {
 };
 
 const onCanvasMouseLeaveHandler = () => {
-  if (panning) {
-    panning = false;
-  }
-
   if (selectingRegion) {
     overlay.clearSelectionRegion();
     selectingRegionInitialPt = undefined;
