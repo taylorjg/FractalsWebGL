@@ -495,9 +495,12 @@ export const startGraphics = async (queryParamOptionsArg) => {
     document.addEventListener("keydown", onDocumentKeyDownHandler);
 
     new Gesture(canvas, {
-      onDrag,
       onDragStart,
+      onDrag,
       onDragEnd,
+      onPinchStart,
+      onPinch,
+      onPinchEnd,
     });
 
     loadBookmarks(bookmarks);
@@ -573,6 +576,18 @@ const onDrag = (e) => {
 const onDragEnd = (e) => {
   if (e.metaKey) return;
   console.log("[onDragEnd]");
+};
+
+const onPinchStart = (e) => {
+  console.log("[onPinchStart]", e);
+};
+
+const onPinch = (e) => {
+  console.log("[onPinch]", e);
+};
+
+const onPinchEnd = (e) => {
+  console.log("[onPinchEnd]", e);
 };
 
 const onCanvasMouseDownHandler = (e) => {
