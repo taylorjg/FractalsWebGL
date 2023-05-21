@@ -102,6 +102,7 @@ let configurationSummaryOpen = false;
 let smoothColouring = true;
 let nextConfiguration = undefined;
 let nextConfigurationCount = 0;
+let pinchMemo = undefined;
 
 const onModalOpen = () => {
   modalOpen = true;
@@ -555,14 +556,14 @@ const onWindowResize = () => {
 
 const onDragStart = (e) => {
   if (e.metaKey) return;
-  console.log("[onDragStart]");
+  // console.log("[onDragStart]");
   const [mouseX, mouseY] = e.initial;
   lastMousePt = { mouseX, mouseY };
 };
 
 const onDrag = (e) => {
   if (e.metaKey) return;
-  console.log("[onDrag]");
+  // console.log("[onDrag]");
   performRegionUpdate(() => {
     const [mouseX, mouseY] = e.values;
     const mouseDeltaX = mouseX - lastMousePt.mouseX;
@@ -575,23 +576,55 @@ const onDrag = (e) => {
 
 const onDragEnd = (e) => {
   if (e.metaKey) return;
-  console.log("[onDragEnd]");
+  // console.log("[onDragEnd]");
 };
 
 const onPinchStart = (e) => {
-  console.log("[onPinchStart]", e);
+  // console.log("[onPinchStart]", e.active, e.origin, e.offset, e.movement);
+  const [mouseX, mouseY] = e.origin;
+  const { regionMouseX: fixedX, regionMouseY: fixedY } = region.mouseToRegion(
+    canvas,
+    mouseX,
+    mouseY
+  );
+  pinchMemo = {
+    originalWidth: region.width,
+    originalHeight: region.height,
+    fixedX,
+    fixedY,
+    originalDeltaX: fixedX - region.left,
+    originalDeltaY: fixedY - region.bottom,
+  };
 };
 
 const onPinch = (e) => {
-  console.log("[onPinch]", e);
+  // console.log("[onPinch]", e.active, e.origin, e.offset, e.movement);
+  performRegionUpdate(() => {
+    const [scale] = e.movement;
+
+    const newWidth = pinchMemo.originalWidth / scale;
+    const newDeltaX = pinchMemo.originalDeltaX / scale;
+    const newLeft = pinchMemo.fixedX - newDeltaX;
+    const newRight = newLeft + newWidth;
+
+    const newHeight = pinchMemo.originalHeight / scale;
+    const newDeltaY = pinchMemo.originalDeltaY / scale;
+    const newBottom = pinchMemo.fixedY - newDeltaY;
+    const newTop = newBottom + newHeight;
+
+    const bottomLeft = { x: newLeft, y: newBottom };
+    const topRight = { x: newRight, y: newTop };
+    region.set(bottomLeft, topRight);
+  });
+  render();
 };
 
-const onPinchEnd = (e) => {
-  console.log("[onPinchEnd]", e);
+const onPinchEnd = (/* e */) => {
+  // console.log("[onPinchEnd]", e.active, e.origin, e.offset, e.movement);
 };
 
 const onCanvasMouseDownHandler = (e) => {
-  console.log("[onCanvasMouseDownHandler]");
+  // console.log("[onCanvasMouseDownHandler]");
   const mouseX = e.offsetX;
   const mouseY = e.offsetY;
   const { regionMouseX, regionMouseY } = region.mouseToRegion(canvas, mouseX, mouseY);
@@ -637,7 +670,7 @@ const onCanvasMouseDownHandler = (e) => {
 };
 
 const onCanvasMouseMoveHandler = (e) => {
-  console.log("[onCanvasMouseMoveHandler]");
+  // console.log("[onCanvasMouseMoveHandler]");
   const mouseX = e.offsetX;
   const mouseY = e.offsetY;
 
@@ -654,7 +687,7 @@ const onCanvasMouseMoveHandler = (e) => {
 };
 
 const onCanvasMouseUpHandler = () => {
-  console.log("[onCanvasMouseUpHandler]");
+  // console.log("[onCanvasMouseUpHandler]");
 
   if (selectingRegion) {
     const initialPt = selectingRegionInitialPt;
