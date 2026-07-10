@@ -238,18 +238,16 @@ export const configureInput = (
       return;
     }
 
-    if (ctx.isWebGL2) {
-      if (e.key === "i" || e.key === "I") {
-        const delta = C.DELTA_ITERATIONS * (e.shiftKey ? -1 : +1);
-        ctx.currentMaxIterations = U.clamp(
-          C.MIN_ITERATIONS,
-          C.MAX_ITERATIONS_MANUAL,
-          ctx.currentMaxIterations + delta
-        );
-        makeConfigurationChanges(ctx, { maxIterations: ctx.currentMaxIterations });
-        render();
-        return;
-      }
+    if (e.key === "i" || e.key === "I") {
+      const delta = C.DELTA_ITERATIONS * (e.shiftKey ? -1 : +1);
+      ctx.currentMaxIterations = U.clamp(
+        C.MIN_ITERATIONS,
+        C.MAX_ITERATIONS_MANUAL,
+        ctx.currentMaxIterations + delta
+      );
+      makeConfigurationChanges(ctx, { maxIterations: ctx.currentMaxIterations });
+      render();
+      return;
     }
 
     if (e.key === "s") {

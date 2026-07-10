@@ -26,7 +26,6 @@ const formatCoords = ({ x, y }) => `(${x}, ${y})`;
 export const BookmarkDialog = ({
   open,
   bookmark,
-  isWebGL2,
   fractalSets,
   colourMaps,
   renderThumbnail,
@@ -152,16 +151,14 @@ export const BookmarkDialog = ({
               <Typography variant="body2" color="text.secondary" gutterBottom>
                 {maxIterations}
               </Typography>
-              {isWebGL2 && (
-                <Slider
-                  min={C.MIN_ITERATIONS}
-                  max={C.MAX_ITERATIONS_MANUAL}
-                  step={C.DELTA_ITERATIONS}
-                  value={maxIterations}
-                  onChange={(_e, value) => setMaxIterations(value)}
-                  valueLabelDisplay="auto"
-                />
-              )}
+              <Slider
+                min={C.MIN_ITERATIONS}
+                max={C.MAX_ITERATIONS_MANUAL}
+                step={C.DELTA_ITERATIONS}
+                value={maxIterations}
+                onChange={(_e, value) => setMaxIterations(value)}
+                valueLabelDisplay="auto"
+              />
             </Box>
           </Stack>
 

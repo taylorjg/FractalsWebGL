@@ -1,40 +1,40 @@
-const CONTEXT_TYPE_EXPERIMENTAL_WEBGL = "experimental-webgl";
-const CONTEXT_TYPE_WEBGL = "webgl";
-const CONTEXT_TYPE_WEBGL_2 = "webgl2";
+const WEBGL2_REQUIRED_MESSAGE =
+  "WebGL 2 is required to run this app. Try updating your browser or enabling hardware acceleration in your browser settings.";
 
-const VALID_CONTEXT_TYPES = [
-  CONTEXT_TYPE_EXPERIMENTAL_WEBGL,
-  CONTEXT_TYPE_WEBGL,
-  CONTEXT_TYPE_WEBGL_2,
-];
+const showWebGL2RequiredMessage = () => {
+  const message = document.createElement("p");
+  message.setAttribute("role", "alert");
+  message.textContent = WEBGL2_REQUIRED_MESSAGE;
+  Object.assign(message.style, {
+    position: "fixed",
+    inset: "0",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    margin: "0",
+    padding: "2rem",
+    textAlign: "center",
+    backgroundColor: "#000",
+    color: "#fff",
+    fontFamily: "Roboto, sans-serif",
+  });
+  document.body.appendChild(message);
+};
 
 export const initialiseWebGL = (ctx, canvas) => {
-  const tryContextType = (contextType) => {
-    try {
-      ctx.gl = canvas.getContext(contextType);
-      if (!ctx.gl) {
-        console.log(`Failed to initialise WebGL (contextType: ${contextType})`);
-      }
-    } catch (error) {
-      alert(`Exception trying to initialise WebGL (contextType: ${contextType})\n${error.message}`);
+  try {
+    ctx.gl = canvas.getContext("webgl2");
+    if (!ctx.gl) {
+      console.error("Failed to initialise WebGL 2");
     }
-
-    const result = Boolean(ctx.gl);
-
-    if (result && contextType === CONTEXT_TYPE_WEBGL_2) {
-      ctx.isWebGL2 = true;
-    }
-
-    return result;
-  };
-
-  const contextTypeToTryFirst = VALID_CONTEXT_TYPES.includes(ctx.queryParamOptions.contextType)
-    ? ctx.queryParamOptions.contextType
-    : CONTEXT_TYPE_WEBGL_2;
-
-  if (!tryContextType(contextTypeToTryFirst)) {
-    if (contextTypeToTryFirst !== CONTEXT_TYPE_WEBGL) {
-      tryContextType(CONTEXT_TYPE_WEBGL);
-    }
+  } catch (error) {
+    console.error("Failed to initialise WebGL 2:", error);
   }
+
+  if (!ctx.gl) {
+    showWebGL2RequiredMessage();
+    return false;
+  }
+
+  return true;
 };

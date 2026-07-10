@@ -3,7 +3,6 @@ import { BookmarkDialog } from "./bookmark-dialog";
 import { ManageBookmarksDialog } from "./manage-bookmarks-dialog";
 
 export const UiController = ({
-  isWebGL2,
   renderThumbnail,
   addBookmark,
   updateBookmark,
@@ -89,7 +88,6 @@ export const UiController = ({
       <BookmarkDialog
         open={bookmarkDialogOpen}
         bookmark={bookmark}
-        isWebGL2={isWebGL2}
         fractalSets={fractalSets}
         colourMaps={colourMaps}
         renderThumbnail={renderThumbnail}

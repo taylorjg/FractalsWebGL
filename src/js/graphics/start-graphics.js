@@ -19,7 +19,10 @@ export const startGraphics = (queryParamOptionsArg) => {
   ctx.queryParamOptions = queryParamOptionsArg;
   ctx.canvas = document.getElementById("canvas");
 
-  initialiseWebGL(ctx, ctx.canvas);
+  if (!initialiseWebGL(ctx, ctx.canvas)) {
+    return;
+  }
+
   initialiseShaders(ctx);
   loadColourMaps(ctx);
 
@@ -60,7 +63,6 @@ export const startGraphics = (queryParamOptionsArg) => {
   });
 
   ctx.ui = configureUI({
-    isWebGL2: ctx.isWebGL2,
     renderThumbnail: ctx.thumbnail.renderThumbnail,
     addBookmark,
     updateBookmark,

@@ -29,7 +29,7 @@ export const makeConfigurationChanges = (
   ctx,
   { fractalSetId, juliaConstant, colourMapId, maxIterations, regionBottomLeft, regionTopRight }
 ) => {
-  const { gl, region, fractalSets, colourMaps, isWebGL2, smoothColouring } = ctx;
+  const { gl, region, fractalSets, colourMaps, smoothColouring } = ctx;
 
   if (regionBottomLeft && regionTopRight) {
     performRegionUpdate(ctx, () => {
@@ -51,7 +51,7 @@ export const makeConfigurationChanges = (
     ctx.currentColourMap = colourMaps.get(colourMapId);
   }
 
-  if (isWebGL2 && Number.isInteger(maxIterations)) {
+  if (Number.isInteger(maxIterations)) {
     ctx.currentMaxIterations = maxIterations;
   }
 
@@ -70,10 +70,7 @@ export const makeConfigurationChanges = (
 
   gl.uniform1i(ctx.currentFractalSet.uSmoothColouring, smoothColouring);
   gl.uniform1i(ctx.currentFractalSet.uReturnIteration, false);
-
-  if (isWebGL2) {
-    gl.uniform1i(ctx.currentFractalSet.uMaxIterations, ctx.currentMaxIterations);
-  }
+  gl.uniform1i(ctx.currentFractalSet.uMaxIterations, ctx.currentMaxIterations);
 };
 
 // Implies all configuration values are being changed.

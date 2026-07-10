@@ -37,7 +37,7 @@ const initialiseShadersHelper = (
   fragmentShaderSource,
   loopShaderSource
 ) => {
-  const { gl, isWebGL2 } = ctx;
+  const { gl } = ctx;
   const commonShaderSources = [loopShaderSource];
   const vertexShader = makeShader(gl, vertexShaderSource, gl.VERTEX_SHADER);
   const fragmentShader = makeShader(
@@ -75,13 +75,9 @@ const initialiseShadersHelper = (
   const uModelViewMatrix = gl.getUniformLocation(program, "uModelViewMatrix");
   const uColourMap = gl.getUniformLocation(program, "uColourMap");
   const uJuliaConstant = gl.getUniformLocation(program, "uJuliaConstant");
-
   const uSmoothColouring = gl.getUniformLocation(program, "uSmoothColouring");
   const uReturnIteration = gl.getUniformLocation(program, "uReturnIteration");
-
-  const maybeMaxIterationsUniform = isWebGL2
-    ? { uMaxIterations: gl.getUniformLocation(program, "uMaxIterations") }
-    : undefined;
+  const uMaxIterations = gl.getUniformLocation(program, "uMaxIterations");
 
   // prettier-ignore
   const vertexPositionBufferData = new Float32Array([
@@ -101,7 +97,7 @@ const initialiseShadersHelper = (
     aVertexPosition,
     aRegionPosition,
     uModelViewMatrix,
-    ...maybeMaxIterationsUniform,
+    uMaxIterations,
     uColourMap,
     uJuliaConstant,
     uSmoothColouring,
@@ -112,20 +108,19 @@ const initialiseShadersHelper = (
 };
 
 export const initialiseShaders = (ctx) => {
-  const sources = ctx.isWebGL2 ? shaderSources.webgl2 : shaderSources.webgl1;
   const mandelbrotSet = initialiseShadersHelper(
     ctx,
     "Mandelbrot",
-    sources.vertex,
-    sources.mandelbrot,
-    sources.loop
+    shaderSources.vertex,
+    shaderSources.mandelbrot,
+    shaderSources.loop
   );
   const juliaSet = initialiseShadersHelper(
     ctx,
     "Julia",
-    sources.vertex,
-    sources.julia,
-    sources.loop
+    shaderSources.vertex,
+    shaderSources.julia,
+    shaderSources.loop
   );
   ctx.fractalSets.set(C.FRACTAL_SET_ID_MANDELBROT, mandelbrotSet);
   ctx.fractalSets.set(C.FRACTAL_SET_ID_JULIA, juliaSet);

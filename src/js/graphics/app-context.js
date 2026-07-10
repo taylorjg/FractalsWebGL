@@ -8,7 +8,6 @@ export const createAppContext = () => ({
   thumbnail: null,
   configurationChooser: null,
   gl: null,
-  isWebGL2: false,
   ui: null,
   fractalSets: new Map(),
   colourMaps: new Map(),
