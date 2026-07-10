@@ -1,4 +1,4 @@
-import * as C from "./constants";
+import * as C from "@app/fractal/constants";
 
 const RUBBER_BAND_RECT_THICKNESS = 2;
 const RUBBER_BAND_RECT_COLOUR = "#FFFFFF80";

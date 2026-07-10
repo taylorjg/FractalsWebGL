@@ -1,17 +1,9 @@
-import * as U from "@app/js/utils";
-import { performRegionUpdate, switchToBookmark } from "./configuration";
-import { setCanvasAndViewportSize } from "./canvas-size";
+import * as U from "@app/fractal/utils";
+import { performRegionUpdate, switchToBookmark } from "@app/webgl/configuration";
+import { setCanvasAndViewportSize } from "@app/webgl/canvas-size";
+import { doIdleTasks } from "./idle-tasks";
 
 const CHANGE_REGION_INTERVAL_SECONDS = 10;
-
-export const doIdleTasks = (ctx) => {
-  if (!ctx.nextConfiguration) {
-    ctx.nextConfiguration = ctx.configurationChooser.chooseConfiguration(
-      CHANGE_REGION_INTERVAL_SECONDS
-    );
-    ctx.nextConfigurationCount++;
-  }
-};
 
 export const displayConfiguration = (
   ctx,

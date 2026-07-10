@@ -1,5 +1,5 @@
 import "@app/styles.css";
-import { startGraphics } from "./graphics";
+import { startGraphics } from "@app/webgl/start-graphics";
 
 document.title = `Fractals WebGL (version: ${__APP_VERSION__})`;
 

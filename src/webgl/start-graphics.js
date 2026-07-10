@@ -1,18 +1,18 @@
-import { configureConfigurationChooser } from "@app/js/configuration-chooser";
-import { configureOverlay } from "@app/js/overlay";
-import { configureThumbnail } from "@app/js/thumbnail";
+import { configureConfigurationChooser } from "@app/fractal/configuration-chooser";
+import * as C from "@app/fractal/constants";
+import { configureOverlay } from "@app/ui/overlay";
 import { configureUI } from "@app/ui";
-import * as C from "@app/js/constants";
+import { configureBookmarkStore } from "@app/bookmarks/store";
+import { startAutoMode } from "@app/auto-mode/auto-mode";
+import { configureInput } from "@app/input";
 import { createAppContext } from "./app-context";
-import { startAutoMode } from "./auto-mode";
-import { configureBookmarks } from "./bookmarks";
 import { createWindowResizeHandler, setCanvasAndViewportSize } from "./canvas-size";
 import { loadColourMaps } from "./colour-maps";
 import { switchToBookmark } from "./configuration";
 import { initialiseWebGL } from "./context";
-import { configureInput } from "./input";
 import { configureRenderer } from "./renderer";
 import { initialiseShaders } from "./shaders";
+import { configureThumbnail } from "./thumbnail";
 
 export const startGraphics = (queryParamOptionsArg) => {
   const ctx = createAppContext();
@@ -39,7 +39,7 @@ export const startGraphics = (queryParamOptionsArg) => {
     createBookmark,
     onModalOpen,
     onModalClose,
-  } = configureBookmarks(ctx);
+  } = configureBookmarkStore(ctx);
 
   const { render, hideConfigurationSummary, showConfigurationSummary, updateConfigurationSummary } =
     configureRenderer(ctx, { createBookmark });

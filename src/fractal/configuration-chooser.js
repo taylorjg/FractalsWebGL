@@ -1,5 +1,6 @@
-import { Region } from "./region";
-import * as U from "./utils";
+import { Region } from "@app/fractal/region";
+import * as U from "@app/fractal/utils";
+import { drawThumbnail } from "@app/ui/thumbnail-canvas";
 
 const SAMPLE_SIZE = 64;
 const MIN_REQUIRED_PERCENT = 60;
@@ -106,8 +107,8 @@ export const configureConfigurationChooser = ({
             initialConfiguration
           );
           const previewFinalPixels = renderThumbnail(sampleWidth, sampleHeight, finalConfiguration);
-          U.drawThumbnail(previewInitialPixels, previewInitialCanvas, sampleWidth, sampleHeight);
-          U.drawThumbnail(previewFinalPixels, previewFinalCanvas, sampleWidth, sampleHeight);
+          drawThumbnail(previewInitialPixels, previewInitialCanvas, sampleWidth, sampleHeight);
+          drawThumbnail(previewFinalPixels, previewFinalCanvas, sampleWidth, sampleHeight);
         }
         return initialConfiguration;
       }

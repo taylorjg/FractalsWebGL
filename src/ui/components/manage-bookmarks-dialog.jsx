@@ -14,7 +14,7 @@ import {
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
-import * as U from "@app/js/utils";
+import { drawThumbnail } from "@app/ui/thumbnail-canvas";
 import { thumbnailStyle } from "@app/ui/theme";
 
 const THUMBNAIL_SIZE = 64;
@@ -25,7 +25,7 @@ const BookmarkRow = ({ bookmark, renderThumbnail, onSwitchTo, onEdit, onDelete }
   useEffect(() => {
     if (!thumbnailCanvasRef.current) return;
     const pixels = renderThumbnail(THUMBNAIL_SIZE, THUMBNAIL_SIZE, bookmark);
-    U.drawThumbnail(pixels, thumbnailCanvasRef.current, THUMBNAIL_SIZE, THUMBNAIL_SIZE);
+    drawThumbnail(pixels, thumbnailCanvasRef.current, THUMBNAIL_SIZE, THUMBNAIL_SIZE);
   }, [bookmark, renderThumbnail]);
 
   return (

@@ -15,8 +15,8 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import * as C from "@app/js/constants";
-import * as U from "@app/js/utils";
+import * as C from "@app/fractal/constants";
+import { drawThumbnail } from "@app/ui/thumbnail-canvas";
 import { thumbnailStyle } from "@app/ui/theme";
 
 const THUMBNAIL_SIZE = 64;
@@ -50,7 +50,7 @@ export const BookmarkDialog = ({
         maxIterations,
       };
       const pixels = renderThumbnail(THUMBNAIL_SIZE, THUMBNAIL_SIZE, configuration);
-      U.drawThumbnail(pixels, canvas, THUMBNAIL_SIZE, THUMBNAIL_SIZE);
+      drawThumbnail(pixels, canvas, THUMBNAIL_SIZE, THUMBNAIL_SIZE);
     },
     [bookmark, colourMapId, maxIterations, renderThumbnail]
   );

@@ -1,4 +1,4 @@
-import * as C from "@app/js/constants";
+import * as C from "@app/fractal/constants";
 import { shaderSources } from "./shader-sources";
 
 const MARKER = "// INSERT-COMMON-CODE-HERE\n";

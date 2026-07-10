@@ -1,4 +1,4 @@
-export const configureBookmarks = (ctx) => {
+export const configureBookmarkStore = (ctx) => {
   const loadBookmarks = () => {
     const entries = JSON.parse(localStorage.bookmarks || "[]");
     for (const [id, bookmark] of entries) {

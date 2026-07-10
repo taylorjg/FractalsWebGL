@@ -1,5 +1,5 @@
-import { Region } from "@app/js/region";
-import * as C from "@app/js/constants";
+import { Region } from "@app/fractal/region";
+import * as C from "@app/fractal/constants";
 
 export const createAppContext = () => ({
   queryParamOptions: null,
