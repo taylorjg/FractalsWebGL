@@ -427,18 +427,8 @@ const displayConfiguration = async (explicitConfiguration) => {
   setTimeout(displayConfiguration, CHANGE_REGION_INTERVAL_SECONDS * 1000);
 };
 
-export const startGraphics = async (queryParamOptionsArg) => {
+export const startGraphics = (queryParamOptionsArg) => {
   queryParamOptions = queryParamOptionsArg;
-
-  // Turning off the service worker for the moment. Not quite happy with it yet.
-  // if ('serviceWorker' in navigator) {
-  //   try {
-  //     const registration = await navigator.serviceWorker.register('service-worker.js')
-  //     console.log('Successfully registered service worker', registration)
-  //   } catch (error) {
-  //     console.error(`Failed to register service worker: ${error.message}`)
-  //   }
-  // }
 
   canvas = document.getElementById("canvas");
 

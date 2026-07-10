@@ -2,7 +2,6 @@
 
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
-// const { InjectManifest } = require("workbox-webpack-plugin");
 
 const path = require("path");
 const packageJson = require("./package.json");
@@ -22,26 +21,12 @@ module.exports = {
     new CopyWebpackPlugin({
       patterns: [
         { context: "./src", from: "*.css" },
-        { context: "./src", from: "*.png" },
-        { context: "./src", from: "manifest.json" },
       ],
     }),
     new HtmlWebpackPlugin({
       template: "./src/index.html",
       version: packageJson.version,
     }),
-    // Replace "self.__WB_MANIFEST" in ./src/service-worker.js with an array
-    // containing details of the files output by this webpack build e.g.
-    // [
-    //   {
-    //     'revision': 'c6ff9533527fa1cc4c1391cb4f58f01e',
-    //     'url': 'bundle.js'
-    //   },
-    //   ...
-    // ]
-    // new InjectManifest({
-    //   swSrc: "./src/service-worker.js",
-    // }),
   ],
   module: {
     rules: [
