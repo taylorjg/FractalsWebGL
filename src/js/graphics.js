@@ -9,15 +9,15 @@ import { Region } from "./region";
 import * as C from "./constants";
 import * as U from "./utils";
 
-import loopShaderSourceWebGL1 from "../shaders/webgl1/loop.glsl";
-import vertexShaderSourceWebGL1 from "../shaders/webgl1/shader.vert.glsl";
-import mandelbrotShaderSourceWebGL1 from "../shaders/webgl1/mandelbrot.frag.glsl";
-import juliaShaderSourceWebGL1 from "../shaders/webgl1/julia.frag.glsl";
+import loopShaderSourceWebGL1 from "../shaders/webgl1/loop.glsl?raw";
+import vertexShaderSourceWebGL1 from "../shaders/webgl1/shader.vert.glsl?raw";
+import mandelbrotShaderSourceWebGL1 from "../shaders/webgl1/mandelbrot.frag.glsl?raw";
+import juliaShaderSourceWebGL1 from "../shaders/webgl1/julia.frag.glsl?raw";
 
-import loopShaderSourceWebGL2 from "../shaders/webgl2/loop.glsl";
-import vertexShaderSourceWebGL2 from "../shaders/webgl2/shader.vert.glsl";
-import mandelbrotShaderSourceWebGL2 from "../shaders/webgl2/mandelbrot.frag.glsl";
-import juliaShaderSourceWebGL2 from "../shaders/webgl2/julia.frag.glsl";
+import loopShaderSourceWebGL2 from "../shaders/webgl2/loop.glsl?raw";
+import vertexShaderSourceWebGL2 from "../shaders/webgl2/shader.vert.glsl?raw";
+import mandelbrotShaderSourceWebGL2 from "../shaders/webgl2/mandelbrot.frag.glsl?raw";
+import juliaShaderSourceWebGL2 from "../shaders/webgl2/julia.frag.glsl?raw";
 
 let queryParamOptions;
 let canvas;

@@ -1,4 +1,7 @@
+import "../styles.css";
 import { startGraphics } from "./graphics";
+
+document.title = `Fractals WebGL (version: ${__APP_VERSION__})`;
 
 const isBoolTrue = (s) => {
   const trueValues = ["", "true", "1", "on"];

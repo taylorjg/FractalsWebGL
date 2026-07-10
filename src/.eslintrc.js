@@ -6,4 +6,7 @@ module.exports = {
     browser: true,
     jquery: true,
   },
+  globals: {
+    __APP_VERSION__: "readonly",
+  },
 };

@@ -8,27 +8,20 @@
     "gl-matrix": "^3.3.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.21.8",
-    "@babel/plugin-proposal-optional-chaining": "^7.21.0",
-    "@babel/preset-env": "^7.21.5",
-    "babel-loader": "^9.1.2",
-    "copy-webpack-plugin": "^11.0.0",
     "eslint": "^8.39.0",
     "eslint-config-prettier": "^8.8.0",
     "eslint-plugin-prettier": "^4.2.1",
     "gh-pages": "^5.0.0",
-    "html-webpack-plugin": "^5.5.1",
     "prettier": "^2.8.8",
-    "webpack": "^5.81.0",
-    "webpack-cli": "^5.0.2",
-    "webpack-dev-server": "^4.13.3"
+    "vite": "^6.3.5"
   },
   "scripts": {
     "lint": "eslint .",
-    "build": "webpack",
-    "start:dev": "webpack-dev-server --mode development",
-    "deploy": "gh-pages -d build",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
     "predeploy": "npm run build",
+    "deploy": "gh-pages -d build",
     "open": "open https://taylorjg.github.io/FractalsWebGL"
   },
   "repository": {
