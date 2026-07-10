@@ -27,8 +27,22 @@ export default [
     languageOptions: {
       globals: {
         ...globals.browser,
-        ...globals.jquery,
         __APP_VERSION__: "readonly",
+      },
+    },
+  },
+  {
+    files: ["src/**/*.{jsx,tsx}"],
+    languageOptions: {
+      ecmaVersion: 2020,
+      sourceType: "module",
+      parserOptions: {
+        ecmaFeatures: {
+          jsx: true,
+        },
+      },
+      globals: {
+        ...globals.browser,
       },
     },
   },

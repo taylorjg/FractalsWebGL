@@ -3,12 +3,20 @@
   "version": "0.0.72",
   "description": "Fractals in WebGL",
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@fontsource/roboto": "^5.2.10",
+    "@mui/icons-material": "^9.2.0",
+    "@mui/material": "^9.2.0",
     "@use-gesture/vanilla": "^10.2.26",
     "colormap": "^2.3.2",
-    "gl-matrix": "^3.3.0"
+    "gl-matrix": "^3.3.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@vitejs/plugin-react": "^6.0.3",
     "eslint": "^10.6.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.6",
