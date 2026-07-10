@@ -1,5 +1,5 @@
 import colormap from "colormap";
-import * as C from "../constants";
+import * as C from "@app/js/constants";
 
 const createColourMapTexture = (gl, colourMap, textureUnit) => {
   const texture = gl.createTexture();

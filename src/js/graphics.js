@@ -1,1 +1,1 @@
-export { startGraphics } from "./graphics/start-graphics.js";
+export { startGraphics } from "@app/js/graphics/start-graphics.js";

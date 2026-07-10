@@ -1,4 +1,4 @@
-import * as U from "../utils";
+import * as U from "@app/js/utils";
 import { performRegionUpdate, switchToBookmark } from "./configuration";
 import { setCanvasAndViewportSize } from "./canvas-size";
 

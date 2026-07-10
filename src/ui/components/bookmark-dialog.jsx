@@ -15,9 +15,9 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import * as C from "../js/constants";
-import * as U from "../js/utils";
-import { thumbnailStyle } from "../theme";
+import * as C from "@app/js/constants";
+import * as U from "@app/js/utils";
+import { thumbnailStyle } from "@app/ui/theme";
 
 const THUMBNAIL_SIZE = 64;
 

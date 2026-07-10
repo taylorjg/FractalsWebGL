@@ -1,4 +1,4 @@
-import * as C from "../constants";
+import * as C from "@app/js/constants";
 import { shaderSources } from "./shader-sources";
 
 const MARKER = "// INSERT-COMMON-CODE-HERE\n";

@@ -1,8 +1,8 @@
-import { configureConfigurationChooser } from "../configuration-chooser";
-import { configureOverlay } from "../overlay";
-import { configureThumbnail } from "../thumbnail";
-import { configureUI } from "../ui";
-import * as C from "../constants";
+import { configureConfigurationChooser } from "@app/js/configuration-chooser";
+import { configureOverlay } from "@app/js/overlay";
+import { configureThumbnail } from "@app/js/thumbnail";
+import { configureUI } from "@app/ui";
+import * as C from "@app/js/constants";
 import { createAppContext } from "./app-context";
 import { startAutoMode } from "./auto-mode";
 import { configureBookmarks } from "./bookmarks";

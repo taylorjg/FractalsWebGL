@@ -1,6 +1,6 @@
 import { Gesture } from "@use-gesture/vanilla";
-import * as C from "../constants";
-import * as U from "../utils";
+import * as C from "@app/js/constants";
+import * as U from "@app/js/utils";
 import { makeConfigurationChanges, performRegionUpdate, switchToBookmark } from "./configuration";
 import { setCanvasAndViewportSize } from "./canvas-size";
 

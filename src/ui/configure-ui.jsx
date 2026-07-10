@@ -5,8 +5,8 @@ import "@fontsource/roboto/300.css";
 import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
-import { UiController } from "../components/ui-controller";
-import { fractalsTheme } from "../theme";
+import { UiController } from "@app/ui/components/ui-controller";
+import { fractalsTheme } from "./theme";
 
 let uiActions = null;
 const pendingCalls = [];

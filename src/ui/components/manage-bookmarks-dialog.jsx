@@ -14,8 +14,8 @@ import {
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
-import * as U from "../js/utils";
-import { thumbnailStyle } from "../theme";
+import * as U from "@app/js/utils";
+import { thumbnailStyle } from "@app/ui/theme";
 
 const THUMBNAIL_SIZE = 64;
 

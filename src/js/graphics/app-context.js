@@ -1,5 +1,5 @@
-import { Region } from "../region";
-import * as C from "../constants";
+import { Region } from "@app/js/region";
+import * as C from "@app/js/constants";
 
 export const createAppContext = () => ({
   queryParamOptions: null,
