@@ -181,11 +181,13 @@ export const configureInput = (
     ctx.bookmarkMode = false;
 
     if (e.key === "n") {
+      e.preventDefault();
       const bookmark = createBookmark();
       return ctx.ui.presentBookmarkModal(bookmark);
     }
 
     if (e.key === "l") {
+      e.preventDefault();
       return ctx.ui.presentManageBookmarksModal(ctx.bookmarks);
     }
   };

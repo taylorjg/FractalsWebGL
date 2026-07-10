@@ -28,7 +28,7 @@ export const configureBookmarks = (ctx) => {
   };
 
   const createBookmark = (name) => ({
-    name: name || `Bookmark${ctx.nextBookmarkId}`,
+    name: name || `Bookmark ${ctx.nextBookmarkId}`,
     fractalSetId: ctx.currentFractalSetId,
     juliaConstant: { ...ctx.currentJuliaConstant },
     colourMapId: ctx.currentColourMapId,
