@@ -1,6 +1,6 @@
 {
   "name": "fractalswebgl",
-  "version": "0.0.72",
+  "version": "0.0.73",
   "description": "Fractals in WebGL",
   "dependencies": {
     "@emotion/react": "^11.14.0",
