@@ -1,0 +1,52 @@
+name: CI/CD
+on: push
+
+jobs:
+  run-unit-tests:
+    name: Run lint check and unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: ".nvmrc"
+      - name: Clean install
+        run: npm clean-install
+      - name: Run lint check
+        run: npm run lint
+      - name: Run unit tests
+        run: npm test
+
+  build:
+    name: Build production bundle
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: ".nvmrc"
+      - name: Clean install
+        run: npm clean-install
+      - name: Build
+        run: npm run build
+
+  deploy:
+    name: Deploy to gh-pages
+    if: github.ref_type == 'tag'
+    needs: [run-unit-tests, build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: ".nvmrc"
+      - name: Clean install
+        run: npm clean-install
+      - name: Build
+        run: npm run build
+      - uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
