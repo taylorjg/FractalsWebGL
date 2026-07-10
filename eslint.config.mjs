@@ -23,12 +23,19 @@ export default [
   },
   {
     files: ["src/**/*.js"],
+    ignores: ["**/*.test.js"],
     languageOptions: {
       globals: {
         ...globals.browser,
         ...globals.jquery,
         __APP_VERSION__: "readonly",
       },
+    },
+  },
+  {
+    files: ["**/*.test.js"],
+    languageOptions: {
+      globals: globals.node,
     },
   },
   {
