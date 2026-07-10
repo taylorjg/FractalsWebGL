@@ -100,7 +100,11 @@ export const BookmarkDialog = ({
       onClose={onClose}
       maxWidth="md"
       fullWidth
-      TransitionProps={{ onEntered: handleDialogEntered }}
+      slotProps={{
+        transition: {
+          onEntered: handleDialogEntered,
+        },
+      }}
     >
       <DialogTitle>{title}</DialogTitle>
       <DialogContent>
