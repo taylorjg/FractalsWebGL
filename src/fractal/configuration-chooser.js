@@ -19,12 +19,7 @@ const AUTO_MOTION = {
   maxZoomSpeed: 0.12,
 };
 
-export const configureConfigurationChooser = ({
-  renderThumbnail,
-  fractalSetIds,
-  colourMapIds,
-  preview,
-}) => {
+export const configureConfigurationChooser = ({ renderThumbnail, colourMapIds, preview }) => {
   const canvas = document.getElementById("canvas");
   const previewPanel = document.getElementById("preview-panel");
   const previewInitialCanvas = document.getElementById("preview-initial");

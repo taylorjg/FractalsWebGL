@@ -33,11 +33,7 @@ describe("analyzeIterationPixels", () => {
   });
 
   it("rejects mostly interior and exterior with a thin boundary", () => {
-    const iterations = [
-      ...Array(45).fill(0),
-      ...Array(5).fill(40),
-      ...Array(45).fill(128),
-    ];
+    const iterations = [...Array(45).fill(0), ...Array(5).fill(40), ...Array(45).fill(128)];
     const { pixels, width, height } = pixelsFromIterations(iterations, 10);
     const analysis = analyzeIterationPixels(pixels, 128, width, height);
 

@@ -42,8 +42,7 @@ export const getVividColourMapIds = () =>
 // Smallest allowed half-width for auto mode (~deepest zoom in).
 export const AUTO_MIN_HALF_WIDTH = 0.001;
 
-export const clampAutoHalfWidth = (halfWidth) =>
-  Math.max(AUTO_MIN_HALF_WIDTH, halfWidth);
+export const clampAutoHalfWidth = (halfWidth) => Math.max(AUTO_MIN_HALF_WIDTH, halfWidth);
 
 export const halfWidthFromConfiguration = (configuration) => {
   const { regionBottomLeft, regionTopRight } = configuration;
