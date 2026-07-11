@@ -1,27 +1,29 @@
 import * as glm from "gl-matrix";
 
-export const updateRegionPositionBuffer = (ctx) => {
+export const bindFractalVertexState = (ctx) => {
+  const { gl, currentFractalSet } = ctx;
+  if (!currentFractalSet) {
+    return;
+  }
+
+  gl.bindBuffer(gl.ARRAY_BUFFER, currentFractalSet.vertexPositionBuffer);
+  gl.vertexAttribPointer(currentFractalSet.aVertexPosition, 2, gl.FLOAT, false, 0, 0);
+  gl.enableVertexAttribArray(currentFractalSet.aVertexPosition);
+};
+
+export const updateRegionUniforms = (ctx) => {
   const { gl, region, currentFractalSet } = ctx;
-  if (!currentFractalSet) return;
+  if (!currentFractalSet) {
+    return;
+  }
 
-  const { regionPositionBuffer, aRegionPosition } = currentFractalSet;
-
-  // prettier-ignore
-  const regionPositionBufferData = new Float32Array([
-    region.topRight.x, region.topRight.y,
-    region.topLeft.x, region.topLeft.y,
-    region.bottomRight.x, region.bottomRight.y,
-    region.bottomLeft.x, region.bottomLeft.y,
-  ]);
-  gl.bindBuffer(gl.ARRAY_BUFFER, regionPositionBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, regionPositionBufferData, gl.DYNAMIC_DRAW);
-  gl.vertexAttribPointer(aRegionPosition, 2, gl.FLOAT, false, 0, 0);
-  gl.bindBuffer(gl.ARRAY_BUFFER, null);
+  gl.uniform2f(currentFractalSet.uRegionCentre, region.centreX, region.centreY);
+  gl.uniform2f(currentFractalSet.uRegionHalfSize, region.width / 2, region.height / 2);
 };
 
 export const performRegionUpdate = (ctx, thunk) => {
   thunk();
-  updateRegionPositionBuffer(ctx);
+  updateRegionUniforms(ctx);
 };
 
 // Some or all configuration values are being changed.
@@ -56,9 +58,11 @@ export const makeConfigurationChanges = (
   }
 
   gl.useProgram(ctx.currentFractalSet.program);
+  bindFractalVertexState(ctx);
 
   const modelViewMatrix = glm.mat4.fromScaling(glm.mat4.create(), [1, -1, 1]);
   gl.uniformMatrix4fv(ctx.currentFractalSet.uModelViewMatrix, false, modelViewMatrix);
+  updateRegionUniforms(ctx);
 
   gl.uniform1i(ctx.currentFractalSet.uColourMap, ctx.currentColourMap.textureUnit);
 

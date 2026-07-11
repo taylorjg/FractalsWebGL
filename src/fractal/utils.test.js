@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { clamp, randomElement, randomFloat, randomInt } from "./utils";
+import { clamp, randomElement, randomFloat, randomInt, randomLogUniform } from "./utils";
 
 describe("clamp", () => {
   it("returns the value when it is within bounds", () => {
@@ -39,5 +39,13 @@ describe("random helpers", () => {
   it("randomElement picks using a floored random index", () => {
     vi.spyOn(Math, "random").mockReturnValue(0.5);
     expect(randomElement(["a", "b", "c", "d"])).toBe("c");
+  });
+
+  it("randomLogUniform maps Math.random to a log-scaled range", () => {
+    vi.spyOn(Math, "random").mockReturnValue(0);
+    expect(randomLogUniform(0.001, 1)).toBeCloseTo(0.001);
+
+    vi.spyOn(Math, "random").mockReturnValue(1);
+    expect(randomLogUniform(0.001, 1)).toBeCloseTo(1);
   });
 });

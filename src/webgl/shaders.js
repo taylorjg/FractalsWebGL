@@ -65,14 +65,9 @@ const initialiseShadersHelper = (
   const aVertexPosition = gl.getAttribLocation(program, "aVertexPosition");
   gl.enableVertexAttribArray(aVertexPosition);
 
-  const aRegionPosition = gl.getAttribLocation(program, "aRegionPosition");
-  gl.enableVertexAttribArray(aRegionPosition);
-
-  const regionPositionBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, regionPositionBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, 4 * 2 * 4, gl.DYNAMIC_DRAW);
-
   const uModelViewMatrix = gl.getUniformLocation(program, "uModelViewMatrix");
+  const uRegionCentre = gl.getUniformLocation(program, "uRegionCentre");
+  const uRegionHalfSize = gl.getUniformLocation(program, "uRegionHalfSize");
   const uColourMap = gl.getUniformLocation(program, "uColourMap");
   const uJuliaConstant = gl.getUniformLocation(program, "uJuliaConstant");
   const uSmoothColouring = gl.getUniformLocation(program, "uSmoothColouring");
@@ -95,15 +90,15 @@ const initialiseShadersHelper = (
     name,
     program,
     aVertexPosition,
-    aRegionPosition,
     uModelViewMatrix,
+    uRegionCentre,
+    uRegionHalfSize,
     uMaxIterations,
     uColourMap,
     uJuliaConstant,
     uSmoothColouring,
     uReturnIteration,
     vertexPositionBuffer,
-    regionPositionBuffer,
   };
 };
 

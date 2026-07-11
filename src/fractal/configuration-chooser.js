@@ -1,10 +1,23 @@
 import { Region } from "@app/fractal/region";
-import * as U from "@app/fractal/utils";
+import { createRandomAutoConfiguration } from "@app/fractal/auto-seeds";
+import {
+  analyzeIterationPixels,
+  FINAL_INTEREST_THRESHOLDS,
+  INTEREST_THRESHOLDS,
+  isInterestingDistribution,
+  scoreCandidate,
+} from "@app/fractal/configuration-interest";
 import { drawThumbnail } from "@app/ui/thumbnail-canvas";
 
 const SAMPLE_SIZE = 64;
-const MIN_REQUIRED_PERCENT = 60;
 const MAX_FPS = 60;
+const CANDIDATES_PER_SEARCH = 2;
+const MIN_ACCEPTABLE_SCORE = 1.35;
+const AUTO_MOTION = {
+  maxPanSpeed: 0.035,
+  minZoomSpeed: 0.05,
+  maxZoomSpeed: 0.12,
+};
 
 export const configureConfigurationChooser = ({
   renderThumbnail,
@@ -17,31 +30,29 @@ export const configureConfigurationChooser = ({
   const previewInitialCanvas = document.getElementById("preview-initial");
   const previewFinalCanvas = document.getElementById("preview-final");
 
-  const isInterestingConfiguration = (configuration, sampleWidth, sampleHeight, type) => {
-    const returnIterationFlag = true;
-    const pixels = renderThumbnail(sampleWidth, sampleHeight, configuration, returnIterationFlag);
-    const iterationValues = new Set();
-    for (let i = 0; i < pixels.length; i += 4) {
-      const lo = pixels[i];
-      const hi = pixels[i + 1];
-      const iteration = lo + (hi << 8);
-      iterationValues.add(iteration);
-    }
-    const uniqueIterationValues = Array.from(iterationValues);
-    const numUniqueIterationValues = uniqueIterationValues.length;
-    const maxIterations = configuration.maxIterations;
-    const threshold = maxIterations * (MIN_REQUIRED_PERCENT / 100);
-    const result = numUniqueIterationValues >= threshold;
-    if (result) {
-      const dataToLog = {
-        type,
-        numUniqueIterationValues,
-        threshold,
-        maxIterations,
-      };
-      console.log("[configureConfigurationChooser]", JSON.stringify(dataToLog, null, 2));
-    }
-    return result;
+  const normalizeConfigurationRegion = (configuration) => {
+    const region = new Region();
+    region.set(configuration.regionBottomLeft, configuration.regionTopRight);
+    region.adjustAspectRatio(canvas.clientWidth, canvas.clientHeight);
+    return {
+      ...configuration,
+      regionBottomLeft: { ...region.bottomLeft },
+      regionTopRight: { ...region.topRight },
+    };
+  };
+
+  const analyzeConfiguration = (configuration, sampleWidth, sampleHeight, thresholds) => {
+    const pixels = renderThumbnail(sampleWidth, sampleHeight, configuration, true);
+    const analysis = analyzeIterationPixels(
+      pixels,
+      configuration.maxIterations,
+      sampleWidth,
+      sampleHeight
+    );
+    return {
+      analysis,
+      passes: isInterestingDistribution(analysis, thresholds),
+    };
   };
 
   const computeFinalConfiguration = (configuration, seconds) => {
@@ -60,59 +71,88 @@ export const configureConfigurationChooser = ({
     };
   };
 
-  const createRandomConfiguration = () => {
-    const fractalSetId = U.randomElement(fractalSetIds);
-    const colourMapId = U.randomElement(colourMapIds);
-    const cx = U.randomFloat(-2, 0.75);
-    const cy = U.randomFloat(-1.5, 1.5);
-    const sz = U.randomFloat(0.01, 0.5);
-    const maxIterations = U.randomInt(32, 1024);
-    const panSpeedX = U.randomPanSpeed();
-    const panSpeedY = U.randomPanSpeed();
-    const zoomSpeed = U.randomZoomSpeed();
+  const evaluateCandidate = (configuration, seconds, sampleWidth, sampleHeight) => {
+    const initialConfiguration = normalizeConfigurationRegion(configuration);
+    const initial = analyzeConfiguration(
+      initialConfiguration,
+      sampleWidth,
+      sampleHeight,
+      INTEREST_THRESHOLDS
+    );
+    if (!initial.passes) {
+      return null;
+    }
 
+    const finalConfiguration = computeFinalConfiguration(initialConfiguration, seconds);
+    const final = analyzeConfiguration(
+      finalConfiguration,
+      sampleWidth,
+      sampleHeight,
+      FINAL_INTEREST_THRESHOLDS
+    );
+    if (!final.passes) {
+      return null;
+    }
+
+    const score = scoreCandidate(initial.analysis, final.analysis);
     return {
-      fractalSetId,
-      juliaConstant: { x: cx, y: cy },
-      colourMapId,
-      regionBottomLeft: { x: cx - sz, y: cy - sz },
-      regionTopRight: { x: cx + sz, y: cy + sz },
-      maxIterations,
-      panSpeedX,
-      panSpeedY,
-      zoomSpeed,
+      configuration: initialConfiguration,
+      finalConfiguration,
+      score,
+      initialAnalysis: initial.analysis,
+      finalAnalysis: final.analysis,
     };
   };
 
   const chooseConfiguration = (seconds) => {
-    const initialConfiguration = createRandomConfiguration(fractalSetIds, colourMapIds);
-    const canvasWidth = canvas.clientWidth;
-    const canvasHeight = canvas.clientHeight;
-    const aspectRatio = canvasWidth / canvasHeight;
-    const region = new Region();
-    region.set(initialConfiguration.regionBottomLeft, initialConfiguration.regionTopRight);
-    region.adjustAspectRatio(canvas.clientWidth, canvas.clientHeight);
-    initialConfiguration.regionBottomLeft = region.bottomLeft;
-    initialConfiguration.regionTopRight = region.topRight;
+    const aspectRatio = canvas.clientWidth / canvas.clientHeight;
     const sampleWidth = SAMPLE_SIZE;
     const sampleHeight = Math.round(SAMPLE_SIZE / aspectRatio);
-    if (isInterestingConfiguration(initialConfiguration, sampleWidth, sampleHeight, "initial")) {
-      const finalConfiguration = computeFinalConfiguration(initialConfiguration, seconds);
-      if (isInterestingConfiguration(finalConfiguration, sampleWidth, sampleHeight, "final")) {
-        if (preview) {
-          previewPanel.style.visibility = "visible";
-          const previewInitialPixels = renderThumbnail(
-            sampleWidth,
-            sampleHeight,
-            initialConfiguration
-          );
-          const previewFinalPixels = renderThumbnail(sampleWidth, sampleHeight, finalConfiguration);
-          drawThumbnail(previewInitialPixels, previewInitialCanvas, sampleWidth, sampleHeight);
-          drawThumbnail(previewFinalPixels, previewFinalCanvas, sampleWidth, sampleHeight);
-        }
-        return initialConfiguration;
+
+    let bestCandidate = null;
+    for (let candidateIndex = 0; candidateIndex < CANDIDATES_PER_SEARCH; candidateIndex++) {
+      const configuration = createRandomAutoConfiguration(colourMapIds, AUTO_MOTION);
+      const candidate = evaluateCandidate(configuration, seconds, sampleWidth, sampleHeight);
+      if (candidate && (!bestCandidate || candidate.score > bestCandidate.score)) {
+        bestCandidate = candidate;
       }
     }
+
+    if (!bestCandidate || bestCandidate.score < MIN_ACCEPTABLE_SCORE) {
+      return undefined;
+    }
+
+    console.log(
+      "[configureConfigurationChooser]",
+      JSON.stringify(
+        {
+          score: bestCandidate.score,
+          initial: bestCandidate.initialAnalysis,
+          final: bestCandidate.finalAnalysis,
+          maxIterations: bestCandidate.configuration.maxIterations,
+        },
+        null,
+        2
+      )
+    );
+
+    if (preview) {
+      previewPanel.style.visibility = "visible";
+      const previewInitialPixels = renderThumbnail(
+        sampleWidth,
+        sampleHeight,
+        bestCandidate.configuration
+      );
+      const previewFinalPixels = renderThumbnail(
+        sampleWidth,
+        sampleHeight,
+        bestCandidate.finalConfiguration
+      );
+      drawThumbnail(previewInitialPixels, previewInitialCanvas, sampleWidth, sampleHeight);
+      drawThumbnail(previewFinalPixels, previewFinalCanvas, sampleWidth, sampleHeight);
+    }
+
+    return bestCandidate.configuration;
   };
 
   return {
