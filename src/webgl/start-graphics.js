@@ -2,7 +2,7 @@ import { configureConfigurationChooser } from "@app/fractal/configuration-choose
 import * as C from "@app/fractal/constants";
 import { configureOverlay } from "@app/ui/overlay";
 import { configureUI } from "@app/ui";
-import { configureBookmarkStore } from "@app/bookmarks/store";
+import { configureBookmarkStore } from "@app/storage/bookmarks";
 import { startAutoMode } from "@app/auto-mode/auto-mode";
 import { configureInput } from "@app/input";
 import { createAppContext } from "./app-context";
