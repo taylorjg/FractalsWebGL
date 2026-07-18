@@ -1,3 +1,5 @@
+[![CI/CD](https://github.com/taylorjg/FractalsWebGL/actions/workflows/ci-cd.yaml/badge.svg)](https://github.com/taylorjg/FractalsWebGL/actions/workflows/ci-cd.yaml)
+
 ## Description
 
 Playing around with fractals in a web browser using WebGL.
