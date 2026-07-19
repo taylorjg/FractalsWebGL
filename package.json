@@ -46,5 +46,8 @@
   "bugs": {
     "url": "https://github.com/taylorjg/FractalsWebGL/issues"
   },
-  "homepage": "https://github.com/taylorjg/FractalsWebGL"
+  "homepage": "https://github.com/taylorjg/FractalsWebGL",
+  "allowScripts": {
+    "fsevents@2.3.3": true
+  }
 }
