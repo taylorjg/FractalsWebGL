@@ -11,7 +11,7 @@
     "@use-gesture/vanilla": "^10.2.26",
     "colormap": "^2.3.2",
     "gl-matrix": "^3.3.0",
-    "react": "^19.2.7",
+    "react": "^19.2.8",
     "react-dom": "^19.2.7"
   },
   "devDependencies": {
