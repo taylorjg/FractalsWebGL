@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { Delete as DeleteIcon, Edit as EditIcon } from "@mui/icons-material";
 import {
   Dialog,
   DialogActions,
@@ -12,8 +13,6 @@ import {
   Button,
   Typography,
 } from "@mui/material";
-import DeleteIcon from "@mui/icons-material/Delete";
-import EditIcon from "@mui/icons-material/Edit";
 import { drawThumbnail } from "@app/ui/thumbnail-canvas";
 import { thumbnailStyle } from "@app/ui/theme";
 
