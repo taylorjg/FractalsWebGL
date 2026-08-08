@@ -44,7 +44,7 @@ jobs:
 
   deploy:
     name: Deploy to gh-pages
-    if: github.ref_type == 'tag'
+    if: github.ref_type == 'tag' && startsWith(github.ref_name, 'v')
     needs: [run-unit-tests, build]
     runs-on: ubuntu-latest
     permissions:
