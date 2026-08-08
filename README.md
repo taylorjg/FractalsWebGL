@@ -1,4 +1,4 @@
-[![CI/CD](https://github.com/taylorjg/FractalsWebGL/actions/workflows/ci-cd.yaml/badge.svg)](https://github.com/taylorjg/FractalsWebGL/actions/workflows/ci-cd.yaml)
+[![CI/CD](https://github.com/taylorjg/FractalsWebGL/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/taylorjg/FractalsWebGL/actions/workflows/ci-cd.yml)
 
 ## Description
 
