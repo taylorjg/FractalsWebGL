@@ -28,7 +28,6 @@ jobs:
         run: npm run build
 
   deploy:
-    name: Deploy to gh-pages
     if: github.ref_type == 'tag' && startsWith(github.ref_name, 'v')
     needs: test
     runs-on: ubuntu-latest
