@@ -27,7 +27,7 @@
     "vitest": "^4.1.10"
   },
   "scripts": {
-    "lint": "eslint .",
+    "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
     "test": "vitest run",
     "dev": "vite",
     "build": "vite build",
