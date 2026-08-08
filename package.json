@@ -29,7 +29,6 @@
   "scripts": {
     "lint": "eslint .",
     "test": "vitest run",
-    "test:watch": "vitest",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
