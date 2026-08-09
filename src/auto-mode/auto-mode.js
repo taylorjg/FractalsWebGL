@@ -1,5 +1,8 @@
 import * as U from "@app/fractal/utils";
-import { performRegionUpdate, switchToBookmark } from "@app/webgl/configuration";
+import {
+  performRegionUpdate,
+  switchToBookmark,
+} from "@app/webgl/configuration";
 import { setCanvasAndViewportSize } from "@app/webgl/canvas-size";
 import { doIdleTasks } from "./idle-tasks";
 
@@ -13,7 +16,11 @@ export const displayConfiguration = (
   const configuration = explicitConfiguration ?? ctx.nextConfiguration;
   if (configuration) {
     if (!explicitConfiguration) {
-      console.log("[displayConfiguration]", "nextConfigurationCount:", ctx.nextConfigurationCount);
+      console.log(
+        "[displayConfiguration]",
+        "nextConfigurationCount:",
+        ctx.nextConfigurationCount
+      );
       ctx.nextConfiguration = undefined;
       ctx.nextConfigurationCount = 0;
     }
@@ -31,7 +38,10 @@ export const displayConfiguration = (
   );
 };
 
-export const startAutoMode = (ctx, { render, updateConfigurationSummary, initialBookmark }) => {
+export const startAutoMode = (
+  ctx,
+  { render, updateConfigurationSummary, initialBookmark }
+) => {
   displayConfiguration(ctx, { updateConfigurationSummary }, initialBookmark);
   const animate = () => {
     performRegionUpdate(ctx, () => {

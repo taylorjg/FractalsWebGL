@@ -152,7 +152,11 @@ describe("Region", () => {
       setSquareRegion(region);
       const canvas = { width: 800, height: 600 };
 
-      const { regionMouseX, regionMouseY } = region.mouseToRegion(canvas, 400, 300);
+      const { regionMouseX, regionMouseY } = region.mouseToRegion(
+        canvas,
+        400,
+        300
+      );
 
       expect(regionMouseX).toBeCloseTo(1);
       expect(regionMouseY).toBeCloseTo(1);

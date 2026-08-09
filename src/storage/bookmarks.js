@@ -8,7 +8,9 @@ export const configureBookmarkStore = (ctx) => {
   };
 
   const saveBookmarks = () => {
-    localStorage.bookmarks = JSON.stringify(Array.from(ctx.bookmarks.entries()));
+    localStorage.bookmarks = JSON.stringify(
+      Array.from(ctx.bookmarks.entries())
+    );
   };
 
   const addBookmark = (bookmark) => {

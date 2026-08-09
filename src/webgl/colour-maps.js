@@ -11,7 +11,17 @@ const createColourMapTexture = (gl, colourMap, textureUnit) => {
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
   const pixels = new Uint8Array(colourMap.map((value) => value * 255));
   const width = colourMap.length / 4;
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+  gl.texImage2D(
+    gl.TEXTURE_2D,
+    0,
+    gl.RGBA,
+    width,
+    1,
+    0,
+    gl.RGBA,
+    gl.UNSIGNED_BYTE,
+    pixels
+  );
 };
 
 const loadColourMap = (gl, name, textureUnit) => {

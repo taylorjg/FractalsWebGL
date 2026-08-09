@@ -37,12 +37,15 @@ export const JULIA_CONSTANTS = [
 ];
 
 export const getVividColourMapIds = () =>
-  C.COLOUR_MAP_NAMES.flatMap((name, id) => (VIVID_COLOUR_MAP_NAMES.has(name) ? [id] : []));
+  C.COLOUR_MAP_NAMES.flatMap((name, id) =>
+    VIVID_COLOUR_MAP_NAMES.has(name) ? [id] : []
+  );
 
 // Smallest allowed half-width for auto mode (~deepest zoom in).
 export const AUTO_MIN_HALF_WIDTH = 0.001;
 
-export const clampAutoHalfWidth = (halfWidth) => Math.max(AUTO_MIN_HALF_WIDTH, halfWidth);
+export const clampAutoHalfWidth = (halfWidth) =>
+  Math.max(AUTO_MIN_HALF_WIDTH, halfWidth);
 
 export const halfWidthFromConfiguration = (configuration) => {
   const { regionBottomLeft, regionTopRight } = configuration;
@@ -55,19 +58,30 @@ export const iterationsForZoomDepth = (halfWidth) => {
 };
 
 export const pickAutoColourMapId = (colourMapIds) => {
-  const vividIds = getVividColourMapIds().filter((id) => colourMapIds.includes(id));
+  const vividIds = getVividColourMapIds().filter((id) =>
+    colourMapIds.includes(id)
+  );
   if (vividIds.length > 0 && Math.random() < 0.85) {
     return U.randomElement(vividIds);
   }
   return U.randomElement(colourMapIds);
 };
 
-const createRegionFromCentre = (centreX, centreY, halfWidth, halfHeight = halfWidth) => ({
+const createRegionFromCentre = (
+  centreX,
+  centreY,
+  halfWidth,
+  halfHeight = halfWidth
+) => ({
   regionBottomLeft: { x: centreX - halfWidth, y: centreY - halfHeight },
   regionTopRight: { x: centreX + halfWidth, y: centreY + halfHeight },
 });
 
-export const createAutoMotion = ({ maxPanSpeed, minZoomSpeed, maxZoomSpeed }) => {
+export const createAutoMotion = ({
+  maxPanSpeed,
+  minZoomSpeed,
+  maxZoomSpeed,
+}) => {
   const zoomSpeed = U.randomFloat(minZoomSpeed, maxZoomSpeed);
   const panMagnitude = U.randomFloat(0, maxPanSpeed * 0.65);
   const panAngle = U.randomFloat(0, Math.PI * 2);
@@ -105,7 +119,10 @@ export const createHotspotMandelbrotConfiguration = (colourMapId, motion) => {
   const jitterScale = hotspot.halfWidth * 0.15;
   const centreX = hotspot.centreX + U.randomFloat(-jitterScale, jitterScale);
   const centreY = hotspot.centreY + U.randomFloat(-jitterScale, jitterScale);
-  const halfWidth = U.randomLogUniform(hotspot.halfWidth * 0.02, hotspot.halfWidth * 0.2);
+  const halfWidth = U.randomLogUniform(
+    hotspot.halfWidth * 0.02,
+    hotspot.halfWidth * 0.2
+  );
 
   return createConfigurationFromRegion({
     fractalSetId: C.FRACTAL_SET_ID_MANDELBROT,
@@ -157,7 +174,10 @@ export const createJuliaConfiguration = (colourMapId, motion) => {
   });
 };
 
-export const createExploratoryMandelbrotConfiguration = (colourMapId, motion) => {
+export const createExploratoryMandelbrotConfiguration = (
+  colourMapId,
+  motion
+) => {
   const centreX = U.randomFloat(-1.2, 0.4);
   const centreY = U.randomFloat(-1.0, 1.0);
   const halfWidth = U.randomLogUniform(0.001, 0.015);

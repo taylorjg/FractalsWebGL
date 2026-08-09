@@ -1,6 +1,10 @@
 import { performRegionUpdate } from "./configuration";
 
-export const setCanvasAndViewportSize = (ctx, explicitWidth, explicitHeight) => {
+export const setCanvasAndViewportSize = (
+  ctx,
+  explicitWidth,
+  explicitHeight
+) => {
   const { canvas, overlay, gl, region } = ctx;
   const width = explicitWidth ?? canvas.clientWidth;
   const height = explicitHeight ?? canvas.clientHeight;

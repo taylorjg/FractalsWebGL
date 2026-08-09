@@ -5,7 +5,9 @@ export const randomFloat = (min, max) => {
 };
 
 export const randomLogUniform = (min, max) => {
-  return Math.exp(Math.log(min) + Math.random() * (Math.log(max) - Math.log(min)));
+  return Math.exp(
+    Math.log(min) + Math.random() * (Math.log(max) - Math.log(min))
+  );
 };
 
 export const randomInt = (min, max) => {

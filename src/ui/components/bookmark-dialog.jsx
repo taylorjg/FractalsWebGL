@@ -49,7 +49,11 @@ export const BookmarkDialog = ({
         colourMapId,
         maxIterations,
       };
-      const pixels = renderThumbnail(THUMBNAIL_SIZE, THUMBNAIL_SIZE, configuration);
+      const pixels = renderThumbnail(
+        THUMBNAIL_SIZE,
+        THUMBNAIL_SIZE,
+        configuration
+      );
       drawThumbnail(pixels, canvas, THUMBNAIL_SIZE, THUMBNAIL_SIZE);
     },
     [bookmark, colourMapId, maxIterations, renderThumbnail]
@@ -122,7 +126,11 @@ export const BookmarkDialog = ({
                 ref={handleThumbnailCanvasRef}
                 width={THUMBNAIL_SIZE}
                 height={THUMBNAIL_SIZE}
-                style={{ ...thumbnailStyle, cursor: "default", marginBottom: 8 }}
+                style={{
+                  ...thumbnailStyle,
+                  cursor: "default",
+                  marginBottom: 8,
+                }}
               />
               <Typography variant="subtitle2">Fractal</Typography>
               <Typography variant="body2" color="text.secondary">

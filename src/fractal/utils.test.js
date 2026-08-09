@@ -1,5 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { clamp, randomElement, randomFloat, randomInt, randomLogUniform } from "./utils";
+import {
+  clamp,
+  randomElement,
+  randomFloat,
+  randomInt,
+  randomLogUniform,
+} from "./utils";
 
 describe("clamp", () => {
   it("returns the value when it is within bounds", () => {

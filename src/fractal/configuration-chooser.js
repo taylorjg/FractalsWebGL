@@ -19,7 +19,11 @@ const AUTO_MOTION = {
   maxZoomSpeed: 0.12,
 };
 
-export const configureConfigurationChooser = ({ renderThumbnail, colourMapIds, preview }) => {
+export const configureConfigurationChooser = ({
+  renderThumbnail,
+  colourMapIds,
+  preview,
+}) => {
   const canvas = document.getElementById("canvas");
   const previewPanel = document.getElementById("preview-panel");
   const previewInitialCanvas = document.getElementById("preview-initial");
@@ -36,8 +40,18 @@ export const configureConfigurationChooser = ({ renderThumbnail, colourMapIds, p
     };
   };
 
-  const analyzeConfiguration = (configuration, sampleWidth, sampleHeight, thresholds) => {
-    const pixels = renderThumbnail(sampleWidth, sampleHeight, configuration, true);
+  const analyzeConfiguration = (
+    configuration,
+    sampleWidth,
+    sampleHeight,
+    thresholds
+  ) => {
+    const pixels = renderThumbnail(
+      sampleWidth,
+      sampleHeight,
+      configuration,
+      true
+    );
     const analysis = analyzeIterationPixels(
       pixels,
       configuration.maxIterations,
@@ -66,7 +80,12 @@ export const configureConfigurationChooser = ({ renderThumbnail, colourMapIds, p
     };
   };
 
-  const evaluateCandidate = (configuration, seconds, sampleWidth, sampleHeight) => {
+  const evaluateCandidate = (
+    configuration,
+    seconds,
+    sampleWidth,
+    sampleHeight
+  ) => {
     const initialConfiguration = normalizeConfigurationRegion(configuration);
     const initial = analyzeConfiguration(
       initialConfiguration,
@@ -78,7 +97,10 @@ export const configureConfigurationChooser = ({ renderThumbnail, colourMapIds, p
       return null;
     }
 
-    const finalConfiguration = computeFinalConfiguration(initialConfiguration, seconds);
+    const finalConfiguration = computeFinalConfiguration(
+      initialConfiguration,
+      seconds
+    );
     const final = analyzeConfiguration(
       finalConfiguration,
       sampleWidth,
@@ -105,10 +127,25 @@ export const configureConfigurationChooser = ({ renderThumbnail, colourMapIds, p
     const sampleHeight = Math.round(SAMPLE_SIZE / aspectRatio);
 
     let bestCandidate = null;
-    for (let candidateIndex = 0; candidateIndex < CANDIDATES_PER_SEARCH; candidateIndex++) {
-      const configuration = createRandomAutoConfiguration(colourMapIds, AUTO_MOTION);
-      const candidate = evaluateCandidate(configuration, seconds, sampleWidth, sampleHeight);
-      if (candidate && (!bestCandidate || candidate.score > bestCandidate.score)) {
+    for (
+      let candidateIndex = 0;
+      candidateIndex < CANDIDATES_PER_SEARCH;
+      candidateIndex++
+    ) {
+      const configuration = createRandomAutoConfiguration(
+        colourMapIds,
+        AUTO_MOTION
+      );
+      const candidate = evaluateCandidate(
+        configuration,
+        seconds,
+        sampleWidth,
+        sampleHeight
+      );
+      if (
+        candidate &&
+        (!bestCandidate || candidate.score > bestCandidate.score)
+      ) {
         bestCandidate = candidate;
       }
     }
@@ -143,8 +180,18 @@ export const configureConfigurationChooser = ({ renderThumbnail, colourMapIds, p
         sampleHeight,
         bestCandidate.finalConfiguration
       );
-      drawThumbnail(previewInitialPixels, previewInitialCanvas, sampleWidth, sampleHeight);
-      drawThumbnail(previewFinalPixels, previewFinalCanvas, sampleWidth, sampleHeight);
+      drawThumbnail(
+        previewInitialPixels,
+        previewInitialCanvas,
+        sampleWidth,
+        sampleHeight
+      );
+      drawThumbnail(
+        previewFinalPixels,
+        previewFinalCanvas,
+        sampleWidth,
+        sampleHeight
+      );
     }
 
     return bestCandidate.configuration;

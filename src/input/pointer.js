@@ -1,6 +1,9 @@
 import { Gesture } from "@use-gesture/vanilla";
 import * as C from "@app/fractal/constants";
-import { makeConfigurationChanges, performRegionUpdate } from "@app/webgl/configuration";
+import {
+  makeConfigurationChanges,
+  performRegionUpdate,
+} from "@app/webgl/configuration";
 import { setCanvasAndViewportSize } from "@app/webgl/canvas-size";
 
 export const configurePointer = (ctx, { render }) => {
@@ -28,11 +31,8 @@ export const configurePointer = (ctx, { render }) => {
 
   const onPinchStart = (e) => {
     const [mouseX, mouseY] = e.origin;
-    const { regionMouseX: fixedX, regionMouseY: fixedY } = ctx.region.mouseToRegion(
-      ctx.canvas,
-      mouseX,
-      mouseY
-    );
+    const { regionMouseX: fixedX, regionMouseY: fixedY } =
+      ctx.region.mouseToRegion(ctx.canvas, mouseX, mouseY);
     ctx.pinchMemo = {
       originalWidth: ctx.region.width,
       originalHeight: ctx.region.height,
@@ -69,7 +69,11 @@ export const configurePointer = (ctx, { render }) => {
   const onCanvasMouseDownHandler = (e) => {
     const mouseX = e.offsetX;
     const mouseY = e.offsetY;
-    const { regionMouseX, regionMouseY } = ctx.region.mouseToRegion(ctx.canvas, mouseX, mouseY);
+    const { regionMouseX, regionMouseY } = ctx.region.mouseToRegion(
+      ctx.canvas,
+      mouseX,
+      mouseY
+    );
 
     if (e.metaKey) {
       ctx.selectingRegion = true;
@@ -101,7 +105,9 @@ export const configurePointer = (ctx, { render }) => {
         }
 
         case C.FRACTAL_SET_ID_JULIA:
-          makeConfigurationChanges(ctx, { fractalSetId: C.FRACTAL_SET_ID_MANDELBROT });
+          makeConfigurationChanges(ctx, {
+            fractalSetId: C.FRACTAL_SET_ID_MANDELBROT,
+          });
           render();
           return;
 
@@ -142,7 +148,11 @@ export const configurePointer = (ctx, { render }) => {
           leftMouseX,
           bottomMouseY
         );
-        const regionMouseTopRight = ctx.region.mouseToRegion(ctx.canvas, rightMouseX, topMouseY);
+        const regionMouseTopRight = ctx.region.mouseToRegion(
+          ctx.canvas,
+          rightMouseX,
+          topMouseY
+        );
         const bottomLeft = {
           x: regionMouseBottomLeft.regionMouseX,
           y: regionMouseBottomLeft.regionMouseY,

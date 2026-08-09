@@ -36,7 +36,8 @@ export const configureUI = (deps) => {
   );
 
   return {
-    presentBookmarkModal: (bookmark) => invokeAction("presentBookmarkModal", bookmark),
+    presentBookmarkModal: (bookmark) =>
+      invokeAction("presentBookmarkModal", bookmark),
     presentManageBookmarksModal: (bookmarks) =>
       invokeAction("presentManageBookmarksModal", bookmarks),
   };

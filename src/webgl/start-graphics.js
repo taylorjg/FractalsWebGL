@@ -6,7 +6,10 @@ import { configureBookmarkStore } from "@app/storage/bookmarks";
 import { startAutoMode } from "@app/auto-mode/auto-mode";
 import { configureInput } from "@app/input";
 import { createAppContext } from "./app-context";
-import { createWindowResizeHandler, setCanvasAndViewportSize } from "./canvas-size";
+import {
+  createWindowResizeHandler,
+  setCanvasAndViewportSize,
+} from "./canvas-size";
 import { loadColourMaps } from "./colour-maps";
 import { switchToBookmark } from "./configuration";
 import { initialiseWebGL } from "./context";
@@ -41,14 +44,19 @@ export const startGraphics = (queryParamOptionsArg) => {
     onModalClose,
   } = configureBookmarkStore(ctx);
 
-  const { render, hideConfigurationSummary, showConfigurationSummary, updateConfigurationSummary } =
-    configureRenderer(ctx, { createBookmark });
+  const {
+    render,
+    hideConfigurationSummary,
+    showConfigurationSummary,
+    updateConfigurationSummary,
+  } = configureRenderer(ctx, { createBookmark });
 
   ctx.thumbnail = configureThumbnail({
     gl: ctx.gl,
     createBookmark,
     switchToBookmark: (bookmark) => switchToBookmark(ctx, bookmark),
-    setCanvasAndViewportSize: (width, height) => setCanvasAndViewportSize(ctx, width, height),
+    setCanvasAndViewportSize: (width, height) =>
+      setCanvasAndViewportSize(ctx, width, height),
     render,
   });
 
@@ -90,7 +98,9 @@ export const startGraphics = (queryParamOptionsArg) => {
     attachInputListeners();
 
     loadBookmarks();
-    ctx.nextBookmarkId = ctx.bookmarks.size ? Math.max(...ctx.bookmarks.keys()) + 1 : 0;
+    ctx.nextBookmarkId = ctx.bookmarks.size
+      ? Math.max(...ctx.bookmarks.keys()) + 1
+      : 0;
     switchToBookmark(ctx, C.INITIAL_BOOKMARK);
     setCanvasAndViewportSize(ctx);
     render();

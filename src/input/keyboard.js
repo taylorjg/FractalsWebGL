@@ -79,7 +79,9 @@ export const configureKeyboard = (
         C.MAX_ITERATIONS_MANUAL,
         ctx.currentMaxIterations + delta
       );
-      makeConfigurationChanges(ctx, { maxIterations: ctx.currentMaxIterations });
+      makeConfigurationChanges(ctx, {
+        maxIterations: ctx.currentMaxIterations,
+      });
       render();
       return;
     }

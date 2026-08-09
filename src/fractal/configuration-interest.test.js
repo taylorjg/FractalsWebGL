@@ -23,7 +23,10 @@ const pixelsFromIterations = (iterations, width) => {
 
 describe("analyzeIterationPixels", () => {
   it("rejects a flat frame dominated by one iteration", () => {
-    const { pixels, width, height } = pixelsFromIterations(Array(64).fill(128), 8);
+    const { pixels, width, height } = pixelsFromIterations(
+      Array(64).fill(128),
+      8
+    );
     const analysis = analyzeIterationPixels(pixels, 128, width, height);
 
     expect(analysis.boundaryFraction).toBe(0);
@@ -33,7 +36,11 @@ describe("analyzeIterationPixels", () => {
   });
 
   it("rejects mostly interior and exterior with a thin boundary", () => {
-    const iterations = [...Array(45).fill(0), ...Array(5).fill(40), ...Array(45).fill(128)];
+    const iterations = [
+      ...Array(45).fill(0),
+      ...Array(5).fill(40),
+      ...Array(45).fill(128),
+    ];
     const { pixels, width, height } = pixelsFromIterations(iterations, 10);
     const analysis = analyzeIterationPixels(pixels, 128, width, height);
 
@@ -43,7 +50,10 @@ describe("analyzeIterationPixels", () => {
 
   it("accepts a boundary-rich distribution with visible edges", () => {
     const width = 8;
-    const iterations = Array.from({ length: 64 }, (_, index) => 8 + (index % 24));
+    const iterations = Array.from(
+      { length: 64 },
+      (_, index) => 8 + (index % 24)
+    );
     const { pixels, height } = pixelsFromIterations(iterations, width);
     const analysis = analyzeIterationPixels(pixels, 128, width, height);
 
@@ -65,7 +75,9 @@ describe("analyzeIterationPixels", () => {
     expect(analysis.boundaryFraction).toBe(0.25);
     expect(analysis.exteriorFraction).toBe(0.48);
     expect(isInterestingDistribution(analysis)).toBe(true);
-    expect(isInterestingDistribution(analysis, FINAL_INTEREST_THRESHOLDS)).toBe(false);
+    expect(isInterestingDistribution(analysis, FINAL_INTEREST_THRESHOLDS)).toBe(
+      false
+    );
   });
 
   it("rejects a mostly interior final frame even when the initial check would pass", () => {
@@ -80,6 +92,8 @@ describe("analyzeIterationPixels", () => {
     expect(analysis.boundaryFraction).toBe(0.25);
     expect(analysis.interiorFraction).toBe(0.5);
     expect(isInterestingDistribution(analysis)).toBe(true);
-    expect(isInterestingDistribution(analysis, FINAL_INTEREST_THRESHOLDS)).toBe(false);
+    expect(isInterestingDistribution(analysis, FINAL_INTEREST_THRESHOLDS)).toBe(
+      false
+    );
   });
 });

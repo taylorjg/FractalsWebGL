@@ -27,7 +27,12 @@ export const encodeIterationPixel = (iteration) => {
   return [lo, hi, 0, 255];
 };
 
-export const analyzeIterationPixels = (pixels, maxIterations, width, height) => {
+export const analyzeIterationPixels = (
+  pixels,
+  maxIterations,
+  width,
+  height
+) => {
   const pixelCount = pixels.length / 4;
   const histogram = new Map();
   let boundaryCount = 0;
@@ -83,7 +88,8 @@ export const analyzeIterationPixels = (pixels, maxIterations, width, height) => 
   }
 
   const maxBinFraction = maxBinCount / pixelCount;
-  const normalizedEntropy = uniqueIterations > 1 ? entropy / Math.log2(uniqueIterations) : 0;
+  const normalizedEntropy =
+    uniqueIterations > 1 ? entropy / Math.log2(uniqueIterations) : 0;
 
   return {
     uniqueIterations,
@@ -98,7 +104,9 @@ export const analyzeIterationPixels = (pixels, maxIterations, width, height) => 
 
 export const scoreDistribution = (analysis) => {
   const balance =
-    1 - Math.abs(analysis.exteriorFraction - 0.12) - Math.abs(analysis.interiorFraction - 0.12);
+    1 -
+    Math.abs(analysis.exteriorFraction - 0.12) -
+    Math.abs(analysis.interiorFraction - 0.12);
 
   return (
     analysis.boundaryFraction * 2 +
@@ -110,9 +118,13 @@ export const scoreDistribution = (analysis) => {
 };
 
 export const scoreCandidate = (initialAnalysis, finalAnalysis) =>
-  scoreDistribution(initialAnalysis) * 0.35 + scoreDistribution(finalAnalysis) * 0.65;
+  scoreDistribution(initialAnalysis) * 0.35 +
+  scoreDistribution(finalAnalysis) * 0.65;
 
-export const isInterestingDistribution = (analysis, thresholds = INTEREST_THRESHOLDS) => {
+export const isInterestingDistribution = (
+  analysis,
+  thresholds = INTEREST_THRESHOLDS
+) => {
   const passesCoreChecks =
     analysis.boundaryFraction >= thresholds.MIN_BOUNDARY_FRACTION &&
     analysis.maxBinFraction <= thresholds.MAX_DOMINANT_BIN_FRACTION &&

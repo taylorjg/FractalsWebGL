@@ -80,7 +80,9 @@ export const UiController = ({
 
   const handleDelete = (selectedBookmark) => {
     deleteBookmark(selectedBookmark);
-    setBookmarks((current) => current.filter((item) => item.id !== selectedBookmark.id));
+    setBookmarks((current) =>
+      current.filter((item) => item.id !== selectedBookmark.id)
+    );
   };
 
   return (

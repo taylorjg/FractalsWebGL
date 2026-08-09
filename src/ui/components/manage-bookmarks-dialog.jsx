@@ -18,18 +18,31 @@ import { thumbnailStyle } from "@app/ui/theme";
 
 const THUMBNAIL_SIZE = 64;
 
-const BookmarkRow = ({ bookmark, renderThumbnail, onSwitchTo, onEdit, onDelete }) => {
+const BookmarkRow = ({
+  bookmark,
+  renderThumbnail,
+  onSwitchTo,
+  onEdit,
+  onDelete,
+}) => {
   const thumbnailCanvasRef = useRef(null);
 
   useEffect(() => {
     if (!thumbnailCanvasRef.current) return;
     const pixels = renderThumbnail(THUMBNAIL_SIZE, THUMBNAIL_SIZE, bookmark);
-    drawThumbnail(pixels, thumbnailCanvasRef.current, THUMBNAIL_SIZE, THUMBNAIL_SIZE);
+    drawThumbnail(
+      pixels,
+      thumbnailCanvasRef.current,
+      THUMBNAIL_SIZE,
+      THUMBNAIL_SIZE
+    );
   }, [bookmark, renderThumbnail]);
 
   return (
     <TableRow>
-      <TableCell sx={{ width: THUMBNAIL_SIZE + 16, whiteSpace: "nowrap", px: 1 }}>
+      <TableCell
+        sx={{ width: THUMBNAIL_SIZE + 16, whiteSpace: "nowrap", px: 1 }}
+      >
         <canvas
           ref={thumbnailCanvasRef}
           width={THUMBNAIL_SIZE}
@@ -48,13 +61,27 @@ const BookmarkRow = ({ bookmark, renderThumbnail, onSwitchTo, onEdit, onDelete }
       >
         {bookmark.name}
       </TableCell>
-      <TableCell align="center" sx={{ width: 48, whiteSpace: "nowrap", px: 0.5 }}>
-        <IconButton aria-label="Edit bookmark" onClick={() => onEdit(bookmark)} size="small">
+      <TableCell
+        align="center"
+        sx={{ width: 48, whiteSpace: "nowrap", px: 0.5 }}
+      >
+        <IconButton
+          aria-label="Edit bookmark"
+          onClick={() => onEdit(bookmark)}
+          size="small"
+        >
           <EditIcon fontSize="small" />
         </IconButton>
       </TableCell>
-      <TableCell align="center" sx={{ width: 48, whiteSpace: "nowrap", px: 0.5 }}>
-        <IconButton aria-label="Delete bookmark" onClick={() => onDelete(bookmark)} size="small">
+      <TableCell
+        align="center"
+        sx={{ width: 48, whiteSpace: "nowrap", px: 0.5 }}
+      >
+        <IconButton
+          aria-label="Delete bookmark"
+          onClick={() => onDelete(bookmark)}
+          size="small"
+        >
           <DeleteIcon fontSize="small" />
         </IconButton>
       </TableCell>

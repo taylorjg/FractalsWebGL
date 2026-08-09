@@ -35,7 +35,12 @@ export const configureOverlay = ({ fractalSets, colourMaps }) => {
   };
 
   const clearSelectionRegion = () => {
-    canvasOverlayCtx2d.clearRect(0, 0, canvasOverlay.width, canvasOverlay.height);
+    canvasOverlayCtx2d.clearRect(
+      0,
+      0,
+      canvasOverlay.width,
+      canvasOverlay.height
+    );
   };
 
   const formatCoords = ({ x, y }) => {

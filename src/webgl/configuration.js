@@ -7,7 +7,14 @@ export const bindFractalVertexState = (ctx) => {
   }
 
   gl.bindBuffer(gl.ARRAY_BUFFER, currentFractalSet.vertexPositionBuffer);
-  gl.vertexAttribPointer(currentFractalSet.aVertexPosition, 2, gl.FLOAT, false, 0, 0);
+  gl.vertexAttribPointer(
+    currentFractalSet.aVertexPosition,
+    2,
+    gl.FLOAT,
+    false,
+    0,
+    0
+  );
   gl.enableVertexAttribArray(currentFractalSet.aVertexPosition);
 };
 
@@ -18,7 +25,11 @@ export const updateRegionUniforms = (ctx) => {
   }
 
   gl.uniform2f(currentFractalSet.uRegionCentre, region.centreX, region.centreY);
-  gl.uniform2f(currentFractalSet.uRegionHalfSize, region.width / 2, region.height / 2);
+  gl.uniform2f(
+    currentFractalSet.uRegionHalfSize,
+    region.width / 2,
+    region.height / 2
+  );
 };
 
 export const performRegionUpdate = (ctx, thunk) => {
@@ -29,7 +40,14 @@ export const performRegionUpdate = (ctx, thunk) => {
 // Some or all configuration values are being changed.
 export const makeConfigurationChanges = (
   ctx,
-  { fractalSetId, juliaConstant, colourMapId, maxIterations, regionBottomLeft, regionTopRight }
+  {
+    fractalSetId,
+    juliaConstant,
+    colourMapId,
+    maxIterations,
+    regionBottomLeft,
+    regionTopRight,
+  }
 ) => {
   const { gl, region, fractalSets, colourMaps, smoothColouring } = ctx;
 
@@ -61,10 +79,17 @@ export const makeConfigurationChanges = (
   bindFractalVertexState(ctx);
 
   const modelViewMatrix = glm.mat4.fromScaling(glm.mat4.create(), [1, -1, 1]);
-  gl.uniformMatrix4fv(ctx.currentFractalSet.uModelViewMatrix, false, modelViewMatrix);
+  gl.uniformMatrix4fv(
+    ctx.currentFractalSet.uModelViewMatrix,
+    false,
+    modelViewMatrix
+  );
   updateRegionUniforms(ctx);
 
-  gl.uniform1i(ctx.currentFractalSet.uColourMap, ctx.currentColourMap.textureUnit);
+  gl.uniform1i(
+    ctx.currentFractalSet.uColourMap,
+    ctx.currentColourMap.textureUnit
+  );
 
   gl.uniform2f(
     ctx.currentFractalSet.uJuliaConstant,

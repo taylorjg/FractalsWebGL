@@ -51,7 +51,9 @@ describe("auto-seeds", () => {
         minZoomSpeed: 0.05,
         maxZoomSpeed: 0.12,
       });
-      expect(halfWidthFromConfiguration(configuration)).toBeGreaterThan(AUTO_MIN_HALF_WIDTH - 1e-6);
+      expect(halfWidthFromConfiguration(configuration)).toBeGreaterThan(
+        AUTO_MIN_HALF_WIDTH - 1e-6
+      );
     }
   });
 
