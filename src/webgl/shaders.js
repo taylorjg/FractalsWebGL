@@ -35,10 +35,10 @@ const initialiseShadersHelper = (
   name,
   vertexShaderSource,
   fragmentShaderSource,
-  loopShaderSource
+  loopShaderSource = null
 ) => {
   const { gl } = ctx;
-  const commonShaderSources = [loopShaderSource];
+  const commonShaderSources = loopShaderSource ? [loopShaderSource] : [];
   const vertexShader = makeShader(gl, vertexShaderSource, gl.VERTEX_SHADER);
   const fragmentShader = makeShader(
     gl,
@@ -117,6 +117,13 @@ export const initialiseShaders = (ctx) => {
     shaderSources.julia,
     shaderSources.loop
   );
+  const barnsleySet = initialiseShadersHelper(
+    ctx,
+    "Barnsley",
+    shaderSources.vertex,
+    shaderSources.barnsley
+  );
   ctx.fractalSets.set(C.FRACTAL_SET_ID_MANDELBROT, mandelbrotSet);
   ctx.fractalSets.set(C.FRACTAL_SET_ID_JULIA, juliaSet);
+  ctx.fractalSets.set(C.FRACTAL_SET_ID_BARNSLEY, barnsleySet);
 };

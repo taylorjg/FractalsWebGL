@@ -1,4 +1,6 @@
 import * as glm from "gl-matrix";
+import * as C from "@app/fractal/constants";
+import * as U from "@app/fractal/utils";
 
 export const bindFractalVertexState = (ctx) => {
   const { gl, currentFractalSet } = ctx;
@@ -62,7 +64,7 @@ export const makeConfigurationChanges = (
     ctx.currentFractalSet = fractalSets.get(fractalSetId);
   }
 
-  if (juliaConstant) {
+  if (juliaConstant && C.isEscapeTimeFractal(ctx.currentFractalSetId)) {
     ctx.currentJuliaConstant = juliaConstant;
   }
 
@@ -72,7 +74,11 @@ export const makeConfigurationChanges = (
   }
 
   if (Number.isInteger(maxIterations)) {
-    ctx.currentMaxIterations = maxIterations;
+    ctx.currentMaxIterations = U.clamp(
+      C.MIN_ITERATIONS,
+      C.getMaxIterations(ctx.currentFractalSetId),
+      maxIterations
+    );
   }
 
   gl.useProgram(ctx.currentFractalSet.program);
@@ -91,13 +97,15 @@ export const makeConfigurationChanges = (
     ctx.currentColourMap.textureUnit
   );
 
-  gl.uniform2f(
-    ctx.currentFractalSet.uJuliaConstant,
-    ctx.currentJuliaConstant.x,
-    ctx.currentJuliaConstant.y
-  );
+  if (C.isEscapeTimeFractal(ctx.currentFractalSetId)) {
+    gl.uniform2f(
+      ctx.currentFractalSet.uJuliaConstant,
+      ctx.currentJuliaConstant.x,
+      ctx.currentJuliaConstant.y
+    );
+    gl.uniform1i(ctx.currentFractalSet.uSmoothColouring, smoothColouring);
+  }
 
-  gl.uniform1i(ctx.currentFractalSet.uSmoothColouring, smoothColouring);
   gl.uniform1i(ctx.currentFractalSet.uReturnIteration, false);
   gl.uniform1i(ctx.currentFractalSet.uMaxIterations, ctx.currentMaxIterations);
 };

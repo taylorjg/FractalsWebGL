@@ -22,20 +22,31 @@ I have deployed this web app to `gh-pages`. Use one of these links to launch it:
   - _Re-centre on the clicked point (maintain current zoom level)._
 - Alt + Left Click
   - _Toggle between the Mandelbrot Set and the Julia Set (initally, Mandelbrot Set). When switching to the Julia Set, the clicked point provides the value for `c`._
+  - _From the Barnsley fern, Alt + Left Click switches back to the Mandelbrot Set._
 - Left Click and drag around
   - _Pan around the region._
 - `+`
   - _Increase the zoom level._
 - `-`
   - _Decrease the zoom level._
+- `f`
+  - _Cycle fractal type: Mandelbrot Set → Julia Set → Barnsley fern → Mandelbrot Set._
+  - _Each cycle switches to that fractal's home view._
 - `h`
-  - _Home - switch to the Mandelbrot Set, reset the region (bottom left: `(-2.25, -1.5)`, top right: `(0.75, 1.5)`) and restore the default colour map ('jet')._
+  - _Home - reset to the home view for the current fractal type._
+  - _Mandelbrot home: bottom left `(-2.25, -1.5)`, top right `(0.75, 1.5)`, default colour map ('jet')._
+  - _Julia home: `c = (-0.7, 0.27015)`, region `(-1.5, -1.5)` to `(1.5, 1.5)`._
+  - _Barnsley fern home: bottom left `(-2.5, 0)`, top right `(2.5, 10)`, 16384 IFS steps (default), default colour map ('jet')._
 - `c`
   - _Cycle forwards through the colour maps._
 - SHIFT + `c`
   - _Cycle backwards through the colour maps._
+- `i`
+  - _Increase max iterations (Mandelbrot/Julia, up to 4096) or IFS steps per pixel (Barnsley fern, up to 65536 — high values are very GPU-heavy)._
+- SHIFT + `i`
+  - _Decrease max iterations / IFS steps (step size 16 for escape-time fractals, 4096 for Barnsley)._
 - `s`
-  - _Toggle on/off the use of smooth colouring_
+  - _Toggle on/off smooth colouring (Mandelbrot and Julia only)_
   - _See [Renormalizing the Mandelbrot Escape](http://linas.org/art-gallery/escape/escape.html)_
 - `v`
   - _Toggle on/off a summary of the current configuration at the bottom of the screen_
@@ -59,4 +70,4 @@ These are the main areas of focus for future improvements/additions:
 - [ ] Refactoring/splitting up the code into modules/classes
 - [ ] Gestures/touchscreen support/responsive UI
 - [x] Find random interesting regions using WebGL/UI thread instead of CPU/web worker
-- [ ] Support for other fractal sets
+- [x] Support for other fractal sets (Barnsley fern, manual mode)

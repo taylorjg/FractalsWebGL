@@ -7,6 +7,9 @@ import {
 import { setCanvasAndViewportSize } from "@app/webgl/canvas-size";
 
 export const configurePointer = (ctx, { render }) => {
+  const panDeltaY = (mouseDeltaY) =>
+    C.isBarnsleyFractal(ctx.currentFractalSetId) ? -mouseDeltaY : mouseDeltaY;
+
   const onDragStart = (e) => {
     if (e.metaKey) return;
     const [mouseX, mouseY] = e.initial;
@@ -19,7 +22,7 @@ export const configurePointer = (ctx, { render }) => {
       const [mouseX, mouseY] = e.values;
       const mouseDeltaX = mouseX - ctx.lastMousePt.mouseX;
       const mouseDeltaY = mouseY - ctx.lastMousePt.mouseY;
-      ctx.region.drag(ctx.canvas, mouseDeltaX, mouseDeltaY);
+      ctx.region.drag(ctx.canvas, mouseDeltaX, panDeltaY(mouseDeltaY));
       ctx.lastMousePt = { mouseX, mouseY };
     });
     render();
@@ -105,6 +108,13 @@ export const configurePointer = (ctx, { render }) => {
         }
 
         case C.FRACTAL_SET_ID_JULIA:
+          makeConfigurationChanges(ctx, {
+            fractalSetId: C.FRACTAL_SET_ID_MANDELBROT,
+          });
+          render();
+          return;
+
+        case C.FRACTAL_SET_ID_BARNSLEY:
           makeConfigurationChanges(ctx, {
             fractalSetId: C.FRACTAL_SET_ID_MANDELBROT,
           });

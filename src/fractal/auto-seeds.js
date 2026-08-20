@@ -194,6 +194,7 @@ export const createExploratoryMandelbrotConfiguration = (
 };
 
 export const createRandomAutoConfiguration = (colourMapIds, motionOptions) => {
+  // Barnsley fern is manual-mode only; auto mode sticks to escape-time fractals.
   const colourMapId = pickAutoColourMapId(colourMapIds);
   const motion = createAutoMotion(motionOptions);
   const roll = Math.random();

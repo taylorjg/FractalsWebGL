@@ -40,6 +40,9 @@ export const BookmarkDialog = ({
   const hasId = bookmark && Number.isInteger(bookmark.id);
   const title = hasId ? "Edit Bookmark" : "Create Bookmark";
   const isJulia = bookmark?.fractalSetId === C.FRACTAL_SET_ID_JULIA;
+  const isBarnsley = bookmark?.fractalSetId === C.FRACTAL_SET_ID_BARNSLEY;
+  const maxIterationsLimit = C.getMaxIterations(bookmark?.fractalSetId ?? 0);
+  const iterationStep = C.getIterationDelta(bookmark?.fractalSetId ?? 0);
 
   const drawThumbnailToCanvas = useCallback(
     (canvas) => {
@@ -155,14 +158,16 @@ export const BookmarkDialog = ({
             </FormControl>
 
             <Box sx={{ minWidth: 180 }}>
-              <Typography variant="subtitle2">Max Iterations</Typography>
+              <Typography variant="subtitle2">
+                {isBarnsley ? "IFS Steps" : "Max Iterations"}
+              </Typography>
               <Typography variant="body2" color="text.secondary" gutterBottom>
                 {maxIterations}
               </Typography>
               <Slider
                 min={C.MIN_ITERATIONS}
-                max={C.MAX_ITERATIONS_MANUAL}
-                step={C.DELTA_ITERATIONS}
+                max={maxIterationsLimit}
+                step={iterationStep}
                 value={maxIterations}
                 onChange={(_e, value) => setMaxIterations(value)}
                 valueLabelDisplay="auto"

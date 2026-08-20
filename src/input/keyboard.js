@@ -55,7 +55,16 @@ export const configureKeyboard = (
     }
 
     if (e.key === "h") {
-      switchToBookmark(ctx, C.HOME_BOOKMARK);
+      switchToBookmark(ctx, C.getHomeBookmark(ctx.currentFractalSetId));
+      setCanvasAndViewportSize(ctx);
+      render();
+      return;
+    }
+
+    if (e.key === "f" || e.key === "F") {
+      e.preventDefault();
+      const nextFractalSetId = C.cycleFractalSetId(ctx.currentFractalSetId);
+      switchToBookmark(ctx, C.getHomeBookmark(nextFractalSetId));
       setCanvasAndViewportSize(ctx);
       render();
       return;
@@ -73,10 +82,11 @@ export const configureKeyboard = (
     }
 
     if (e.key === "i" || e.key === "I") {
-      const delta = C.DELTA_ITERATIONS * (e.shiftKey ? -1 : +1);
+      const delta =
+        C.getIterationDelta(ctx.currentFractalSetId) * (e.shiftKey ? -1 : +1);
       ctx.currentMaxIterations = U.clamp(
         C.MIN_ITERATIONS,
-        C.MAX_ITERATIONS_MANUAL,
+        C.getMaxIterations(ctx.currentFractalSetId),
         ctx.currentMaxIterations + delta
       );
       makeConfigurationChanges(ctx, {
@@ -87,6 +97,9 @@ export const configureKeyboard = (
     }
 
     if (e.key === "s") {
+      if (!C.isEscapeTimeFractal(ctx.currentFractalSetId)) {
+        return;
+      }
       ctx.smoothColouring = !ctx.smoothColouring;
       makeConfigurationChanges(ctx, {});
       render();

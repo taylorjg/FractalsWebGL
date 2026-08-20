@@ -52,6 +52,10 @@ export const configureOverlay = ({ fractalSets, colourMaps }) => {
       configuration.fractalSetId === C.FRACTAL_SET_ID_JULIA
         ? formatCoords(configuration.juliaConstant)
         : "";
+    const iterationLabel =
+      configuration.fractalSetId === C.FRACTAL_SET_ID_BARNSLEY
+        ? `${configuration.maxIterations} steps`
+        : `${configuration.maxIterations}`;
     const bottomLeftFormatted = formatCoords(configuration.regionBottomLeft);
     const topRightFormatted = formatCoords(configuration.regionTopRight);
     const region = `${bottomLeftFormatted}, ${topRightFormatted}`;
@@ -60,7 +64,7 @@ export const configureOverlay = ({ fractalSets, colourMaps }) => {
       juliaConstant,
       region,
       colourMaps.get(configuration.colourMapId)?.name ?? "unknown",
-      configuration.maxIterations,
+      iterationLabel,
     ];
     configurationSummary.innerText = bits.filter(Boolean).join(" | ");
   };

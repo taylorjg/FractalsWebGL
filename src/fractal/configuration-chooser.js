@@ -1,4 +1,5 @@
 import { Region } from "@app/fractal/region";
+import * as C from "@app/fractal/constants";
 import { createRandomAutoConfiguration } from "@app/fractal/auto-seeds";
 import {
   analyzeIterationPixels,
@@ -46,6 +47,10 @@ export const configureConfigurationChooser = ({
     sampleHeight,
     thresholds
   ) => {
+    if (!C.isEscapeTimeFractal(configuration.fractalSetId)) {
+      return { analysis: null, passes: false };
+    }
+
     const pixels = renderThumbnail(
       sampleWidth,
       sampleHeight,
