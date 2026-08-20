@@ -103,7 +103,11 @@ void main(void) {
   float zoomCompensation = (REF_PIXEL_SIZE * REF_PIXEL_SIZE) / pixelArea;
   float adjustedAccum = accum * zoomCompensation;
 
-  float s = clamp(log(1.0 + adjustedAccum) / log(1.0 + 12.0), 0.0, 1.0);
-  s = pow(s, 1.2);
-  fragColor = texture(uColourMap, vec2(s, 0.5));
+  float s = clamp(log(1.0 + adjustedAccum) / log(1.0 + 8.0), 0.0, 1.0);
+  s = pow(s, 0.9);
+
+  // Muted blue-green backdrop; brighter spring-green fronds.
+  const vec3 background = vec3(0.11, 0.16, 0.14);
+  const vec3 fernGreen = vec3(0.35, 0.78, 0.38);
+  fragColor = vec4(mix(background, fernGreen, s), 1.0);
 }
