@@ -1,4 +1,7 @@
-import * as C from "@app/fractal/constants";
+import {
+  FRACTAL_DESCRIPTORS,
+  FRACTAL_KIND,
+} from "@app/fractal/fractal-descriptors";
 import { shaderSources } from "./shader-sources";
 
 const MARKER = "// INSERT-COMMON-CODE-HERE\n";
@@ -103,27 +106,27 @@ const initialiseShadersHelper = (
 };
 
 export const initialiseShaders = (ctx) => {
-  const mandelbrotSet = initialiseShadersHelper(
-    ctx,
-    "Mandelbrot",
-    shaderSources.vertex,
-    shaderSources.mandelbrot,
-    shaderSources.loop
-  );
-  const juliaSet = initialiseShadersHelper(
-    ctx,
-    "Julia",
-    shaderSources.vertex,
-    shaderSources.julia,
-    shaderSources.loop
-  );
-  const barnsleySet = initialiseShadersHelper(
-    ctx,
-    "Barnsley",
-    shaderSources.vertex,
-    shaderSources.barnsley
-  );
-  ctx.fractalSets.set(C.FRACTAL_SET_ID_MANDELBROT, mandelbrotSet);
-  ctx.fractalSets.set(C.FRACTAL_SET_ID_JULIA, juliaSet);
-  ctx.fractalSets.set(C.FRACTAL_SET_ID_BARNSLEY, barnsleySet);
+  for (const descriptor of FRACTAL_DESCRIPTORS) {
+    if (descriptor.kind === FRACTAL_KIND.ESCAPE_TIME) {
+      const fractalSet = initialiseShadersHelper(
+        ctx,
+        descriptor.name,
+        shaderSources.vertex,
+        shaderSources[descriptor.shaderKey],
+        shaderSources.loop
+      );
+      ctx.fractalSets.set(descriptor.id, fractalSet);
+      continue;
+    }
+
+    if (descriptor.kind === FRACTAL_KIND.IFS) {
+      const fractalSet = initialiseShadersHelper(
+        ctx,
+        descriptor.name,
+        shaderSources.vertex,
+        shaderSources[descriptor.shaderKey]
+      );
+      ctx.fractalSets.set(descriptor.id, fractalSet);
+    }
+  }
 };

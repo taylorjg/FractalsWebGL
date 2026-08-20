@@ -48,7 +48,9 @@ export const configureOverlay = ({ fractalSets, colourMaps }) => {
   };
 
   const setConfigurationSummaryText = (configuration) => {
-    const juliaConstant = C.showJuliaConstantInSummary(configuration.fractalSetId)
+    const juliaConstant = C.showJuliaConstantInSummary(
+      configuration.fractalSetId
+    )
       ? formatCoords(configuration.juliaConstant)
       : "";
     const iterationLabel = C.formatIterationSummary(

@@ -24,13 +24,32 @@ const ESCAPE_TIME_ITERATIONS = {
   summarySuffix: "",
 };
 
-const BARNSLEY_ITERATIONS = {
+const IFS_ITERATIONS = {
   min: MIN_ITERATIONS,
   default: 16384,
   max: 65536,
   step: 4096,
   controlLabel: "IFS Steps",
   summarySuffix: " steps",
+};
+
+const IFS_VIEW = {
+  flipPanY: true,
+  reflectRegionY: true,
+};
+
+const IFS_FEATURES = {
+  smoothColouring: false,
+  juliaConstant: false,
+  showJuliaConstantInSummary: false,
+  colourMapCycle: true,
+  autoMode: false,
+  interestScoring: false,
+};
+
+const IFS_ALT_CLICK = {
+  action: ALT_CLICK_ACTION.TO_FRACTAL,
+  fractalSetId: 0,
 };
 
 export const FRACTAL_DESCRIPTORS = [
@@ -111,14 +130,13 @@ export const FRACTAL_DESCRIPTORS = [
     home: {
       juliaConstant: { x: 0, y: 0 },
       colourMapId: 0,
-      regionBottomLeft: { x: -2.5, y: 0 },
-      regionTopRight: { x: 2.5, y: 10 },
-      maxIterations: BARNSLEY_ITERATIONS.default,
+      regionBottomLeft: { x: -3.0, y: -0.75 },
+      regionTopRight: { x: 3.0, y: 10.75 },
+      maxIterations: IFS_ITERATIONS.default,
     },
-    iterations: BARNSLEY_ITERATIONS,
+    iterations: IFS_ITERATIONS,
     view: {
-      flipPanY: true,
-      reflectRegionY: true,
+      ...IFS_VIEW,
       refPixelSize: 10 / 1080,
     },
     colouring: {
@@ -127,18 +145,60 @@ export const FRACTAL_DESCRIPTORS = [
       foreground: [0.35, 0.78, 0.38],
       toneCurve: { logBase: 8, gamma: 0.9 },
     },
-    features: {
-      smoothColouring: false,
-      juliaConstant: false,
-      showJuliaConstantInSummary: false,
-      colourMapCycle: true,
-      autoMode: false,
-      interestScoring: false,
+    features: IFS_FEATURES,
+    altClick: IFS_ALT_CLICK,
+  },
+  {
+    id: 3,
+    name: "Sierpinski",
+    kind: FRACTAL_KIND.IFS,
+    shaderKey: "sierpinski",
+    home: {
+      juliaConstant: { x: 0, y: 0 },
+      colourMapId: 0,
+      regionBottomLeft: { x: -0.05, y: -0.05 },
+      regionTopRight: { x: 1.05, y: 0.95 },
+      maxIterations: IFS_ITERATIONS.default,
     },
-    altClick: {
-      action: ALT_CLICK_ACTION.TO_FRACTAL,
-      fractalSetId: 0,
+    iterations: IFS_ITERATIONS,
+    view: {
+      ...IFS_VIEW,
+      refPixelSize: 1 / 1080,
     },
+    colouring: {
+      mode: COLOUR_MODE.FIXED,
+      background: [0.08, 0.1, 0.18],
+      foreground: [0.95, 0.55, 0.15],
+      toneCurve: { logBase: 8, gamma: 0.9 },
+    },
+    features: IFS_FEATURES,
+    altClick: IFS_ALT_CLICK,
+  },
+  {
+    id: 4,
+    name: "Dragon",
+    kind: FRACTAL_KIND.IFS,
+    shaderKey: "dragon",
+    home: {
+      juliaConstant: { x: 0, y: 0 },
+      colourMapId: 0,
+      regionBottomLeft: { x: -1.3, y: -1.7 },
+      regionTopRight: { x: 3.3, y: 1.3 },
+      maxIterations: IFS_ITERATIONS.default,
+    },
+    iterations: IFS_ITERATIONS,
+    view: {
+      ...IFS_VIEW,
+      refPixelSize: 1.2 / 1080,
+    },
+    colouring: {
+      mode: COLOUR_MODE.FIXED,
+      background: [0.1, 0.1, 0.12],
+      foreground: [0.92, 0.9, 0.82],
+      toneCurve: { logBase: 8, gamma: 0.9 },
+    },
+    features: IFS_FEATURES,
+    altClick: IFS_ALT_CLICK,
   },
 ];
 
@@ -153,6 +213,8 @@ export const FRACTAL_SET_IDS = FRACTAL_DESCRIPTORS.map(
 export const FRACTAL_SET_ID_MANDELBROT = 0;
 export const FRACTAL_SET_ID_JULIA = 1;
 export const FRACTAL_SET_ID_BARNSLEY = 2;
+export const FRACTAL_SET_ID_SIERPINSKI = 3;
+export const FRACTAL_SET_ID_DRAGON = 4;
 
 export const getFractal = (fractalSetId) =>
   fractalById.get(fractalSetId) ?? fractalById.get(FRACTAL_SET_ID_MANDELBROT);
@@ -210,15 +272,31 @@ export const supportsInterestScoring = (fractalSetId) =>
 export const shouldFlipPanY = (fractalSetId) =>
   getFractal(fractalSetId).view.flipPanY;
 
-export const HOME_BOOKMARK = buildHomeBookmark(getFractal(FRACTAL_SET_ID_MANDELBROT));
-export const JULIA_HOME_BOOKMARK = buildHomeBookmark(getFractal(FRACTAL_SET_ID_JULIA));
+export const HOME_BOOKMARK = buildHomeBookmark(
+  getFractal(FRACTAL_SET_ID_MANDELBROT)
+);
+export const JULIA_HOME_BOOKMARK = buildHomeBookmark(
+  getFractal(FRACTAL_SET_ID_JULIA)
+);
 export const BARNSLEY_HOME_BOOKMARK = buildHomeBookmark(
   getFractal(FRACTAL_SET_ID_BARNSLEY)
+);
+export const SIERPINSKI_HOME_BOOKMARK = buildHomeBookmark(
+  getFractal(FRACTAL_SET_ID_SIERPINSKI)
+);
+export const DRAGON_HOME_BOOKMARK = buildHomeBookmark(
+  getFractal(FRACTAL_SET_ID_DRAGON)
 );
 
 export const INITIAL_ITERATIONS = ESCAPE_TIME_ITERATIONS.default;
 export const MAX_ITERATIONS_MANUAL = ESCAPE_TIME_ITERATIONS.max;
-export const MAX_ITERATIONS_BARNSLEY = BARNSLEY_ITERATIONS.max;
+export const MAX_ITERATIONS_IFS = IFS_ITERATIONS.max;
+export const MAX_ITERATIONS_BARNSLEY = IFS_ITERATIONS.max;
 export const DELTA_ITERATIONS = ESCAPE_TIME_ITERATIONS.step;
-export const DELTA_ITERATIONS_BARNSLEY = BARNSLEY_ITERATIONS.step;
-export const BARNSLEY_INITIAL_ITERATIONS = BARNSLEY_ITERATIONS.default;
+export const DELTA_ITERATIONS_IFS = IFS_ITERATIONS.step;
+export const DELTA_ITERATIONS_BARNSLEY = IFS_ITERATIONS.step;
+export const BARNSLEY_INITIAL_ITERATIONS = IFS_ITERATIONS.default;
+export const IFS_INITIAL_ITERATIONS = IFS_ITERATIONS.default;
+
+export const isIfsFractal = (fractalSetId) =>
+  getFractal(fractalSetId).kind === FRACTAL_KIND.IFS;

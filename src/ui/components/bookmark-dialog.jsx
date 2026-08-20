@@ -160,7 +160,9 @@ export const BookmarkDialog = ({
             </FormControl>
 
             <Box sx={{ minWidth: 180 }}>
-              <Typography variant="subtitle2">{iterationControlLabel}</Typography>
+              <Typography variant="subtitle2">
+                {iterationControlLabel}
+              </Typography>
               <Typography variant="body2" color="text.secondary" gutterBottom>
                 {maxIterations}
               </Typography>

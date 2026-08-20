@@ -23,8 +23,8 @@ describe("constants", () => {
   });
 
   it("re-exports Barnsley home region bounds", () => {
-    expect(BARNSLEY_HOME_BOOKMARK.regionBottomLeft).toEqual({ x: -2.5, y: 0 });
-    expect(BARNSLEY_HOME_BOOKMARK.regionTopRight).toEqual({ x: 2.5, y: 10 });
+    expect(BARNSLEY_HOME_BOOKMARK.regionBottomLeft).toEqual({ x: -3.0, y: -0.75 });
+    expect(BARNSLEY_HOME_BOOKMARK.regionTopRight).toEqual({ x: 3.0, y: 10.75 });
     expect(BARNSLEY_HOME_BOOKMARK.fractalSetId).toBe(FRACTAL_SET_ID_BARNSLEY);
   });
 });
