@@ -47,7 +47,7 @@ export const configureConfigurationChooser = ({
     sampleHeight,
     thresholds
   ) => {
-    if (!C.isEscapeTimeFractal(configuration.fractalSetId)) {
+    if (!C.supportsInterestScoring(configuration.fractalSetId)) {
       return { analysis: null, passes: false };
     }
 

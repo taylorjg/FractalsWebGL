@@ -39,8 +39,10 @@ export const BookmarkDialog = ({
 
   const hasId = bookmark && Number.isInteger(bookmark.id);
   const title = hasId ? "Edit Bookmark" : "Create Bookmark";
-  const isJulia = bookmark?.fractalSetId === C.FRACTAL_SET_ID_JULIA;
-  const isBarnsley = bookmark?.fractalSetId === C.FRACTAL_SET_ID_BARNSLEY;
+  const isJulia = C.showJuliaConstantInSummary(bookmark?.fractalSetId ?? 0);
+  const iterationControlLabel = C.getIterationControlLabel(
+    bookmark?.fractalSetId ?? 0
+  );
   const maxIterationsLimit = C.getMaxIterations(bookmark?.fractalSetId ?? 0);
   const iterationStep = C.getIterationDelta(bookmark?.fractalSetId ?? 0);
 
@@ -158,9 +160,7 @@ export const BookmarkDialog = ({
             </FormControl>
 
             <Box sx={{ minWidth: 180 }}>
-              <Typography variant="subtitle2">
-                {isBarnsley ? "IFS Steps" : "Max Iterations"}
-              </Typography>
+              <Typography variant="subtitle2">{iterationControlLabel}</Typography>
               <Typography variant="body2" color="text.secondary" gutterBottom>
                 {maxIterations}
               </Typography>

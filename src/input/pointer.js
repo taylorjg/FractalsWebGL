@@ -1,5 +1,6 @@
 import { Gesture } from "@use-gesture/vanilla";
 import * as C from "@app/fractal/constants";
+import { ALT_CLICK_ACTION } from "@app/fractal/fractal-descriptors";
 import {
   makeConfigurationChanges,
   performRegionUpdate,
@@ -8,7 +9,7 @@ import { setCanvasAndViewportSize } from "@app/webgl/canvas-size";
 
 export const configurePointer = (ctx, { render }) => {
   const panDeltaY = (mouseDeltaY) =>
-    C.isBarnsleyFractal(ctx.currentFractalSetId) ? -mouseDeltaY : mouseDeltaY;
+    C.shouldFlipPanY(ctx.currentFractalSetId) ? -mouseDeltaY : mouseDeltaY;
 
   const onDragStart = (e) => {
     if (e.metaKey) return;
@@ -93,36 +94,25 @@ export const configurePointer = (ctx, { render }) => {
     }
 
     if (e.altKey) {
-      switch (ctx.currentFractalSetId) {
-        case C.FRACTAL_SET_ID_MANDELBROT: {
-          const juliaConstant = {
+      const { altClick } = C.getFractal(ctx.currentFractalSetId);
+
+      if (altClick.action === ALT_CLICK_ACTION.TO_JULIA_WITH_PICK) {
+        makeConfigurationChanges(ctx, {
+          fractalSetId: C.FRACTAL_SET_ID_JULIA,
+          juliaConstant: {
             x: regionMouseX,
             y: regionMouseY,
-          };
-          makeConfigurationChanges(ctx, {
-            fractalSetId: C.FRACTAL_SET_ID_JULIA,
-            juliaConstant,
-          });
-          render();
-          return;
-        }
+          },
+        });
+        render();
+        return;
+      }
 
-        case C.FRACTAL_SET_ID_JULIA:
-          makeConfigurationChanges(ctx, {
-            fractalSetId: C.FRACTAL_SET_ID_MANDELBROT,
-          });
-          render();
-          return;
-
-        case C.FRACTAL_SET_ID_BARNSLEY:
-          makeConfigurationChanges(ctx, {
-            fractalSetId: C.FRACTAL_SET_ID_MANDELBROT,
-          });
-          render();
-          return;
-
-        default:
-          return;
+      if (altClick.action === ALT_CLICK_ACTION.TO_FRACTAL) {
+        makeConfigurationChanges(ctx, {
+          fractalSetId: altClick.fractalSetId,
+        });
+        render();
       }
     }
   };

@@ -97,7 +97,7 @@ export const configureKeyboard = (
     }
 
     if (e.key === "s") {
-      if (!C.isEscapeTimeFractal(ctx.currentFractalSetId)) {
+      if (!C.supportsSmoothColouring(ctx.currentFractalSetId)) {
         return;
       }
       ctx.smoothColouring = !ctx.smoothColouring;
