@@ -22,6 +22,8 @@ void main(void) {
 
   vec2 p = vec2(0.0);
   float accum = 0.0;
+  float accum0 = 0.0;
+  float accum1 = 0.0;
   int step = 0;
 
   while (step < uMaxIterations) {
@@ -31,7 +33,15 @@ void main(void) {
     if (step >= BURN_IN) {
       vec2 delta = p - cellPos;
       float w = exp(-dot(delta, delta) * invSigmaSq);
-      accum += w * w;
+      float hit = w * w;
+      accum += hit;
+      if (IFS_DUAL_BRANCH > 0.5) {
+        if (transformIndex == 0) {
+          accum0 += hit;
+        } else {
+          accum1 += hit;
+        }
+      }
     }
 
     step++;
@@ -46,7 +56,14 @@ void main(void) {
   float zoomCompensation = (IFS_REF_PIXEL_SIZE * IFS_REF_PIXEL_SIZE) / pixelArea;
   float adjustedAccum = accum * zoomCompensation;
 
-  float s = clamp(log(1.0 + adjustedAccum) / log(1.0 + 8.0), 0.0, 1.0);
-  s = pow(s, 0.9);
-  fragColor = vec4(mix(IFS_BACKGROUND, IFS_FOREGROUND, s), 1.0);
+  float s = clamp(log(1.0 + adjustedAccum) / log(1.0 + IFS_LOG_BASE), 0.0, 1.0);
+  s = pow(s, IFS_GAMMA);
+
+  vec3 foreground = IFS_FOREGROUND;
+  if (IFS_DUAL_BRANCH > 0.5) {
+    float branchMix = accum0 / max(accum0 + accum1, 1e-6);
+    foreground = mix(IFS_BRANCH1, IFS_BRANCH0, branchMix);
+  }
+
+  fragColor = vec4(mix(IFS_BACKGROUND, foreground, s), 1.0);
 }

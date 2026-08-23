@@ -1,6 +1,11 @@
 const float IFS_REF_PIXEL_SIZE = 10.0 / 1080.0;
+const float IFS_DUAL_BRANCH = 0.0;
+const float IFS_LOG_BASE = 8.0;
+const float IFS_GAMMA = 0.9;
 const vec3 IFS_BACKGROUND = vec3(0.11, 0.16, 0.14);
 const vec3 IFS_FOREGROUND = vec3(0.35, 0.78, 0.38);
+const vec3 IFS_BRANCH0 = IFS_FOREGROUND;
+const vec3 IFS_BRANCH1 = IFS_FOREGROUND;
 
 vec2 applyTransform(vec2 p, int transformIndex) {
   if (transformIndex == 0) {
