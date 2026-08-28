@@ -24,7 +24,7 @@
     "globals": "^17.9.0",
     "prettier": "^3.9.6",
     "vite": "^8.1.5",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.11"
   },
   "scripts": {
     "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
